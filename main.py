@@ -215,7 +215,7 @@ def main_worker(args):
     time_stamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     if args.evaluate:
         args.results_dir = '/tmp'
-    if args.save is '':
+    if args.save == '':
         args.save = time_stamp
     save_path = os.path.join(args.results_dir, args.save)
 
@@ -236,7 +236,7 @@ def main_worker(args):
         os.makedirs(save_path)
 
     setup_logging(os.path.join(save_path, 'log.txt'),
-                  resume=args.resume is not '',
+                  resume=args.resume != '',
                   dummy=args.distributed and args.local_rank > 0)
 
     results_path = os.path.join(save_path, 'results')
@@ -259,12 +259,14 @@ def main_worker(args):
     dataset_type = 'imagenet' if args.dataset =='imagenet_calib' else args.dataset
     model_config = {'dataset': dataset_type}
 
-    if args.model_config is not '':
+    if args.model_config != '':
         if isinstance(args.model_config, dict):
             for k, v in args.model_config.items():
                 if k not in model_config.keys():
                     model_config[k] = v
         else:
+            #TODO: hard code config. should be removed.
+            args.model_config = "{'batch_norm': False}"
             args_dict = literal_eval(args.model_config)
             for k, v in args_dict.items():
                 model_config[k] = v
@@ -680,7 +682,8 @@ def main_worker(args):
             df.to_csv(args.res_log)
         # import pdb; pdb.set_trace()
     else:
-        #print('Please Choose one of the following ....')
+        model_config['measure'] = True
+        print('Please Choose one of the following ....', model_config['measure'])
         if model_config['measure']:
             results = trainer.validate(train_data.get_loader(),rec=args.rec)
             # results = trainer.validate(val_data.get_loader())
