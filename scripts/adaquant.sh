@@ -21,6 +21,7 @@ echo $model_vis
 python main.py --model $model --save $workdir -b 128  -lfv $model_vis --model-config "{'batch_norm': False}"
 
 # measure range and zero point on calibset
+echo $nbits_weight $nbits_act $num_sp_layers $perC $datasets_dir $perC_suffix
 python main.py --model $model  --nbits_weight $nbits_weight --nbits_act $nbits_act --num-sp-layers $num_sp_layers --evaluate results/$workdir/$model.absorb_bn --model-config "{'batch_norm': False,'measure': True, 'perC': $perC}" -b 128 --rec --dataset imagenet_calib --datasets-dir $datasets_dir
 
 
