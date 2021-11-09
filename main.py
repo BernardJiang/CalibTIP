@@ -288,10 +288,13 @@ def main_worker(args):
             checkpoint = checkpoint['state_dict'] if 'state_dict' in checkpoint.keys() else checkpoint
             model.load_state_dict(checkpoint,strict=False)
         if 'batch_norm' in model_config and not model_config['batch_norm']:
-            logging.info('Creating absorb_bn state dict')
+            # logging.info('Creating absorb_bn state dict')
+            # filename_bab = args.absorb_bn+'.before_absorb_bn' if args.absorb_bn else save_path+'/'+args.model+'.before_absorb_bn'
+            # torch.save(model.state_dict(),filename_bab)
             search_absorbe_bn(model)
             filename_ab = args.absorb_bn+'.absorb_bn' if args.absorb_bn else save_path+'/'+args.model+'.absorb_bn'
             torch.save(model.state_dict(),filename_ab)
+            logging.info('Creating absorb_bn state dict {}'.format(filename_ab))
         else:    
             filename_bn = save_path+'/'+args.model+'.with_bn'
             torch.save(model.state_dict(),filename_bn)
