@@ -1,4 +1,4 @@
-export datasets_dir=/media/drive/Datasets
+export datasets_dir=/workspace/develop/dataset
 export model=${1:-"resnet"}
 export model_vis=${2:-"resnet50"}
 export nbits_weight_m1=${3:-4}
