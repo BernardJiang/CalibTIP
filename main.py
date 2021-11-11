@@ -260,12 +260,13 @@ def main_worker(args):
     model_config = {'dataset': dataset_type}
 
     if args.model_config != '':
+        #Remove the extra \\ from debug command line. 
+        args.model_config = args.model_config.replace('\\', '')
         if isinstance(args.model_config, dict):
             for k, v in args.model_config.items():
                 if k not in model_config.keys():
                     model_config[k] = v
         else:
-            #TODO: hard code config. should be removed.
             args.model_config = "{'batch_norm': False}"
             args_dict = literal_eval(args.model_config)
             for k, v in args_dict.items():
