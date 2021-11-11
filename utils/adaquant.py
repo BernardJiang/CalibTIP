@@ -40,7 +40,7 @@ def optimize_qparams(layer, cached_inps, cached_outs, test_inp, test_out, batch_
     return mse_before, mse_after
 
 
-def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=1e-2, iters=100, progress=True, batch_size=50,relu=False):
+def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=1e-2, iters=100, progress=True, batch_size=64, relu=False):
     print("\nRun adaquant")
     if relu:
         mse_before = F.mse_loss(F.relu_(layer(test_inp)), F.relu_(test_out))
@@ -128,9 +128,9 @@ def optimize_layer(layer, in_out, optimize_weights=False, batch_size=100, model_
             relu_condition = lambda layer_name: layer_name.endswith('0.0') or layer_name.endswith('0.1') or layer_name.endswith('18.0')
 
         if relu_condition(layer.name):
-            mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=1000, lr1=1e-5, lr2=1e-4,relu=True)
+            mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=1000, lr1=1e-5, lr2=1e-4, relu=True) # batch_size=batch_size,
         else:
-            mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=1000, lr1=1e-5, lr2=1e-4)
+            mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=1000, lr1=1e-5, lr2=1e-4) #, batch_size=batch_size
         mse_before_opt = mse_before
         print("MSE before adaquant: {}".format(mse_before))
         print("MSE after adaquant: {}".format(mse_after))
