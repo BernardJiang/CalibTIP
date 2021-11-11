@@ -267,7 +267,7 @@ def main_worker(args):
                 if k not in model_config.keys():
                     model_config[k] = v
         else:
-            args.model_config = "{'batch_norm': False}"
+            # args.model_config = "{'batch_norm': False}"
             args_dict = literal_eval(args.model_config)
             for k, v in args_dict.items():
                 model_config[k] = v
@@ -686,8 +686,8 @@ def main_worker(args):
             df.to_csv(args.res_log)
         # import pdb; pdb.set_trace()
     else:
-        model_config['measure'] = True
-        print('Please Choose one of the following ....', model_config['measure'])
+        # model_config['measure'] = True
+        # print('Please Choose one of the following ....', model_config['measure'])
         if model_config['measure']:
             results = trainer.validate(train_data.get_loader(),rec=args.rec)
             # results = trainer.validate(val_data.get_loader())

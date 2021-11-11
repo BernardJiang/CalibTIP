@@ -1,0 +1,43 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "python": "/opt/conda/bin/python",
+            // "args": ["/workspace/develop/dataset/", "--model", "mobilenetv2_100", "--dataset", "imagenet_1k", "--pretrained", "--sched", "cosine", "--weight-decay", "2e-5", "--warmup-epochs", "0", "--cooldown-epochs", "2", "--sync-bn", "--log-interval", "500", "-j", "16", "--pin-mem", "--qat", "--pot", "-b", "32", "--opt", "fusedlamb", "--epochs", "10", "--bitwidth", "8", "--lr", "0.0006", "--lr-qat", "0.015",  "--freeze-sch", "0m,1w", "--min-lr", "2e-6", "--bitwidth-range",  "1", "2", "4", "8", "--loss-gamma", "0.01", "--loss-tao", "0.5", "--loss-method", "CalculationAmount", "--quant-noise", "Uniform", "--noise-factor", "0.3"]
+
+            // For validation:
+            // "args": ["/workspace/develop/dataset/", "--model", "mobilenetv2_100", "--dataset", "imagenet_1k", "--pretrained", "-j", "16", "--pin-mem", "--qat", "-b", "32", "--bitwidth", "8"]
+            // "args": ["/workspace/develop/dataset/imagenet_1k", "--model", "mobilenetv2_100", "--dataset", "imagenet_1k", "--pretrained"]
+
+            //For yolov5: yolov5_export.py
+            // "env": {"PYTHONPATH": "/workspace/develop/detection/yolov5:$(workspaceFolder}:${env:PYTHONPATH}"},
+            // "args": ["--data", "/workspace/develop/detection/yolov5/yolov5/data/model_paths_720_coco128.yaml"],
+
+            // For Mobilenetv2 distill.py   
+            // "args": ["/workspace/develop/dataset/", "--model", "mobilenetv2_100", "--dataset", "imagenet_1k", "--pretrained", "-j", "32", "--pin-mem", "--qat", "--pot", "-b", "32", "--bitwidth", "8", "--distill"],
+
+            // for ZeroQ uniform_test.py 		
+            // "args": ["--dataset=imagenet", "--model=mobilenetv2_w1", "--batch_size=64", "--test_batch_size=512"]
+
+            // for Yolo test.py
+            // "args": ["--task", "val"]
+
+            //CalibTIP/main.py 
+            // step 1
+            // "args": ["--model", "resnet", "--save", "resnet50_w4a4.adaquant", "-b", "128",  "-lfv", "resnet50", "--model-config", "{'batch_norm': False}"],
+            // step 2
+            // "args": ["--model", "resnet", "--nbits_weight", "4", "--nbits_act", "4", "--num-sp-layers", "-1", "--evaluate", "results/resnet50_w4a4.adaquant/resnet.absorb_bn", "--model-config", "{'batch_norm': False,'measure': True, 'perC': True}", "-b", "128", "--rec", "--dataset", "imagenet_calib", "--datasets-dir", "/workspace/develop/dataset"],
+            // step 3  adaquant
+            "args": ["--optimize-weights", "--nbits_weight", "4", "--nbits_act", "4", "--num-sp-layers", "-1", "--model", "resnet", "-b", "128", "--evaluate", "/workspace/develop/results/resnet50_w4a4.adaquant/resnet.absorb_bn.measure_perC", "--model-config", "{'batch_norm': False,'measure': False, 'perC': True}", "--dataset", "imagenet_calib", "--datasets-dir", "/workspace/develop/dataset", "--adaquant"],
+
+        }
+    ]
+}

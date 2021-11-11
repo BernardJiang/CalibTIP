@@ -8,7 +8,7 @@ if [ "$5" = True ]; then
     export adaquant_suffix='.adaquant'
 fi
 export workdir=${model_vis}_w$nbits_weight'a'$nbits_act$adaquant_suffix
-export perC=False 
+export perC=True 
 export num_sp_layers=-1
 export perC_suffix=''
 if [ "$perC" = True ] ; then
