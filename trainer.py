@@ -165,9 +165,21 @@ class Trainer(object):
                 else:
                     output = _average_duplicates(output, target)
             if isinstance(self.criterion,nn.KLDivLoss):
+                print("Bernard output.shape=", output.shape)
+                print("Bernard target.shape=", target.shape)
                 emb=torch.zeros(output.shape)
                 for t in range(target.shape[0]):
-                    
+                    if t == 18:
+                        print("t=",t)
+                        print(target[t].tolist())
+                        print(len(self.output_embed_fp32))
+                        # print("dicts key = ", self.output_embed_fp32.keys())
+                        if 357 in self.output_embed_fp32.keys():
+                            print("Yes")
+                        else: 
+                            print("No match")
+                        # if target[t].tolist() == 357:
+                        #     print(self.output_embed_fp32)
                     emb[t]=self.output_embed_fp32[target[t].tolist()]
                     
                 loss = self.criterion(F.log_softmax(output), F.softmax(emb.to(output)))
