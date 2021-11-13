@@ -200,12 +200,14 @@ def save2onnx(model_orig, img, onnx_export_file):
         # onnx_export_file = result_folder+'mobilenetv2_zeroq.onnx'
         print('\nStarting ONNX export with onnx %s...' % onnx.__version__)
         print('****onnx file****',onnx_export_file)
-        model = copy.deepcopy(model_orig)
-        for name, param in model.named_parameters():
-            print("name = ", name)
-            param.requires_grad = False 
-        model.eval()
+        model_orig.eval()
+        # model = copy.deepcopy(model_orig)
+        model = model_orig
+        # for name, param in model.named_parameters():
+        #     print("name = ", name)
+        #     param.requires_grad = False 
         # img = torch.zeros((1, 3, 224, 224))
+        model.eval()
         y = model(img)  # dry run
         # torch.onnx.export(  output_names=['classes', 'boxes'] if y is None else ['output'])
         torch.onnx.export(model,               # model being run
@@ -758,6 +760,9 @@ def main_worker(args):
             if 'perC' in args.model_config: filename += '_perC'
             torch.save(model.state_dict(),filename)
             logging.info(results)
+            input_image = torch.zeros(1,3,224, 224).cuda()
+            save2onnx(model, input_image, filename+'.onnx')
+        
         else:
             if args.evaluate_init_configuration:
                 logging.info(results)
