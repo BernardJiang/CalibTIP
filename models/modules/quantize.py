@@ -103,10 +103,21 @@ def calculate_qparams(x, num_bits, flatten_dims=_DEFAULT_FLATTEN, reduce_dim=0, 
                 max_values = max_values.max(reduce_dim, keepdim=keepdim)[0]
 
         # TODO: re-add true zero computation
+        # if len(min_values.shape) != 0:
         min_values[min_values > 0] = 0
         max_values[max_values < 0] = 0
+        # else:
+        #     if min_values > 0:
+        #         min_values = torch.tensor(0, device=min_values.device)
+        #     if max_values < torch.tensor(0, device=max_values.device):
+        #         max_values = torch.tensor(0, device=max_values.device)
+
         range_values = max_values - min_values
+        # if len(range_values.shape) != 0:
         range_values[range_values==0] = 1
+        # else:
+        #     if range_values==torch.tensor(0, device=min_values.device):
+        #         range_values = torch.tensor(1, device=min_values.device)
         return QParams(range=range_values, zero_point=min_values,
                        num_bits=num_bits)
 

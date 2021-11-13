@@ -37,6 +37,9 @@ from models.modules.quantize import QParams
 import ast
 import ntpath
 from functools import partial
+from torch.onnx import ONNX_ARCHIVE_MODEL_PROTO_NAME, ExportTypes, OperatorExportTypes, TrainingMode
+import copy
+
 
 model_names = sorted(name for name in models.__dict__
                      if name.islower() and not name.startswith("__")
@@ -191,6 +194,39 @@ parser.add_argument('--tuning-iter', default=1, type=int, help='Number of iterat
 parser.add_argument('--res-log', default=None, help='path to result pandas log file')
 parser.add_argument('--cmp', type=str, help='compression_ratio')
 
+def save2onnx(model_orig, img, onnx_export_file):
+    try:
+        import onnx
+        # onnx_export_file = result_folder+'mobilenetv2_zeroq.onnx'
+        print('\nStarting ONNX export with onnx %s...' % onnx.__version__)
+        print('****onnx file****',onnx_export_file)
+        model = copy.deepcopy(model_orig)
+        for name, param in model.named_parameters():
+            print("name = ", name)
+            param.requires_grad = False 
+        model.eval()
+        # img = torch.zeros((1, 3, 224, 224))
+        y = model(img)  # dry run
+        # torch.onnx.export(  output_names=['classes', 'boxes'] if y is None else ['output'])
+        torch.onnx.export(model,               # model being run
+                            img,                         # model input (or a tuple for multiple inputs)
+                            onnx_export_file,   # where to save the model (can be a file or file-like object)
+                            export_params=True,        # store the trained parameter weights inside the model file
+                            opset_version=11,          # the ONNX version to export the model to
+                            do_constant_folding=False,  # whether to execute constant folding for optimization
+                            input_names = ['images'],   # the model's input names
+                            output_names = ['classes', 'boxes'] if y is None else ['output'], # the model's output names
+                            training=TrainingMode.PRESERVE,
+                            keep_initializers_as_inputs=True,
+                            verbose=False
+        )     # Checks
+        onnx_model = onnx.load(onnx_export_file)  # load onnx model
+        onnx.checker.check_model(onnx_model)  # check onnx model
+        # print(onnx.helper.printable_graph(onnx_model.graph))  # print a human readable model
+        print('ONNX export success, saved as %s' % onnx_export_file)
+    except Exception as e:
+        print('ONNX export failure: %s' % e)
+
 def main():
     args = parser.parse_args()
     main_worker(args)
@@ -288,13 +324,19 @@ def main_worker(args):
             checkpoint = checkpoint['state_dict'] if 'state_dict' in checkpoint.keys() else checkpoint
             model.load_state_dict(checkpoint,strict=False)
         if 'batch_norm' in model_config and not model_config['batch_norm']:
-            # logging.info('Creating absorb_bn state dict')
-            # filename_bab = args.absorb_bn+'.before_absorb_bn' if args.absorb_bn else save_path+'/'+args.model+'.before_absorb_bn'
-            # torch.save(model.state_dict(),filename_bab)
+            logging.info('Creating absorb_bn state dict')
+            filename_bab = args.absorb_bn+'.before_absorb_bn' if args.absorb_bn else save_path+'/'+args.model+'.before_absorb_bn'
+            torch.save(model.state_dict(),filename_bab)
+            input_image = torch.randn(1, 3, 224, 224)
+            filename = filename_bab + '.onnx'
+            save2onnx(model, input_image, filename)
+
             search_absorbe_bn(model)
             filename_ab = args.absorb_bn+'.absorb_bn' if args.absorb_bn else save_path+'/'+args.model+'.absorb_bn'
             torch.save(model.state_dict(),filename_ab)
             logging.info('Creating absorb_bn state dict {}'.format(filename_ab))
+            filename = filename_ab + '.onnx'
+            save2onnx(model, input_image, filename)
         else:    
             filename_bn = save_path+'/'+args.model+'.with_bn'
             torch.save(model.state_dict(),filename_bn)
@@ -505,6 +547,8 @@ def main_worker(args):
 
         filename = args.evaluate + '.adaquant'
         torch.save(model.state_dict(), filename)
+        input_image = torch.zeros(1,3,224, 224).cuda()
+        save2onnx(model, input_image, filename+'.onnx')
 
         train_data = None
         cached_input_output = None
