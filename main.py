@@ -509,6 +509,11 @@ def main_worker(args):
         for handler in handlers:
             handler.remove()
 
+        filename = args.evaluate + '.before_adaquant'
+        torch.save(model.state_dict(), filename)
+        input_image = torch.zeros(1,3,224, 224).cuda()
+        save2onnx(model, input_image, filename+'.onnx')
+
         for m in model.modules():
             if isinstance(m, QConv2d) or isinstance(m, QLinear):
                 m.quantize = True
@@ -549,6 +554,12 @@ def main_worker(args):
 
         filename = args.evaluate + '.adaquant'
         torch.save(model.state_dict(), filename)
+
+        #disable quantization before saving to onnx.
+        for m in model.modules():
+            if isinstance(m, QConv2d) or isinstance(m, QLinear):
+                m.quantize = False
+
         input_image = torch.zeros(1,3,224, 224).cuda()
         save2onnx(model, input_image, filename+'.onnx')
 
