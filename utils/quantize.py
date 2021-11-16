@@ -39,8 +39,7 @@ def quantize_model(model):
     for n, p in model.state_dict().items():
         qp = quantize_tensor(p)
         qparams[n + '.quantization.scale'] = torch.FloatTensor([qp.scale])
-        qparams[
-            n + '.quantization.zero_point'] = torch.ByteTensor([qp.zero_point])
+        qparams[n + '.quantization.zero_point'] = torch.ByteTensor([qp.zero_point])
         p.copy_(qp.tensor)
     model.type('torch.ByteTensor')
     for n, p in qparams.items():
