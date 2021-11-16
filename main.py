@@ -51,6 +51,8 @@ parser.add_argument('--results-dir', metavar='RESULTS_DIR', default='./results',
                     help='results dir')
 parser.add_argument('--save', metavar='SAVE', default='',
                     help='saved folder')
+parser.add_argument('--onnxinput', metavar='ONNXINPUT', default='',
+                    help='onnx input file')
 parser.add_argument('--datasets-dir', metavar='DATASETS_DIR', default='/home/Datasets',
                     help='datasets dir')
 parser.add_argument('--dataset', metavar='DATASET', default='imagenet',
@@ -308,7 +310,7 @@ def main_worker(args):
             args_dict = literal_eval(args.model_config)
             for k, v in args_dict.items():
                 model_config[k] = v
-    if (args.absorb_bn or args.load_from_vision or args.pretrained) and not args.batch_norn_tuning:
+    if (args.onnxinput or args.absorb_bn or args.load_from_vision or args.pretrained) and not args.batch_norn_tuning:
         if args.load_from_vision:
             import torchvision
             exec_lfv_str = 'torchvision.models.' + args.load_from_vision + '(pretrained=True)'
@@ -319,12 +321,22 @@ def main_worker(args):
                 model_pytcv = eval(exec_lfv_str)
                 model = convert_pytcv_model(model,model_pytcv)
         else:
-            if not os.path.isfile(args.absorb_bn):
-                parser.error('invalid checkpoint: {}'.format(args.evaluate))
-            model = model(**model_config)
-            checkpoint = torch.load(args.absorb_bn,map_location=lambda storage, loc: storage)
-            checkpoint = checkpoint['state_dict'] if 'state_dict' in checkpoint.keys() else checkpoint
-            model.load_state_dict(checkpoint,strict=False)
+            if 'onnxinput' in args:
+                import onnx
+                # Load the ONNX model
+                model = onnx.load(args.onnxinput)
+                # Check that the model is well formed
+                onnx.checker.check_model(model)
+                # Print a human readable representation of the graph
+                print(onnx.helper.printable_graph(model.graph))
+            else:
+                if not os.path.isfile(args.absorb_bn):
+                    parser.error('invalid checkpoint: {}'.format(args.evaluate))
+                model = model(**model_config)
+                checkpoint = torch.load(args.absorb_bn,map_location=lambda storage, loc: storage)
+                checkpoint = checkpoint['state_dict'] if 'state_dict' in checkpoint.keys() else checkpoint
+                model.load_state_dict(checkpoint,strict=False)
+
         if 'batch_norm' in model_config and not model_config['batch_norm']:
             logging.info('Creating absorb_bn state dict')
             filename_bab = args.absorb_bn+'.before_absorb_bn' if args.absorb_bn else save_path+'/'+args.model+'.before_absorb_bn'
