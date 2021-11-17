@@ -434,9 +434,9 @@ def test_net(original_model, onnx_file):
 
 
 def main():
-    test_net(tv.models.resnet18(True), "res18.onnx")
+    # test_net(tv.models.resnet18(True), "res18.onnx")
     test_net(tv.models.resnet50(True), "res50.onnx")
-    test_net(tv.models.densenet121(True), "dense121.onnx")
+    # test_net(tv.models.densenet121(True), "dense121.onnx")
 
 
 if __name__ == '__main__':
