@@ -4,4 +4,6 @@ bokeh
 pandas
 tqdm
 pulp
+onnx
+onnx2pytorch
 

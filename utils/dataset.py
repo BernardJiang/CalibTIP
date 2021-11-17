@@ -3,7 +3,10 @@ import pickle
 import PIL
 import torch
 from torch.utils.data import Dataset
-from torch.utils.data.sampler import Sampler, RandomSampler, BatchSampler, _int_classes
+from torch.utils.data.sampler import Sampler, RandomSampler, BatchSampler
+# from torch._six import int_classes as _int_classes
+_int_classes = int
+
 from numpy.random import choice
 
 class RandomSamplerReplacment(torch.utils.data.sampler.Sampler):

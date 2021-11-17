@@ -40,7 +40,6 @@ from functools import partial
 from torch.onnx import ONNX_ARCHIVE_MODEL_PROTO_NAME, ExportTypes, OperatorExportTypes, TrainingMode
 import copy
 
-
 model_names = sorted(name for name in models.__dict__
                      if name.islower() and not name.startswith("__")
                      and callable(models.__dict__[name]))
@@ -323,12 +322,15 @@ def main_worker(args):
         else:
             if 'onnxinput' in args:
                 import onnx
+                from onnx2pytorch import ConvertModel
+                # from onnx2pytorch import convert
                 # Load the ONNX model
-                model = onnx.load(args.onnxinput)
+                onnx_model = onnx.load(args.onnxinput)
+                model = ConvertModel(onnx_model)
                 # Check that the model is well formed
-                onnx.checker.check_model(model)
+                # onnx.checker.check_model(model)
                 # Print a human readable representation of the graph
-                print(onnx.helper.printable_graph(model.graph))
+                # print(onnx.helper.printable_graph(model.graph))
             else:
                 if not os.path.isfile(args.absorb_bn):
                     parser.error('invalid checkpoint: {}'.format(args.evaluate))
