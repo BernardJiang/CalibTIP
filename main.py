@@ -356,7 +356,8 @@ def main_worker(args):
         else:    
             filename_bn = save_path+'/'+args.model+'.with_bn'
             torch.save(model.state_dict(),filename_bn)
-        if (args.load_from_vision or args.absorb_bn) and not args.evaluate_init_configuration: return
+        if (args.onnxinput or args.load_from_vision or args.absorb_bn) and not args.evaluate_init_configuration: 
+            return
 
     if 'inception' in args.model:
         model = model(init_weights=False, **model_config)
