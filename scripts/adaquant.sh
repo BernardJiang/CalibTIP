@@ -15,17 +15,16 @@ if [ "$perC" = True ] ; then
 export perC_suffix='_perC'
 fi
 # download and absorb_bn resnet50 and
-echo $model
-echo $workdir
-echo $model_vis
-python main.py --model $model --save $workdir -b 128  -lfv $model_vis --model-config "{'batch_norm': False}"
-
+echo "step 1: " python main.py --model $model --onnxinput /workspace/develop/CalibTIP/modelonnx/resnet18v1.onnx  --save $workdir -b 128   --model-config "{'batch_norm': False}"
+python main.py --model $model --onnxinput /workspace/develop/CalibTIP/modelonnx/resnet18v1.onnx  --save $workdir -b 128   --model-config "{'batch_norm': False}"
+             
 # measure range and zero point on calibset
-echo $nbits_weight $nbits_act $num_sp_layers $perC $datasets_dir $perC_suffix
+echo "step 2: " python main.py --model $model  --nbits_weight $nbits_weight --nbits_act $nbits_act --num-sp-layers $num_sp_layers --evaluate results/$workdir/$model.absorb_bn --model-config "{'batch_norm': False,'measure': True, 'perC': $perC}" -b 128 --rec --dataset imagenet_calib --datasets-dir $datasets_dir
 python main.py --model $model  --nbits_weight $nbits_weight --nbits_act $nbits_act --num-sp-layers $num_sp_layers --evaluate results/$workdir/$model.absorb_bn --model-config "{'batch_norm': False,'measure': True, 'perC': $perC}" -b 128 --rec --dataset imagenet_calib --datasets-dir $datasets_dir
 
 
 if [ "$5" = True ]; then
+echo "step 3: " python main.py --optimize-weights  --nbits_weight $nbits_weight --nbits_act $nbits_act  --num-sp-layers $num_sp_layers  --model $model -b 128 --evaluate results/$workdir/$model.absorb_bn.measure$perC_suffix --model-config "{'batch_norm': False,'measure': False, 'perC': $perC}" --dataset imagenet_calib --datasets-dir $datasets_dir --adaquant
 # Run adaquant to minimize MSE of the output with respect to range, zero point and small perturations in parameters
 python main.py --optimize-weights  --nbits_weight $nbits_weight --nbits_act $nbits_act  --num-sp-layers $num_sp_layers  --model $model -b 128 --evaluate results/$workdir/$model.absorb_bn.measure$perC_suffix --model-config "{'batch_norm': False,'measure': False, 'perC': $perC}" --dataset imagenet_calib --datasets-dir $datasets_dir --adaquant
 fi
