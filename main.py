@@ -795,3 +795,4 @@ def main_worker(args):
     return acc, loss
 if __name__ == '__main__':
     main()
+    os._exit(0)
