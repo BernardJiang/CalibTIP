@@ -480,6 +480,7 @@ def main_worker(args):
     if args.evaluate or args.resume:
         from utils.layer_sensativity import search_replace_layer , extract_save_quant_state_dict, search_replace_layer_from_dict
         if args.layers_precision_dict is not None:
+            args.layers_precision_dict = args.layers_precision_dict.replace('\\', '')
             model = search_replace_layer_from_dict(model, ast.literal_eval(args.layers_precision_dict))
         else:
             model = search_replace_layer(model, args.names_sp_layers, num_bits_activation=args.nbits_act,
@@ -679,6 +680,7 @@ def main_worker(args):
         from utils.layer_sensativity import search_replace_layer , extract_save_quant_state_dict, search_replace_layer_from_dict
         from models.modules.quantize import QConv2d
         if args.layers_precision_dict is not None:
+            args.layers_precision_dict = args.layers_precision_dict.replace('\\', '')
             model = search_replace_layer_from_dict(model, literal_eval(args.layers_precision_dict))
         else:
             model = search_replace_layer(model, args.names_sp_layers, num_bits_activation=args.nbits_act,
