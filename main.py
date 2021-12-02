@@ -713,7 +713,9 @@ def main_worker(args):
         filename = args.evaluate + '.bn_tuning'
         print("Save model to: {}".format(filename))
         torch.save(model.state_dict(), filename)
-    
+        input_image = torch.zeros(1,3,224, 224).cuda()
+        save2onnx(model, input_image, filename+'.onnx')
+
         val_results = trainer.validate(val_data.get_loader())
         logging.info(val_results)
     
@@ -758,6 +760,13 @@ def main_worker(args):
             df.loc[ckp, 'acc_bias_tuning'] = val_results['prec1']
             df.to_csv(args.res_log)
         # import pdb; pdb.set_trace()
+        
+        filename = args.evaluate + '.bias_tuning'
+        print("Save model to: {}".format(filename))
+        torch.save(model.state_dict(), filename)
+        input_image = torch.zeros(1,3,224, 224).cuda()
+        save2onnx(model, input_image, filename+'.onnx')
+
     else:
         # model_config['measure'] = True
         # print('Please Choose one of the following ....', model_config['measure'])
