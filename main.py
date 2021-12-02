@@ -513,7 +513,7 @@ def main_worker(args):
             cached_input_output[module].append((input[0].detach().cpu(), output.detach().cpu()))
             # print(name)
 
-        # from models.modules.quantize import QConv2d, QLinear
+        from models.modules.quantize import QConv2d, QLinear
         handlers = []
         count = 0
         for name, m in model.named_modules():
