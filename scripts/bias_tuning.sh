@@ -20,8 +20,6 @@ export cmp_idx=${5:-0}
 prec_dict=$(python ip_config_parser.py --cfg-idx $cmp_idx --config-file results/$workdir/IP_${model_vis}_loss.txt --column Configuration)
 export ckp=$(python ip_config_parser.py --cfg-idx $cmp_idx --config-file results/$workdir/IP_${model_vis}_loss.txt --column state_dict_path).bn_tuning
 
-echo python main.py  --res-log  results/${workdir}/${model_vis}_res.csv -lpd "$prec_dict" --bias-tuning --model $model -b 50 --evaluate $ckp --model-config "{'batch_norm': False,'measure': False, 'perC': $perC}" --dataset imagenet_calib --datasets-dir $datasets_dir --save results/$workdir/bias_ft  --fine-tune --update_only_th --kld_loss --epochs 10
-
-# Run bias tuning
-python main.py  --res-log  results/${workdir}/${model_vis}_res.csv -lpd "$prec_dict" --bias-tuning --model $model -b 50 --evaluate $ckp --model-config "{'batch_norm': False,'measure': False, 'perC': $perC}" --dataset imagenet_calib --datasets-dir $datasets_dir --save results/$workdir/bias_ft  --fine-tune --update_only_th --kld_loss --epochs 10
+# Run bias tuning without this option --kld_loss 
+python main.py  --res-log  results/${workdir}/${model_vis}_res.csv -lpd "$prec_dict" --bias-tuning --model $model -b 50 --evaluate $ckp --model-config "{'batch_norm': False,'measure': False, 'perC': $perC}" --dataset imagenet_calib --datasets-dir $datasets_dir --save results/$workdir/bias_ft  --fine-tune --update_only_th --epochs 10
 
