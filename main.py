@@ -39,6 +39,7 @@ import ntpath
 from functools import partial
 from torch.onnx import ONNX_ARCHIVE_MODEL_PROTO_NAME, ExportTypes, OperatorExportTypes, TrainingMode
 import copy
+from models.modules.quantize import QConv2d, QLinear
 
 model_names = sorted(name for name in models.__dict__
                      if name.islower() and not name.startswith("__")
@@ -195,9 +196,16 @@ parser.add_argument('--tuning-iter', default=1, type=int, help='Number of iterat
 parser.add_argument('--res-log', default=None, help='path to result pandas log file')
 parser.add_argument('--cmp', type=str, help='compression_ratio')
 
-def save2onnx(model_orig, img, onnx_export_file):
+def save2onnx(model_orig, img, onnx_export_file, disable_quantization=False):
     try:
         import onnx
+        
+        if disable_quantization:
+            #disable quantization before saving to onnx.
+            for m in model_orig.modules():
+                if isinstance(m, QConv2d) or isinstance(m, QLinear):
+                    m.quantize = False
+
         # onnx_export_file = result_folder+'mobilenetv2_zeroq.onnx'
         print('\nStarting ONNX export with onnx %s...' % onnx.__version__)
         print('****onnx file****',onnx_export_file)
@@ -505,7 +513,7 @@ def main_worker(args):
             cached_input_output[module].append((input[0].detach().cpu(), output.detach().cpu()))
             # print(name)
 
-        from models.modules.quantize import QConv2d, QLinear
+        # from models.modules.quantize import QConv2d, QLinear
         handlers = []
         count = 0
         for name, m in model.named_modules():
@@ -571,13 +579,13 @@ def main_worker(args):
         filename = args.evaluate + '.adaquant'
         torch.save(model.state_dict(), filename)
 
-        #disable quantization before saving to onnx.
-        for m in model.modules():
-            if isinstance(m, QConv2d) or isinstance(m, QLinear):
-                m.quantize = False
+        # #disable quantization before saving to onnx.
+        # for m in model.modules():
+        #     if isinstance(m, QConv2d) or isinstance(m, QLinear):
+        #         m.quantize = False
 
         input_image = torch.zeros(1,3,224, 224).cuda()
-        save2onnx(model, input_image, filename+'.onnx')
+        save2onnx(model, input_image, filename+'.onnx', True)
 
         train_data = None
         cached_input_output = None
@@ -713,8 +721,6 @@ def main_worker(args):
         filename = args.evaluate + '.bn_tuning'
         print("Save model to: {}".format(filename))
         torch.save(model.state_dict(), filename)
-        input_image = torch.zeros(1,3,224, 224).cuda()
-        save2onnx(model, input_image, filename+'.onnx')
 
         val_results = trainer.validate(val_data.get_loader())
         logging.info(val_results)
@@ -730,6 +736,9 @@ def main_worker(args):
             df.loc[ckp, 'loss_bn_tuning'] = val_results['loss']
             df.to_csv(args.res_log)
             # print(df)
+
+        input_image = torch.zeros(1,3,224, 224).cuda()
+        save2onnx(model, input_image, filename+'.onnx', True)
 
     elif args.bias_tuning:
         for epoch in range(args.epochs):
@@ -765,7 +774,7 @@ def main_worker(args):
         print("Save model to: {}".format(filename))
         torch.save(model.state_dict(), filename)
         input_image = torch.zeros(1,3,224, 224).cuda()
-        save2onnx(model, input_image, filename+'.onnx')
+        save2onnx(model, input_image, filename+'.onnx', True)
 
     else:
         # model_config['measure'] = True
