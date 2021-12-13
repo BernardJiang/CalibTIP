@@ -485,6 +485,10 @@ def main_worker(args):
                                     'input_size': args.input_size, 'batch_size': args.eval_batch_size, 'shuffle': True,
                                     'num_workers': args.workers, 'pin_memory': True, 'drop_last': False})
 
+    # print("Bernard!")
+    # results = trainer.validate(train_data.get_loader(),rec=args.rec)
+    # logging.info(results)
+
     if args.evaluate or args.resume:
         from utils.layer_sensativity import search_replace_layer , extract_save_quant_state_dict, search_replace_layer_from_dict
         if args.layers_precision_dict is not None:
