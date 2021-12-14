@@ -500,7 +500,7 @@ def main_worker(args):
 
     cached_input_output = {}
     quant_keys = ['.weight', '.bias', '.equ_scale', '.quantize_input.running_zero_point', '.quantize_input.running_range',
-         '.quantize_weight.running_zero_point', '.quantize_weight.running_range','.quantize_input1.running_zero_point', '.quantize_input1.running_range'
+         '.quantize_weight.running_zero_point', '.quantize_weight.running_range','.quantize_input1.running_zero_point', '.quantize_input1.running_range',
          '.quantize_input2.running_zero_point', '.quantize_input2.running_range']        
     if args.adaquant:
         def Qhook(name,module, input, output):
