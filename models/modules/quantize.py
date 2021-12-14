@@ -36,17 +36,25 @@ def mse(x, xq):
 
 
 def tensor_range(x, pcq=False):
+    # if pcq:
+    #     return x.view(x.shape[0], -1).max(dim=-1)[0] - x.view(x.shape[0], -1).min(dim=-1)[0]
+    # else:
+    #     return x.max() - x.min()
     if pcq:
-        return x.view(x.shape[0], -1).max(dim=-1)[0] - x.view(x.shape[0], -1).min(dim=-1)[0]
+        return x.view(x.shape[0], -1).abs().max(dim=-1)[0]
     else:
-        return x.max() - x.min()
+        return x.abs().max() 
 
 
 def zero_point(x, pcq=False):
+    # if pcq:
+    #     return x.view(x.shape[0], -1).min(dim=-1)[0]
+    # else:
+    #     return x.min()
     if pcq:
-        return x.view(x.shape[0], -1).min(dim=-1)[0]
+        return x.view(x.shape[0], -1).min(dim=-1)[0].zero_()
     else:
-        return x.min()
+        return x.min().zero_()
 
 
 def quant_err(p, t, num_bits=4, metric='mse'):
@@ -87,7 +95,7 @@ def calculate_qparams(x, num_bits, flatten_dims=_DEFAULT_FLATTEN, reduce_dim=0, 
             ## Welling
             min_values = _deflatten_as(torch.max(mu - 6*std,minv), x)  
             max_values = _deflatten_as(torch.min(mu + 6*std,maxv), x)
-        else:
+        else: #maxmin
             if x_flat.dim() == 1:
                 min_values = _deflatten_as(x_flat.min(), x)
                 max_values = _deflatten_as(x_flat.max(), x)
@@ -103,21 +111,15 @@ def calculate_qparams(x, num_bits, flatten_dims=_DEFAULT_FLATTEN, reduce_dim=0, 
                 max_values = max_values.max(reduce_dim, keepdim=keepdim)[0]
 
         # TODO: re-add true zero computation
-        # if len(min_values.shape) != 0:
-        min_values[min_values > 0] = 0
-        max_values[max_values < 0] = 0
-        # else:
-        #     if min_values > 0:
-        #         min_values = torch.tensor(0, device=min_values.device)
-        #     if max_values < torch.tensor(0, device=max_values.device):
-        #         max_values = torch.tensor(0, device=max_values.device)
-
-        range_values = max_values - min_values
-        # if len(range_values.shape) != 0:
+        # min_values[min_values > 0] = 0
+        # max_values[max_values < 0] = 0
+        
+        min_values = torch.abs(min_values)
+        max_values = torch.abs(max_values)
+        range_values = torch.maximum(max_values, min_values)
+        min_values = min_values.zero_()
+        
         range_values[range_values==0] = 1
-        # else:
-        #     if range_values==torch.tensor(0, device=min_values.device):
-        #         range_values = torch.tensor(1, device=min_values.device)
         return QParams(range=range_values, zero_point=min_values,
                        num_bits=num_bits)
 
@@ -143,23 +145,32 @@ class UniformQuantize(InplaceFunction):
 
         zero_point = qparams.zero_point
         num_bits = qparams.num_bits
-        qmin = -(2.**(num_bits - 1)) if signed else 0.
-        qmax = qmin + 2.**num_bits - 1.
+        
+        # qmin = -(2.**(num_bits - 1)) if signed else 0.
+        # qmax = qmin + 2.**num_bits - 1.
+        # running_range=qparams.range.clamp(min=1e-6,max=1e5)
+        # scale = running_range / (qmax - qmin)
+        # if quant_zp:
+        #     running_zero_point_round = Round().apply(qmin-zero_point/scale,False)
+        # else:
+        #     zero_point = torch.min(zero_point, zero_point.new_tensor([0.]))
+        # output.add_(qmin * scale - zero_point).div_(scale)
+
+        qmin = -(2.**(num_bits-1) - 1.)
+        qmax = 2.**(num_bits-1) - 1.
         running_range=qparams.range.clamp(min=1e-6,max=1e5)
-        scale = running_range / (qmax - qmin)
-        if quant_zp:
-            running_zero_point_round = Round().apply(qmin-zero_point/scale,False)
-        else:
-            zero_point = torch.min(zero_point, zero_point.new_tensor([0.]))
-        output.add_(qmin * scale - zero_point).div_(scale)
+        scale = running_range / qmax 
+        output.div_(scale)
+
         if stochastic:
             noise = output.new(output.shape).uniform_(-0.5, 0.5)
             output.add_(noise)
         # quantize
         output.clamp_(qmin, qmax).round_()
         if dequantize:
-            output.mul_(scale).add_(
-                zero_point - qmin * scale)  # dequantize
+            # output.mul_(scale).add_(
+            #     zero_point - qmin * scale)  # dequantize
+            output.mul_(scale)  # dequantize
         return output
 
     @staticmethod
@@ -252,17 +263,24 @@ def quantize_with_grad(input, num_bits=None, qparams=None, flatten_dims=_DEFAULT
             input, num_bits=num_bits, flatten_dims=flatten_dims, reduce_dim=reduce_dim)
     zero_point = qparams.zero_point
     num_bits = qparams.num_bits
-    qmin = -(2.**(num_bits - 1)) if signed else 0.
-    qmax = qmin + 2.**num_bits - 1.
-    # ZP quantization for HW compliance
+    # qmin = -(2.**(num_bits - 1)) if signed else 0.
+    # qmax = qmin + 2.**num_bits - 1.
+    # # ZP quantization for HW compliance
+    # running_range=qparams.range.clamp(min=1e-6,max=1e5)
+    # scale = running_range / (qmax - qmin)
+    # if quant_zp:
+    #     running_zero_point_round = Round().apply(qmin-zero_point/scale,False)
+    #     zero_point = (qmin-running_zero_point_round.clamp(qmin,qmax))*scale
+    # else:
+    #     zero_point = torch.min(zero_point, zero_point.new_tensor([0.]))    
+    # output.add_(qmin * scale - zero_point).div_(scale)  
+    
+    qmin = -(2.**(num_bits-1) - 1.)
+    qmax = 2.**(num_bits-1) - 1.
     running_range=qparams.range.clamp(min=1e-6,max=1e5)
-    scale = running_range / (qmax - qmin)
-    if quant_zp:
-        running_zero_point_round = Round().apply(qmin-zero_point/scale,False)
-        zero_point = (qmin-running_zero_point_round.clamp(qmin,qmax))*scale
-    else:
-        zero_point = torch.min(zero_point, zero_point.new_tensor([0.]))    
-    output.add_(qmin * scale - zero_point).div_(scale)        
+    scale = running_range / qmax 
+    output.div_(scale)
+          
     if stochastic:
         noise = output.new(output.shape).uniform_(-0.5, 0.5)
         output.add_(noise)
@@ -270,8 +288,9 @@ def quantize_with_grad(input, num_bits=None, qparams=None, flatten_dims=_DEFAULT
         # quantize
         output = Round().apply(output.clamp_(qmin, qmax),inplace)
         if dequantize:
-            output.mul_(scale).add_(
-                zero_point - qmin * scale)  # dequantize
+            # output.mul_(scale).add_(
+            #     zero_point - qmin * scale)  # dequantize
+            output.mul_(scale)  # dequantize
         return output
     else:
         return output,scale,qmin * scale - zero_point       
@@ -285,11 +304,18 @@ def dequantize(input, num_bits=None, qparams=None,signed=False, inplace=False):
         output = input.clone()
     zero_point = qparams.zero_point
     num_bits = qparams.num_bits
-    qmin = -(2.**(num_bits - 1)) if signed else 0.
-    qmax = qmin + 2.**num_bits - 1.
-    scale = qparams.range / (qmax - qmin)        
-    output.mul_(scale).add_(
-        zero_point - qmin * scale)  # dequantize
+    # qmin = -(2.**(num_bits - 1)) if signed else 0.
+    # qmax = qmin + 2.**num_bits - 1.
+    # scale = qparams.range / (qmax - qmin)        
+    # output.mul_(scale).add_(
+    #     zero_point - qmin * scale)  # dequantize
+    
+    qmin = -(2.**(num_bits-1) - 1.)
+    qmax = 2.**(num_bits-1) - 1.
+    running_range=qparams.range.clamp(min=1e-6,max=1e5)
+    scale = running_range / qmax 
+    output.mul_(scale) # dequantize
+
     return output
 
 def quantize(x, num_bits=None, qparams=None, flatten_dims=_DEFAULT_FLATTEN, reduce_dim=0, dequantize=True, signed=False, stochastic=False, inplace=False,quant_zp=QZP):
