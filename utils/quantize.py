@@ -6,25 +6,31 @@ QTensor = namedtuple('QTensor', ['tensor', 'scale', 'zero_point'])
 
 
 def quantize_tensor(x, num_bits=8):
-    qmin = -(2.**(num_bits-1) - 1.)
-    qmax = 2.**(num_bits-1) - 1.
+    qmin = 0.
+    qmax = 2.**num_bits - 1.
     min_val, max_val = x.min(), x.max()
-    
-    abs_max_val = abs(max_val)
-    if abs(min_val) > abs_max_val:
-        abs_max_val = abs(min_val)
 
-    scale = abs_max_val / qmax
+    scale = (max_val - min_val) / (qmax - qmin)
+
+    initial_zero_point = qmin - min_val / scale
+
     zero_point = 0
+    if initial_zero_point < qmin:
+        zero_point = qmin
+    elif initial_zero_point > qmax:
+        zero_point = qmax
+    else:
+        zero_point = initial_zero_point
 
-    q_x = x / scale
+    zero_point = int(zero_point)
+    q_x = zero_point + x / scale
     q_x.clamp_(qmin, qmax).round_()
     q_x = q_x.round().byte()
     return QTensor(tensor=q_x, scale=scale, zero_point=zero_point)
 
 
 def dequantize_tensor(q_x):
-    return q_x.scale * q_x.tensor.float() 
+    return q_x.scale * (q_x.tensor.float() - q_x.zero_point)
 
 
 def quantize_model(model):
