@@ -196,6 +196,9 @@ parser.add_argument('--tuning-iter', default=1, type=int, help='Number of iterat
 parser.add_argument('--res-log', default=None, help='path to result pandas log file')
 parser.add_argument('--cmp', type=str, help='compression_ratio')
 
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
+
 def save2onnx(model_orig, img, onnx_export_file, disable_quantization=False):
     try:
         import onnx
