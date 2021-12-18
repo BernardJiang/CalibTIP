@@ -85,6 +85,9 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
         if hasattr(layer, 'bias') and layer.bias is not None: opt_bias.step()
         opt_qparams_in.step()
         opt_qparams_w.step()
+        
+        # if layer.name == 'conv1':
+        #     print("iter {}, in range/zp {} {}, w range/zp {} {} ".format(j, layer.quantize_input.running_range.item(), layer.quantize_input.running_zero_point.item(), layer.quantize_weight.running_range[0].item(), layer.quantize_weight.running_zero_point[0].item()))
 
             # if len(losses) < 10:
             #     total_loss = loss.item()

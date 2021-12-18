@@ -193,7 +193,7 @@ parser.add_argument('--opt_model_paths', type=str,
 parser.add_argument('--precisions', type=str, default='4;8',
                     help='precisions of all optimized models, separated by ;')
 parser.add_argument('--tuning-iter', default=1, type=int, help='Number of iterations to tune batch normalization layers.')
-parser.add_argument('--res-log', default=None, help='path to result pandas log file')
+parser.add_argument('--res_log', default=None, help='path to result pandas log file')
 parser.add_argument('--cmp', type=str, help='compression_ratio')
 
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   
@@ -701,6 +701,21 @@ def main_worker(args):
             model = search_replace_layer(model, args.names_sp_layers, num_bits_activation=args.nbits_act,
                                          num_bits_weight=args.nbits_weight)
 
+        val_results = trainer.validate(val_data.get_loader())
+        logging.info(val_results)
+    
+        if args.res_log is not None:
+            if not os.path.exists(args.res_log):
+                df = pd.DataFrame()
+            else:
+                df = pd.read_csv(args.res_log, index_col=0)
+    
+            ckp = ntpath.basename(args.evaluate)
+            df.loc[ckp, 'acc_before_bn_tuning'] = val_results['prec1']
+            df.loc[ckp, 'loss_before_bn_tuning'] = val_results['loss']
+            df.to_csv(args.res_log)
+            # print(df)
+
         exec_lfv_str = 'torchvision.models.' + args.load_from_vision + '(pretrained=True)'
         model_orig = eval(exec_lfv_str)
         model_orig.to(args.device, dtype)
@@ -748,6 +763,21 @@ def main_worker(args):
         save2onnx(model, input_image, filename+'.onnx', True)
 
     elif args.bias_tuning:
+        val_results = trainer.validate(val_data.get_loader())
+        logging.info(val_results)
+        if args.res_log is not None:
+            if not os.path.exists(args.res_log):
+                df = pd.DataFrame()
+            else:
+                df = pd.read_csv(args.res_log, index_col=0)
+
+            ckp = ntpath.basename(args.evaluate)
+            if 'bn_tuning' in ckp:
+                ckp = ckp.replace('.bn_tuning', '')
+            df.loc[ckp, 'acc_before_bias_tuning'] = val_results['prec1']
+            df.loc[ckp, 'loss_before_bias_tuning'] = val_results['loss']
+            df.to_csv(args.res_log)
+
         for epoch in range(args.epochs):
             trainer.epoch = epoch
             train_data.set_epoch(epoch)
@@ -774,6 +804,7 @@ def main_worker(args):
             if 'bn_tuning' in ckp:
                 ckp = ckp.replace('.bn_tuning', '')
             df.loc[ckp, 'acc_bias_tuning'] = val_results['prec1']
+            df.loc[ckp, 'loss_bias_tuning'] = val_results['loss']
             df.to_csv(args.res_log)
         # import pdb; pdb.set_trace()
         
