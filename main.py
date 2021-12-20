@@ -199,6 +199,22 @@ parser.add_argument('--cmp', type=str, help='compression_ratio')
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   
 os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
+def saveacc(args, val_results, acctype):
+    if args.res_log is not None:
+        if not os.path.exists(args.res_log):
+            df = pd.DataFrame()
+        else:
+            df = pd.read_csv(args.res_log, index_col=0)
+
+        ckp = ntpath.basename(args.evaluate)
+        if args.cmp is not None:
+            ckp += '_{}'.format(args.cmp)
+        df.loc[ckp, 'acc_' + acctype] = val_results['prec1']
+        df.loc[ckp, 'loss_' + acctype] = val_results['loss']
+        df.to_csv(args.res_log)
+        # print(df)
+
+
 def save2onnx(model_orig, img, onnx_export_file, disable_quantization=False):
     try:
         import onnx
@@ -599,19 +615,8 @@ def main_worker(args):
         val_results = trainer.validate(val_data.get_loader())
         logging.info(val_results)
 
-        if args.res_log is not None:
-            if not os.path.exists(args.res_log):
-                df = pd.DataFrame()
-            else:
-                df = pd.read_csv(args.res_log, index_col=0)
-
-            ckp = ntpath.basename(args.evaluate)
-            if args.cmp is not None:
-                ckp += '_{}'.format(args.cmp)
-            adaquant_type = 'adaquant_seq' if args.seq_adaquant else 'adaquant_parallel'
-            df.loc[ckp, 'acc_' + adaquant_type] = val_results['prec1']
-            df.to_csv(args.res_log)
-            # print(df)
+        adaquant_type = 'adaquant_seq' if args.seq_adaquant else 'adaquant_parallel'
+        saveacc(args, val_results, adaquant_type)
 
     elif args.per_layer:
         # Store input/output for all quantizable layers
@@ -704,17 +709,7 @@ def main_worker(args):
         val_results = trainer.validate(val_data.get_loader())
         logging.info(val_results)
     
-        if args.res_log is not None:
-            if not os.path.exists(args.res_log):
-                df = pd.DataFrame()
-            else:
-                df = pd.read_csv(args.res_log, index_col=0)
-    
-            ckp = ntpath.basename(args.evaluate)
-            df.loc[ckp, 'acc_before_bn_tuning'] = val_results['prec1']
-            df.loc[ckp, 'loss_before_bn_tuning'] = val_results['loss']
-            df.to_csv(args.res_log)
-            # print(df)
+        saveacc(args, val_results, 'before_bn_tuning')
 
         exec_lfv_str = 'torchvision.models.' + args.load_from_vision + '(pretrained=True)'
         model_orig = eval(exec_lfv_str)
@@ -747,17 +742,7 @@ def main_worker(args):
         val_results = trainer.validate(val_data.get_loader())
         logging.info(val_results)
     
-        if args.res_log is not None:
-            if not os.path.exists(args.res_log):
-                df = pd.DataFrame()
-            else:
-                df = pd.read_csv(args.res_log, index_col=0)
-    
-            ckp = ntpath.basename(args.evaluate)
-            df.loc[ckp, 'acc_bn_tuning'] = val_results['prec1']
-            df.loc[ckp, 'loss_bn_tuning'] = val_results['loss']
-            df.to_csv(args.res_log)
-            # print(df)
+        saveacc(args, val_results, 'bn_tuning')
 
         input_image = torch.zeros(1,3,224, 224).cuda()
         save2onnx(model, input_image, filename+'.onnx', True)
@@ -765,18 +750,8 @@ def main_worker(args):
     elif args.bias_tuning:
         val_results = trainer.validate(val_data.get_loader())
         logging.info(val_results)
-        if args.res_log is not None:
-            if not os.path.exists(args.res_log):
-                df = pd.DataFrame()
-            else:
-                df = pd.read_csv(args.res_log, index_col=0)
 
-            ckp = ntpath.basename(args.evaluate)
-            if 'bn_tuning' in ckp:
-                ckp = ckp.replace('.bn_tuning', '')
-            df.loc[ckp, 'acc_before_bias_tuning'] = val_results['prec1']
-            df.loc[ckp, 'loss_before_bias_tuning'] = val_results['loss']
-            df.to_csv(args.res_log)
+        saveacc(args, val_results, 'before_bias_tuning')
 
         for epoch in range(args.epochs):
             trainer.epoch = epoch
@@ -794,20 +769,8 @@ def main_worker(args):
 
         val_results = trainer.validate(val_data.get_loader())
         logging.info(val_results)
-        if args.res_log is not None:
-            if not os.path.exists(args.res_log):
-                df = pd.DataFrame()
-            else:
-                df = pd.read_csv(args.res_log, index_col=0)
+        saveacc(args, val_results, 'bias_tuning')
 
-            ckp = ntpath.basename(args.evaluate)
-            if 'bn_tuning' in ckp:
-                ckp = ckp.replace('.bn_tuning', '')
-            df.loc[ckp, 'acc_bias_tuning'] = val_results['prec1']
-            df.loc[ckp, 'loss_bias_tuning'] = val_results['loss']
-            df.to_csv(args.res_log)
-        # import pdb; pdb.set_trace()
-        
         filename = args.evaluate + '.bias_tuning'
         print("Save model to: {}".format(filename))
         torch.save(model.state_dict(), filename)
@@ -824,17 +787,7 @@ def main_worker(args):
         else: 
             if args.evaluate_init_configuration:   
                 results = trainer.validate(val_data.get_loader())
-                if args.res_log is not None:
-                    if not os.path.exists(args.res_log):
-                        df = pd.DataFrame()
-                    else:
-                        df = pd.read_csv(args.res_log, index_col=0)
-
-                    ckp = ntpath.basename(args.evaluate)
-                    if args.cmp is not None:
-                        ckp += '_{}'.format(args.cmp)
-                    df.loc[ckp, 'acc_base'] = results['prec1']
-                    df.to_csv(args.res_log)
+                saveacc(args, results, 'base')
            
         if args.extract_bias_mean:
             file_name  = 'bias_mean_measure' if model_config['measure'] else  'bias_mean_quant'
