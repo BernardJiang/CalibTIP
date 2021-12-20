@@ -27,6 +27,6 @@ python main.py --model $model  --nbits_weight $nbits_weight --nbits_act $nbits_a
 if [ "$5" = True ]; then
 echo "step 3: " 
 # Run adaquant to minimize MSE of the output with respect to range, zero point and small perturations in parameters
-python main.py --optimize-weights  --nbits_weight $nbits_weight --nbits_act $nbits_act  --num-sp-layers $num_sp_layers  --model $model -b 128 --evaluate results/$workdir/$model.absorb_bn.measure$perC_suffix --model-config "{'batch_norm': False,'measure': False, 'perC': $perC}" --dataset imagenet_calib --datasets-dir $datasets_dir --adaquant --seq_adaquant --res_log results/$workdir/$model.absorb_bn.measure$perC_suffix.adaquant.csv 
+python main.py --optimize-weights  --nbits_weight $nbits_weight --nbits_act $nbits_act  --num-sp-layers $num_sp_layers  --model $model -b 128 --evaluate results/$workdir/$model.absorb_bn.measure$perC_suffix --model-config "{'batch_norm': False,'measure': False, 'perC': $perC}" --dataset imagenet_calib --datasets-dir $datasets_dir --adaquant --res_log results/$workdir/$model.absorb_bn.measure$perC_suffix.adaquant.csv 
 fi
 
