@@ -209,6 +209,8 @@ def saveacc(args, val_results, acctype):
         ckp = ntpath.basename(args.evaluate)
         if args.cmp is not None:
             ckp += '_{}'.format(args.cmp)
+        if 'bn_tuning' in ckp:
+            ckp = ckp.replace('.bn_tuning', '')            
         df.loc[ckp, 'acc_' + acctype] = val_results['prec1']
         df.loc[ckp, 'loss_' + acctype] = val_results['loss']
         df.to_csv(args.res_log)
@@ -216,6 +218,7 @@ def saveacc(args, val_results, acctype):
 
 
 def save2onnx(model_orig, img, onnx_export_file, disable_quantization=False):
+    return
     try:
         import onnx
         
