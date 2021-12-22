@@ -462,7 +462,7 @@ def main_worker(args):
             #optim_regime = [
             #    {'epoch': 0, 'optimizer': 'Adam', 'lr': 1e-4}] 
             optim_regime = [
-                {'epoch': 0, 'optimizer': 'SGD', 'lr': 1e-1},
+                {'epoch': 0, 'optimizer': 'SGD', 'lr': 1e-2},
                 {'epoch': 10, 'lr': 1e-2},
                 {'epoch': 15, 'lr': 1e-3}]
         else:              
@@ -762,7 +762,7 @@ def main_worker(args):
             val_data.set_epoch(epoch)
             logging.info('\nStarting Epoch: {0}\n'.format(epoch + 1))
             # train for one epoch
-            repeat_train = 20 if args.update_only_th else 1
+            repeat_train = 5 if args.update_only_th else 1
             for tt in range(repeat_train):
                 print(tt)
                 train_results = trainer.train(train_data.get_loader(),
