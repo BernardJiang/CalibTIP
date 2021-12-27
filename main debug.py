@@ -41,6 +41,8 @@ from functools import partial
 from torch.onnx import ONNX_ARCHIVE_MODEL_PROTO_NAME, ExportTypes, OperatorExportTypes, TrainingMode
 import copy
 from models.modules.quantize import QConv2d, QLinear
+import json
+
 
 model_names = sorted(name for name in models.__dict__
                      if name.islower() and not name.startswith("__")
@@ -802,8 +804,11 @@ def main_worker(args):
             torch.save(model.state_dict(),filename)
             logging.info(results)
             
-            quantize_model_new(model)
+            qparams = quantize_model_new(model)
             torch.save(model.state_dict(),filename+'.quant')
+            with open(filename+'.quant'+'.json', "w") as fp:
+                json.dump(qparams, fp, indent=4)
+            
             dequantize_model_new(model)
             torch.save(model.state_dict(),filename+'.dequant')
             

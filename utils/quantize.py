@@ -81,7 +81,8 @@ def dequantize_model(model):
 def is_q_module(m):
     return isinstance(m, QConv2d) or isinstance(m, QLinear)
 
-def quantize_model_new(model):
+
+def quantize_model_new(model, qparams = {}):    
     for i,m in enumerate(model.children()):
         if is_q_module(m):
             print("Found a quanted module m=", m.name, "weight = ", m.weight.shape, " bias ", m.bias.shape, " range =" , m.quantize_weight.running_range.shape, "zp =", m.quantize_weight.running_zero_point.shape, "numbits=", m.quantize_weight.num_bits)
@@ -91,12 +92,16 @@ def quantize_model_new(model):
             qw = tensor_fl2fx(qp, num_bits=m.quantize_weight.num_bits)
             with torch.no_grad():
                 m.weight.copy_(qw)
-            # model.register_buffer(n + '.quantization.scale', None)
-            # model.register_buffer(n + '.quantization.zero_point', None)
-        dequantize_model_new(m)
+                qparams[m.name] = {
+                        'shape': list(m.weight.shape),
+                        'range': m.quantize_weight.running_range.flatten().tolist(),
+                        'zero_point': m.quantize_weight.running_zero_point.flatten().tolist(),
+                        'num_bits': m.quantize_weight.num_bits
+                    }
+        qparams = quantize_model_new(m, qparams)
 
     model.quantized = None
-    return 
+    return qparams
 
 def dequantize_model_new(model):
     for i,m in enumerate(model.children()):
