@@ -1,6 +1,7 @@
 from collections import namedtuple
 import torch
 import torch.nn as nn
+from models.modules.quantize import calculate_qparams, quantize, QConv2d,QLinear
 
 QTensor = namedtuple('QTensor', ['tensor', 'scale', 'zero_point'])
 
@@ -28,6 +29,22 @@ def quantize_tensor(x, num_bits=8):
     q_x = q_x.round().byte()
     return QTensor(tensor=q_x, scale=scale, zero_point=zero_point)
 
+def tensor_fl2fx(qt, num_bits=8):
+    qmin = 0.
+    qmax = 2.**num_bits - 1.
+    scale = qt.scale / (qmax - qmin) #x.scale is actual range 
+
+    q_x = (qt.tensor - qt.zero_point) / scale
+    q_x.clamp_(qmin, qmax).round_()
+    q_x = q_x.round().byte().float()
+    return q_x #QTensor(tensor=q_x, scale=scale, zero_point=qt.zero_point)
+
+
+def tensor_fx2fl(qt, num_bits=8):
+    qmin = 0.
+    qmax = 2.**num_bits - 1.
+    scale = qt.scale / (qmax - qmin) #x.scale is actual range 
+    return scale * qt.tensor.float() + qt.zero_point
 
 def dequantize_tensor(q_x):
     return q_x.scale * (q_x.tensor.float() - q_x.zero_point)
@@ -58,4 +75,42 @@ def dequantize_model(model):
             p.copy_(dequantize_tensor(qp))
             model.register_buffer(n + '.quantization.scale', None)
             model.register_buffer(n + '.quantization.zero_point', None)
+            
     model.quantized = None
+
+def is_q_module(m):
+    return isinstance(m, QConv2d) or isinstance(m, QLinear)
+
+def quantize_model_new(model):
+    for i,m in enumerate(model.children()):
+        if is_q_module(m):
+            print("Found a quanted module m=", m.name, "weight = ", m.weight.shape, " bias ", m.bias.shape, " range =" , m.quantize_weight.running_range.shape, "zp =", m.quantize_weight.running_zero_point.shape, "numbits=", m.quantize_weight.num_bits)
+            qp = QTensor(tensor=m.weight,
+                         scale= m.quantize_weight.running_range,
+                         zero_point=m.quantize_weight.running_zero_point)
+            qw = tensor_fl2fx(qp, num_bits=m.quantize_weight.num_bits)
+            with torch.no_grad():
+                m.weight.copy_(qw)
+            # model.register_buffer(n + '.quantization.scale', None)
+            # model.register_buffer(n + '.quantization.zero_point', None)
+        dequantize_model_new(m)
+
+    model.quantized = None
+    return 
+
+def dequantize_model_new(model):
+    for i,m in enumerate(model.children()):
+        if is_q_module(m):
+            print("Found a quanted module m=", m.name, "weight = ", m.weight.shape, " bias ", m.bias.shape, " range =" , m.quantize_weight.running_range.shape, "zp =", m.quantize_weight.running_zero_point.shape, "numbits=", m.quantize_weight.num_bits)
+            qp = QTensor(tensor=m.weight,
+                         scale= m.quantize_weight.running_range,
+                         zero_point=m.quantize_weight.running_zero_point)
+            qw = tensor_fx2fl(qp, num_bits=m.quantize_weight.num_bits)
+            with torch.no_grad():
+                m.weight.copy_(qw)
+            # model.register_buffer(n + '.quantization.scale', None)
+            # model.register_buffer(n + '.quantization.zero_point', None)
+        dequantize_model_new(m)
+
+    model.quantized = None
+    return 
