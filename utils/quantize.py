@@ -96,7 +96,10 @@ def quantize_model_new(model, qparams = {}):
                         'shape': list(m.weight.shape),
                         'range': m.quantize_weight.running_range.flatten().tolist(),
                         'zero_point': m.quantize_weight.running_zero_point.flatten().tolist(),
-                        'num_bits': m.quantize_weight.num_bits
+                        'num_bits': m.quantize_weight.num_bits,
+                        'range_input': m.quantize_input.running_range.flatten().tolist(),
+                        'zero_point_input': m.quantize_input.running_zero_point.flatten().tolist(),
+                        'num_bits_input': m.quantize_input.num_bits
                     }
         qparams = quantize_model_new(m, qparams)
 
