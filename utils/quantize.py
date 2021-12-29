@@ -29,23 +29,6 @@ def quantize_tensor(x, num_bits=8):
     q_x = q_x.round().byte()
     return QTensor(tensor=q_x, scale=scale, zero_point=zero_point)
 
-def tensor_fl2fx(qt, num_bits=8):
-    qmin = 0.
-    qmax = 2.**num_bits - 1.
-    scale = qt.scale / (qmax - qmin) #x.scale is actual range 
-
-    q_x = (qt.tensor - qt.zero_point) / scale
-    q_x.clamp_(qmin, qmax).round_()
-    q_x = q_x.round().byte().float()
-    return q_x #QTensor(tensor=q_x, scale=scale, zero_point=qt.zero_point)
-
-
-def tensor_fx2fl(qt, num_bits=8):
-    qmin = 0.
-    qmax = 2.**num_bits - 1.
-    scale = qt.scale / (qmax - qmin) #x.scale is actual range 
-    return scale * qt.tensor.float() + qt.zero_point
-
 def dequantize_tensor(q_x):
     return q_x.scale * (q_x.tensor.float() - q_x.zero_point)
 
@@ -82,6 +65,23 @@ def is_q_module(m):
     return isinstance(m, QConv2d) or isinstance(m, QLinear)
 
 
+def tensor_fl2fx(qt, num_bits=8):
+    qmin = 0.
+    qmax = 2.**num_bits - 1.
+    scale = qt.scale / (qmax - qmin) #x.scale is actual range 
+
+    q_x = (qt.tensor - qt.zero_point) / scale
+    q_x.clamp_(qmin, qmax).round_()
+    q_x = q_x.round().byte().float()
+    return q_x #QTensor(tensor=q_x, scale=scale, zero_point=qt.zero_point)
+
+
+def tensor_fx2fl(qt, num_bits=8):
+    qmin = 0.
+    qmax = 2.**num_bits - 1.
+    scale = qt.scale / (qmax - qmin) #x.scale is actual range 
+    return scale * qt.tensor.float() + qt.zero_point
+
 def quantize_model_new(model, qparams = {}):    
     for i,m in enumerate(model.children()):
         if is_q_module(m):
@@ -94,12 +94,12 @@ def quantize_model_new(model, qparams = {}):
                 m.weight.copy_(qw)
                 qparams[m.name] = {
                         'shape': list(m.weight.shape),
+                        'num_bits': m.quantize_weight.num_bits,
                         'range': m.quantize_weight.running_range.flatten().tolist(),
                         'zero_point': m.quantize_weight.running_zero_point.flatten().tolist(),
-                        'num_bits': m.quantize_weight.num_bits,
+                        'num_bits_input': m.quantize_input.num_bits,
                         'range_input': m.quantize_input.running_range.flatten().tolist(),
-                        'zero_point_input': m.quantize_input.running_zero_point.flatten().tolist(),
-                        'num_bits_input': m.quantize_input.num_bits
+                        'zero_point_input': m.quantize_input.running_zero_point.flatten().tolist()
                     }
         qparams = quantize_model_new(m, qparams)
 
