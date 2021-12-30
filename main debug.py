@@ -230,15 +230,10 @@ def save2onnx(model_orig, img, onnx_export_file, disable_quantization=False):
             for m in model_orig.modules():
                 if isinstance(m, QConv2d) or isinstance(m, QLinear):
                     m.quantize = False
-            qparams = quantize_model_new(model_orig)
-            filename_quant = onnx_export_file.replace(".onnx", ".quant.pt")
-            torch.save(model_orig.state_dict(), filename_quant)
+            qparams = get_quantization_params(model_orig)
             filename_json = onnx_export_file + ".json"
             with open(filename_json, "w") as fp:
                 json.dump(qparams, fp, indent=4)
-            dequantize_model_new(model_orig)
-            filename_dequant = onnx_export_file.replace(".onnx", ".dequant.pt")
-            torch.save(model_orig.state_dict(), filename_dequant)
 
         # onnx_export_file = result_folder+'mobilenetv2_zeroq.onnx'
         print('\nStarting ONNX export with onnx %s...' % onnx.__version__)
@@ -809,7 +804,7 @@ def main_worker(args):
             logging.info(results)
             
             input_image = torch.zeros(1,3,224, 224).cuda()
-            save2onnx(model, input_image, filename+'.onnx')
+            save2onnx(model, input_image, filename+'.onnx', True)
         
         else:
             if args.evaluate_init_configuration:
