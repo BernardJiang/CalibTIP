@@ -82,20 +82,40 @@ def tensor_fx2fl(qt, num_bits=8):
     scale = qt.scale / (qmax - qmin) #x.scale is actual range 
     return scale * qt.tensor.float() + qt.zero_point
 
-def get_quantization_params(model, qparams = {}):    
+def tensor_fl2fx2fl(x, num_bits=8):
+    return dequantize_tensor(quantize_tensor(x, num_bits))
+
+
+def get_quantized_model_and_params(model, qparams = {}):    
     for i,m in enumerate(model.children()):
         if is_q_module(m):
             with torch.no_grad():
+                dqw = tensor_fl2fx2fl(m.weight, num_bits=m.quantize_weight.num_bits)
+                m.weight.copy_(dqw)
+                qmax = 2.**m.quantize_weight.num_bits -1.
+                scale = m.quantize_weight.running_range / qmax
                 qparams[m.name] = {
                         'shape': list(m.weight.shape),
+                        
                         'num_bits': m.quantize_weight.num_bits,
                         'range': m.quantize_weight.running_range.flatten().tolist(),
                         'zero_point': m.quantize_weight.running_zero_point.flatten().tolist(),
+                        
                         'num_bits_input': m.quantize_input.num_bits,
                         'range_input': m.quantize_input.running_range.flatten().tolist(),
-                        'zero_point_input': m.quantize_input.running_zero_point.flatten().tolist()
+                        'zero_point_input': m.quantize_input.running_zero_point.flatten().tolist(),
+                        
+                        'scale': { 
+                            'all': scale.flatten().tolist(),
+                        },
+                        'radix': {
+                            'all': 0,
+                        },
+                        'bitwidth': {
+                            'all': m.quantize_weight.num_bits,                        
+                        },                        
                     }
-        qparams = get_quantization_params(m, qparams)
+        qparams = get_quantized_model_and_params(m, qparams)
 
     model.quantized = None
     return qparams
