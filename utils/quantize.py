@@ -82,6 +82,24 @@ def tensor_fx2fl(qt, num_bits=8):
     scale = qt.scale / (qmax - qmin) #x.scale is actual range 
     return scale * qt.tensor.float() + qt.zero_point
 
+def get_quantization_params(model, qparams = {}):    
+    for i,m in enumerate(model.children()):
+        if is_q_module(m):
+            with torch.no_grad():
+                qparams[m.name] = {
+                        'shape': list(m.weight.shape),
+                        'num_bits': m.quantize_weight.num_bits,
+                        'range': m.quantize_weight.running_range.flatten().tolist(),
+                        'zero_point': m.quantize_weight.running_zero_point.flatten().tolist(),
+                        'num_bits_input': m.quantize_input.num_bits,
+                        'range_input': m.quantize_input.running_range.flatten().tolist(),
+                        'zero_point_input': m.quantize_input.running_zero_point.flatten().tolist()
+                    }
+        qparams = get_quantization_params(m, qparams)
+
+    model.quantized = None
+    return qparams
+
 def quantize_model_new(model, qparams = {}):    
     for i,m in enumerate(model.children()):
         if is_q_module(m):
