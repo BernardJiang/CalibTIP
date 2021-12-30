@@ -18,6 +18,7 @@ from utils.cross_entropy import CrossEntropyLoss
 from utils.misc import torch_dtypes
 from utils.param_filter import FilterModules, is_bn
 from utils.convert_pytcv_model import convert_pytcv_model
+from utils.quantize import *
 from datetime import datetime
 from ast import literal_eval
 from trainer import Trainer
@@ -40,6 +41,8 @@ from functools import partial
 from torch.onnx import ONNX_ARCHIVE_MODEL_PROTO_NAME, ExportTypes, OperatorExportTypes, TrainingMode
 import copy
 from models.modules.quantize import QConv2d, QLinear
+import json
+
 
 model_names = sorted(name for name in models.__dict__
                      if name.islower() and not name.startswith("__")
@@ -218,7 +221,7 @@ def saveacc(args, val_results, acctype):
 
 
 def save2onnx(model_orig, img, onnx_export_file, disable_quantization=False):
-    return
+
     try:
         import onnx
         
@@ -227,6 +230,10 @@ def save2onnx(model_orig, img, onnx_export_file, disable_quantization=False):
             for m in model_orig.modules():
                 if isinstance(m, QConv2d) or isinstance(m, QLinear):
                     m.quantize = False
+            qparams = get_quantization_params(model_orig)
+            filename_json = onnx_export_file + ".json"
+            with open(filename_json, "w") as fp:
+                json.dump(qparams, fp, indent=4)
 
         # onnx_export_file = result_folder+'mobilenetv2_zeroq.onnx'
         print('\nStarting ONNX export with onnx %s...' % onnx.__version__)
@@ -605,11 +612,6 @@ def main_worker(args):
         filename = args.evaluate + '.adaquant'
         torch.save(model.state_dict(), filename)
 
-        # #disable quantization before saving to onnx.
-        # for m in model.modules():
-        #     if isinstance(m, QConv2d) or isinstance(m, QLinear):
-        #         m.quantize = False
-
         input_image = torch.zeros(1,3,224, 224).cuda()
         save2onnx(model, input_image, filename+'.onnx', True)
 
@@ -800,8 +802,9 @@ def main_worker(args):
             if 'perC' in args.model_config: filename += '_perC'
             torch.save(model.state_dict(),filename)
             logging.info(results)
+            
             input_image = torch.zeros(1,3,224, 224).cuda()
-            save2onnx(model, input_image, filename+'.onnx')
+            save2onnx(model, input_image, filename+'.onnx', True)
         
         else:
             if args.evaluate_init_configuration:
