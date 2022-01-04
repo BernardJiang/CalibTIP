@@ -200,7 +200,7 @@ parser.add_argument('--res_log', default=None, help='path to result pandas log f
 parser.add_argument('--cmp', type=str, help='compression_ratio')
 
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 def saveacc(args, val_results, acctype):
     if args.res_log is not None:
@@ -612,9 +612,6 @@ def main_worker(args):
         filename = args.evaluate + '.adaquant'
         torch.save(model.state_dict(), filename)
 
-        input_image = torch.zeros(1,3,224, 224).cuda()
-        save2onnx(model, input_image, filename+'.onnx', True)
-
         train_data = None
         cached_input_output = None
         val_results = trainer.validate(val_data.get_loader())
@@ -622,6 +619,10 @@ def main_worker(args):
 
         adaquant_type = 'adaquant_seq' if args.seq_adaquant else 'adaquant_parallel'
         saveacc(args, val_results, adaquant_type)
+        
+        input_image = torch.zeros(1,3,224, 224).cuda()
+        save2onnx(model, input_image, filename+'.onnx', True)  #True must be the last command because it modifies the model.
+
 
     elif args.per_layer:
         # Store input/output for all quantizable layers
@@ -750,7 +751,7 @@ def main_worker(args):
         saveacc(args, val_results, 'bn_tuning')
 
         input_image = torch.zeros(1,3,224, 224).cuda()
-        save2onnx(model, input_image, filename+'.onnx', True)
+        save2onnx(model, input_image, filename+'.onnx', True)  #True must be the last command because it modifies the model.
 
     elif args.bias_tuning:
         val_results = trainer.validate(val_data.get_loader())
@@ -780,7 +781,7 @@ def main_worker(args):
         print("Save model to: {}".format(filename))
         torch.save(model.state_dict(), filename)
         input_image = torch.zeros(1,3,224, 224).cuda()
-        save2onnx(model, input_image, filename+'.onnx', True)
+        save2onnx(model, input_image, filename+'.onnx', True)  #True must be the last command because it modifies the model.
 
     else:
         # model_config['measure'] = True
@@ -804,7 +805,7 @@ def main_worker(args):
             logging.info(results)
             
             input_image = torch.zeros(1,3,224, 224).cuda()
-            save2onnx(model, input_image, filename+'.onnx', True)
+            save2onnx(model, input_image, filename+'.onnx', True)  #True must be the last command because it modifies the model.
         
         else:
             if args.evaluate_init_configuration:
