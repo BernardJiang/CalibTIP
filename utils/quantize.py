@@ -69,6 +69,9 @@ def get_quantized_model_and_params(model, qparams = {}):
                 # qmax = 2.**m.quantize_weight.num_bits -1.
                 qmax = 2.**(m.quantize_weight.num_bits-1) - 1.
                 scale = m.quantize_weight.running_range / qmax
+                
+                qmax_input = 2.**(m.quantize_input.num_bits-1) - 1.
+                scale_input = m.quantize_input.running_range / qmax_input
                 qparams[m.name] = {
                         'shape': list(m.weight.shape),
                         
@@ -80,8 +83,11 @@ def get_quantized_model_and_params(model, qparams = {}):
                         'range_input': m.quantize_input.running_range.flatten().tolist(),
                         'zero_point_input': m.quantize_input.running_zero_point.flatten().tolist(),
                         
-                        'scale': { 
+                        'step_size': { 
                             'all': scale.flatten().tolist(),
+                        },
+                        'step_size_input': { 
+                            'all': scale_input.flatten().tolist(),
                         },
                         'radix': {
                             'all': 0,
