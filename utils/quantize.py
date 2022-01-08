@@ -6,17 +6,25 @@ from models.modules.quantize import calculate_qparams, quantize, QConv2d,QLinear
 QTensor = namedtuple('QTensor', ['tensor', 'scale', 'zero_point'])
 
 
+def get_broadcastshape(x):
+    shp = x.shape
+    p1 = torch.ones(len(shp), dtype=torch.int, device=x.device)
+    p1[0] = x.shape[0]
+    p2 = p1.tolist()
+    p3 = tuple(p2)
+    return p3
+    
 def quantize_tensor(x, num_bits=8):
     qmin = -(2.**(num_bits-1) - 1.)
     qmax = 2.**(num_bits-1) - 1.
-    abs_max_val = max(abs(x.min()), abs(x.max()))
-    
-    scale = abs_max_val / qmax
+    newshape = get_broadcastshape(x)
+    abs_max_val = torch.max(torch.abs(torch.reshape(x, (x.shape[0], -1))), 1)[0]
     zero_point = 0
+    scale = torch.reshape(abs_max_val / qmax, newshape)
 
     q_x = x / scale
     q_x.clamp_(qmin, qmax).round_()
-    q_x = q_x.round().byte()
+    q_x = q_x.to(torch.int8)
     return QTensor(tensor=q_x, scale=scale, zero_point=zero_point)
 
 def dequantize_tensor(q_x):
