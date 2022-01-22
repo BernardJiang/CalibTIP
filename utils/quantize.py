@@ -21,15 +21,22 @@ def quantize_tensor(x, num_bits=8):
     abs_max_val = torch.max(torch.abs(torch.reshape(x, (x.shape[0], -1))), 1)[0]
     zero_point = 0
     scale = torch.reshape(abs_max_val / qmax, newshape)
-
-    q_x = x / scale
+    
+    # q_x = x / scale
+    # q_x.clamp_(qmin, qmax).round_()
+    # q_x = q_x.to(torch.int8)
+    # return QTensor(tensor=q_x, scale=scale, zero_point=zero_point)
+    
+    radix = torch.floor( torch.log2( (2.**(num_bits-1))/abs_max_val )).to(torch.int8)
+    radix = torch.reshape(radix, newshape)
+    q_x = x * (2.**radix) 
     q_x.clamp_(qmin, qmax).round_()
     q_x = q_x.to(torch.int8)
-    return QTensor(tensor=q_x, scale=scale, zero_point=zero_point)
+    return QTensor(tensor=q_x, scale=radix, zero_point=zero_point)  #re-use the scale as redix
 
 def dequantize_tensor(q_x):
-    return q_x.scale * q_x.tensor.float() 
-
+    # return q_x.scale * q_x.tensor.float() 
+    return q_x.tensor.float() / (2.**q_x.scale )  #re-use scale as radix.
 
 def quantize_model(model):
     qparams = {}
@@ -72,14 +79,17 @@ def get_quantized_model_and_params(model, qparams = {}):
     for i,m in enumerate(model.children()):
         if is_q_module(m):
             with torch.no_grad():
-                dqw = tensor_fl2fx2fl(m.weight, num_bits=m.quantize_weight.num_bits)
-                m.weight.copy_(dqw)
-                # qmax = 2.**m.quantize_weight.num_bits -1.
-                qmax = 2.**(m.quantize_weight.num_bits-1) - 1.
-                scale = m.quantize_weight.running_range / qmax
+                # dqw = tensor_fl2fx2fl(m.weight, num_bits=m.quantize_weight.num_bits)
+                qw = quantize_tensor(m.weight, num_bits=m.quantize_weight.num_bits)
+                dqw = dequantize_tensor(qw)
                 
-                qmax_input = 2.**(m.quantize_input.num_bits-1) - 1.
-                scale_input = m.quantize_input.running_range / qmax_input
+                m.weight.copy_(dqw)
+                radix = qw.scale #re-use scale as radix
+                
+                qmax = 2.**(m.quantize_input.num_bits-1)
+                radix_input = torch.floor(torch.log2(qmax/m.quantize_input.running_range)).to(torch.int8)
+                
+                
                 qparams[m.name] = {
                         'shape': list(m.weight.shape),
                         
@@ -91,15 +101,14 @@ def get_quantized_model_and_params(model, qparams = {}):
                         'range_input': m.quantize_input.running_range.flatten().tolist(),
                         'zero_point_input': m.quantize_input.running_zero_point.flatten().tolist(),
                         
-                        'step_size': { 
-                            'all': scale.flatten().tolist(),
+                        'scale': { 
+                            'all': 1.0,
                         },
-                        'step_size_input': { 
-                            'all': scale_input.flatten().tolist(),
+                        'scale_input': { 
+                            'all': 1.0,
                         },
-                        'radix': {
-                            'all': 0,
-                        },
+                        'radix': radix.flatten().tolist(),
+                        'radix_input':radix_input.flatten().tolist(),
                         'bitwidth': {
                             'all': m.quantize_weight.num_bits,                        
                         },                        

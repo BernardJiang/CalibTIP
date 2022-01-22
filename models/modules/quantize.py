@@ -159,8 +159,14 @@ class UniformQuantize(InplaceFunction):
         qmin = -(2.**(num_bits-1) - 1.)
         qmax = 2.**(num_bits-1) - 1.
         running_range=qparams.range.clamp(min=1e-6,max=1e5)
-        scale = running_range / qmax 
-        output.div_(scale)
+        
+        # scale = running_range / qmax 
+        # output.div_(scale)
+        
+        radix = torch.floor( torch.log2( (2.**(num_bits-1))/running_range )).to(torch.int8)
+        # radix = torch.reshape(radix, newshape)
+        output.mul_(2.**radix)
+        
 
         if stochastic:
             noise = output.new(output.shape).uniform_(-0.5, 0.5)
@@ -170,7 +176,8 @@ class UniformQuantize(InplaceFunction):
         if dequantize:
             # output.mul_(scale).add_(
             #     zero_point - qmin * scale)  # dequantize
-            output.mul_(scale)  # dequantize
+            # output.mul_(scale)  # dequantize
+            output.div_(2.**radix)  # dequantize
         return output
 
     @staticmethod
@@ -279,8 +286,13 @@ def quantize_with_grad(input, num_bits=None, qparams=None, flatten_dims=_DEFAULT
     qmin = -(2.**(num_bits-1) - 1.)
     qmax = 2.**(num_bits-1) - 1.
     running_range=qparams.range.clamp(min=1e-6,max=1e5)
-    scale = running_range / qmax 
-    output.div_(scale)
+    
+    # scale = running_range / qmax 
+    # output.div_(scale)
+    radix1 = torch.log2((2.**(num_bits-1))/running_range)
+    radix = torch.floor( radix1 ).to(torch.int8)
+    # radix = torch.reshape(radix, newshape)
+    output.mul_(2.**radix)
 
     if stochastic:
         noise = output.new(output.shape).uniform_(-0.5, 0.5)
@@ -291,10 +303,12 @@ def quantize_with_grad(input, num_bits=None, qparams=None, flatten_dims=_DEFAULT
         if dequantize:
             # output.mul_(scale).add_(
             #     zero_point - qmin * scale)  # dequantize
-            output.mul_(scale)  # dequantize
+            # output.mul_(scale)  # dequantize
+            output.div_(2.**radix)  # dequantize
         return output
     else:
-        return output,scale,qmin * scale - zero_point       
+        # return output,scale,qmin * scale - zero_point       
+        return output, radix1, qmin * (2.** radix) #not sure what the last 2 parameters are for.
       
 
 def dequantize(input, num_bits=None, qparams=None,signed=False, inplace=False):
@@ -314,8 +328,12 @@ def dequantize(input, num_bits=None, qparams=None,signed=False, inplace=False):
     qmin = -(2.**(num_bits-1) - 1.)
     qmax = 2.**(num_bits-1) - 1.
     running_range=qparams.range.clamp(min=1e-6,max=1e5)
-    scale = running_range / qmax 
-    output.mul_(scale) # dequantize
+    # scale = running_range / qmax 
+    # output.mul_(scale) # dequantize
+    
+    radix = torch.floor( torch.log2( (2.**(num_bits-1))/running_range )).to(torch.int8)
+    output.div_(2.**radix) # dequantize
+    
     return output
 
 def quantize(x, num_bits=None, qparams=None, flatten_dims=_DEFAULT_FLATTEN, reduce_dim=0, dequantize=True, signed=False, stochastic=False, inplace=False,quant_zp=QZP):
