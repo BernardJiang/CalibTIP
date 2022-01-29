@@ -135,7 +135,7 @@ def optimize_layer(layer, in_out, optimize_weights=False, batch_size=100, model_
         else:
             mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=1000, lr1=1e-5, lr2=1e-4) #, batch_size=batch_size
         mse_before_opt = mse_before
-        print("MSE before adaquant: {}".format(mse_before))
+        print("\nMSE before adaquant: {}".format(mse_before))
         print("MSE after adaquant: {}".format(mse_after))
         torch.cuda.empty_cache()
     else:

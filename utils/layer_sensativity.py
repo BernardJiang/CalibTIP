@@ -10,8 +10,8 @@ def search_replace_layer(model,all_names,num_bits_activation,num_bits_weight,nam
         layer_name=name_model+'.'+modules_names[i] if name_model !='' else name_model+modules_names[i]
         m.name=layer_name
         if layer_name in all_names:
-            print("Layer {}, precision switch from {}-bit to {}-bit weight, {}-bit activation.".format(
-                layer_name, m.num_bits, num_bits_weight, num_bits_activation))
+            print("Layer {}, precision switch from w{}a{} to w{}a{}.".format(
+                layer_name, m.num_bits_weight, m.num_bits, num_bits_weight, num_bits_activation))
             m.num_bits=num_bits_activation
             m.num_bits_weight = num_bits_weight
             m.quantize_input.num_bits=num_bits_activation
@@ -28,10 +28,10 @@ def search_replace_layer_from_dict(model, layers_precision_dict, name_model=''):
         m.name=layer_name
         if layer_name in layers_precision_dict:
             new_prec = layers_precision_dict[layer_name]
-            print("Layer {}, precision switch from {}-bit to {}-bit weight, {}-bit activation.".format(
-                layer_name, m.num_bits, new_prec[0], new_prec[1]))
-            m.num_bits=new_prec[0]
-            m.num_bits_weight = new_prec[1]
+            print("Layer {}, precision switch from w{}a{} to w{}a{}.".format(
+                layer_name, m.num_bits_weight, m.num_bits, new_prec[0], new_prec[1]))
+            m.num_bits=new_prec[1]
+            m.num_bits_weight = new_prec[0]
             m.quantize_input.num_bits=new_prec[1]
             m.quantize_weight.num_bits=new_prec[0]
         search_replace_layer_from_dict(m,layers_precision_dict,layer_name)

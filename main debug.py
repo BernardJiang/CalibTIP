@@ -42,6 +42,7 @@ from torch.onnx import ONNX_ARCHIVE_MODEL_PROTO_NAME, ExportTypes, OperatorExpor
 import copy
 from models.modules.quantize import QConv2d, QLinear
 import json
+from itertools import zip_longest
 
 
 model_names = sorted(name for name in models.__dict__
@@ -201,6 +202,11 @@ parser.add_argument('--cmp', type=str, help='compression_ratio')
 
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
+
+def grouper(n, iterable, fillvalue=None):
+    "grouper(3, 'ABCDEFG', 'x') --> ABC DEF Gxx"
+    args = [iter(iterable)] * n
+    return zip_longest(fillvalue=fillvalue, *args)
 
 def saveacc(args, val_results, acctype):
     if args.res_log is not None:
@@ -674,19 +680,20 @@ def main_worker(args):
                 print('switched layer %s to 4 bit' % (layer))
         elif isinstance(args.names_sp_layers, dict):
             quant_models = {}
-            base_precision = args.precisions[0]
-            for m, prec in zip(args.opt_model_paths, args.precisions):
-                print('For precision={}, loading {}'.format(prec, m))
-                quant_models[prec] = torch.load(m)
+            base_precision = 'w{}a{}'.format(args.precisions[0], args.precisions[1])
+            for m, prec_wa in zip(args.opt_model_paths, ['w{}a{}'.format(i,j) for i,j in grouper(2, args.precisions)]):
+                print('For precision={}, loading {}'.format(prec_wa, m))
+                quant_models[prec_wa] = torch.load(m)
             model.load_state_dict(quant_models[base_precision], strict=False)
             for layer_name, nbits_list in args.names_sp_layers.items():
-                model = search_replace_layer(model, [layer_name], num_bits_activation=nbits_list[0],
+                model = search_replace_layer(model, [layer_name], num_bits_activation=nbits_list[1],
                                              num_bits_weight=nbits_list[0])
                 layer_keys = [key for key in quant_models[base_precision] for qpkey in quant_keys if
                               layer_name + qpkey == key]
+                model_key = 'w{}a{}'.format(nbits_list[0], nbits_list[1])
                 for key in layer_keys:
-                    model.state_dict()[key].copy_(quant_models[nbits_list[0]][key])
-                print('switched layer {} to {} bit'.format(layer_name, nbits_list[0]))
+                    model.state_dict()[key].copy_(quant_models[model_key][key])
+                print('switched layer {} to {}'.format(layer_name, model_key))
         if os.environ.get('DEBUG')=='True':
             from utils.layer_sensativity import check_quantized_model
             fp_names = check_quantized_model(trainer.model)

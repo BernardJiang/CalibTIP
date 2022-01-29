@@ -4,8 +4,14 @@ import numpy as np
 import argparse
 from main import main_with_args as main_per_layer
 import os
+from itertools import zip_longest
+
 
 Debug = False
+def grouper(n, iterable, fillvalue=None):
+    "grouper(3, 'ABCDEFG', 'x') --> ABC DEF Gxx"
+    args = [iter(iterable)] * n
+    return zip_longest(fillvalue=fillvalue, *args)
 
 def mpip_compression(files=None, replace_precisions=None, Degradation=None, noise=None, method='acc', base_precision=8):
     data = {}
@@ -44,17 +50,17 @@ def mpip_compression(files=None, replace_precisions=None, Degradation=None, nois
         Combinations[layer] = []
         accLoss[layer] = {}
         memorySaved[layer] = {}
-        for prec in replace_precisions:
-            acc_layer[prec] = data[prec][measurement][l]
-            performance[prec] = int(data[prec][metric][l]) * (prec ** po)
-            Combinations[layer].append(layer + '_{}W_{}A'.format(prec, prec))
+        for prec_w, prec_a in grouper(2, replace_precisions):
+            acc_layer[prec_w] = data[prec_w][measurement][l]
+            performance[prec_w] = int(data[prec_w][metric][l]) * (prec_w ** po)
+            Combinations[layer].append(layer + '_{}W_{}A'.format(prec_w, prec_a))
             if acc:
-                accLoss[layer][layer + '_{}W_{}A'.format(prec, prec)] = max(base_accuracy - acc_layer[prec], 1e-6)
+                accLoss[layer][layer + '_{}W_{}A'.format(prec_w, prec_a)] = max(base_accuracy - acc_layer[prec_w], 1e-6)
             else:
-                accLoss[layer][layer + '_{}W_{}A'.format(prec, prec)] = max(acc_layer[prec] - base_accuracy, 1e-6)
+                accLoss[layer][layer + '_{}W_{}A'.format(prec_w, prec_a)] = max(acc_layer[prec_w] - base_accuracy, 1e-6)
             if noise is not None:
-                accLoss[layer][layer + '_{}W_{}A'.format(prec, prec)] += noise * np.random.normal() * accLoss[layer][layer + '_{}W_{}A'.format(prec, prec)]
-            memorySaved[layer][layer + '_{}W_{}A'.format(prec, prec)] = base_performance - performance[prec]
+                accLoss[layer][layer + '_{}W_{}A'.format(prec_w, prec_a)] += noise * np.random.normal() * accLoss[layer][layer + '_{}W_{}A'.format(prec_w, prec_a)]
+            memorySaved[layer][layer + '_{}W_{}A'.format(prec_w, prec_a)] = base_performance - performance[prec_w]
         Combinations[layer].append(layer + '_{}W_{}A'.format(base_precision, base_precision))
         accLoss[layer][layer + '_{}W_{}A'.format(base_precision, base_precision)] = 0
         memorySaved[layer][layer + '_{}W_{}A'.format(base_precision, base_precision)] = 0
@@ -94,19 +100,19 @@ def mpip_compression(files=None, replace_precisions=None, Degradation=None, nois
     memory_reduced = 0
     acc_deg = 0
     policy = []
-    all_precisions = replace_precisions + [base_precision]
+    all_precisions = replace_precisions + [base_precision, base_precision]
     total_params = {}
     for prec in all_precisions:
         total_params[prec] = 0
     for l in range(1, num_layers + 1):
         layer = data[replace_precisions[0]]['replaced layer'][l]
-        for prec in all_precisions:
-            if Indicators[layer][layer + '_{}W_{}A'.format(prec, prec)].varValue:
-                policy.append(prec)
-                sol[layer] = [prec, prec]
-                memory_reduced += memorySaved[layer][layer + '_{}W_{}A'.format(prec, prec)]
-                acc_deg += accLoss[layer][layer + '_{}W_{}A'.format(prec, prec)]
-                total_params[prec] += int(data[replace_precisions[0]][metric][l])
+        for prec_w, prec_a in grouper(2, all_precisions):
+            if Indicators[layer][layer + '_{}W_{}A'.format(prec_w, prec_a)].varValue:
+                policy.append('w{}a{}'.format(prec_w, prec_a))
+                sol[layer] = [prec_w, prec_a]
+                memory_reduced += memorySaved[layer][layer + '_{}W_{}A'.format(prec_w, prec_a)]
+                acc_deg += accLoss[layer][layer + '_{}W_{}A'.format(prec_w, prec_a)]
+                total_params[prec_w] += int(data[replace_precisions[0]][metric][l])
 
     print('Final Solution: ', sol)
     print('Policy: ', policy)
@@ -116,8 +122,8 @@ def mpip_compression(files=None, replace_precisions=None, Degradation=None, nois
     else:
         expected_acc = base_accuracy + acc_deg
     print('Expected acc: ', expected_acc)
-    for prec in all_precisions:
-        print('Params % in int {} = {}'.format(prec, total_params[prec] / total_mac))
+    for prec_w, prec_a in grouper(2, all_precisions):
+        print('Params % in int {} = {}'.format(prec_w, total_params[prec_w] / total_mac))
 
     return sol, expected_acc, (total_performance - reduced_performance) / (total_performance * (32/base_precision)), policy
 
@@ -155,14 +161,14 @@ num_exp = args.num_exp
 ip_method = args.ip_method
 files = args.layer_by_layer_files.split(';')
 precisions = [int(i) for i in args.precisions.split(';')]
-replace_precisions = precisions[1:]
+replace_precisions = precisions[2:]
 datasets_dir = args.datasets_dir
 model = args.model
 model_vis = args.model_vis
 if args.do_not_use_adaquant:
-    workdirs = [os.path.join('results', model_vis + '_w{}a{}'.format(i, i)) for i in precisions]
+    workdirs = [os.path.join('results', model_vis + '_w{}a{}'.format(w1, a1)) for w1,a1 in grouper(2, precisions)]
 else:
-    workdirs = [os.path.join('results', model_vis + '_w{}a{}.adaquant'.format(i, i)) for i in precisions]
+    workdirs = [os.path.join('results', model_vis + '_w{}a{}.adaquant'.format(w1, a1)) for w1,a1 in grouper(2, precisions)]
 eval_dir = os.path.join(workdirs[0], model + '.absorb_bn')
 
 perC=True
@@ -223,6 +229,7 @@ for Deg in compressions:
 
         eval_dict['names_sp_layers'] = sol
         eval_dict['suffix'] = 'comp_{}_{}{}'.format( "{:.2f}".format(Deg), ip_method, args.suffix)
+        eval_dict['nbits_act'] = replace_precisions[1]
         acc, loss = main_per_layer(**eval_dict)
         # acc = 0.11; loss = 0.9
         # import pdb; pdb.set_trace()
