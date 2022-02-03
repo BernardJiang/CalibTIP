@@ -236,7 +236,7 @@ def preprocess_config(precision_config):
                 if k == "weight_name" or k == "bias_name":
                     flag = True
                     value[k][0] = value[k][0].replace("_kn","")
-                    print("key: " + key + ". k = " + k + " . v=" + value[k][0])
+                    # print("key: " + key + ". k = " + k + " . v=" + value[k][0])
             if flag:
                 newkey = value["weight_name"][0].replace(".weight","")
                 precision_config_result[newkey]=value                       
@@ -555,7 +555,7 @@ def main_worker(args):
     if args.layers_precision_json is not None:
         import onnx
         from utils.layer_sensativity import search_replace_layer_from_json
-        print("Bernard: json = " + args.layers_precision_json)
+        print("read json file " + args.layers_precision_json)
         with open(args.layers_precision_json, "r") as fp:
             precision_config = json.load(fp)
             # print(precision_config)
