@@ -37,6 +37,23 @@ def search_replace_layer_from_dict(model, layers_precision_dict, name_model=''):
         search_replace_layer_from_dict(m,layers_precision_dict,layer_name)
     return model
 
+def search_replace_layer_from_json(model, onnx_model, layers_precision_json, name_model=''):
+    for i,m in enumerate(model.children()):
+        modules_names=[key for key in model._modules.keys()]
+        layer_name=name_model+'.'+modules_names[i] if name_model !='' else name_model+modules_names[i]
+        m.name=layer_name
+        if layer_name in layers_precision_json:
+            new_prec = layers_precision_json[layer_name]
+            wbits = new_prec["weight_bitwidth"]
+            dbits = new_prec["output_datapath_bitwidth"]
+            print("Layer {}, precision switch from w{}a{} to w{}a{}.".format(
+                layer_name, m.num_bits_weight, m.num_bits, wbits, dbits))
+            m.num_bits=dbits
+            m.num_bits_weight = wbits
+            m.quantize_input.num_bits=dbits
+            m.quantize_weight.num_bits=wbits
+        search_replace_layer_from_json(m,onnx_model, layers_precision_json, layer_name)
+    return model
 
 def is_q_module(m):
     return isinstance(m, QConv2d) or isinstance(m, QLinear)

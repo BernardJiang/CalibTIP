@@ -144,6 +144,8 @@ parser.add_argument('--names-sp-layers', default=None, nargs='*',
                     help='names of layers that should switch precision')
 parser.add_argument('--layers_precision_dict', '-lpd', default=None,
                     help='Dictionaly that describes precision for every layers') # "{'conv1': [8, 8], 'layer1.0.conv1': [8, 8], 'layer1.0.conv2': [4, 4], 'layer1.0.conv3': [4, 4], 'layer1.0.downsample.0': [8, 8], 'layer1.1.conv1': [4, 4], 'layer1.1.conv2': [4, 4], 'layer1.1.conv3': [4, 4], 'layer1.2.conv1': [4, 4], 'layer1.2.conv2': [4, 4], 'layer1.2.conv3': [4, 4], 'layer2.0.conv1': [4, 4], 'layer2.0.conv2': [2, 2], 'layer2.0.conv3': [4, 4], 'layer2.0.downsample.0': [4, 4], 'layer2.1.conv1': [2, 2], 'layer2.1.conv2': [4, 4], 'layer2.1.conv3': [4, 4], 'layer2.2.conv1': [2, 2], 'layer2.2.conv2': [2, 2], 'layer2.2.conv3': [4, 4], 'layer2.3.conv1': [2, 2], 'layer2.3.conv2': [2, 2], 'layer2.3.conv3': [4, 4], 'layer3.0.conv1': [4, 4], 'layer3.0.conv2': [2, 2], 'layer3.0.conv3': [2, 2], 'layer3.0.downsample.0': [2, 2], 'layer3.1.conv1': [2, 2], 'layer3.1.conv2': [2, 2], 'layer3.1.conv3': [2, 2], 'layer3.2.conv1': [2, 2], 'layer3.2.conv2': [2, 2], 'layer3.2.conv3': [2, 2], 'layer3.3.conv1': [2, 2], 'layer3.3.conv2': [2, 2], 'layer3.3.conv3': [2, 2], 'layer3.4.conv1': [2, 2], 'layer3.4.conv2': [2, 2], 'layer3.4.conv3': [2, 2], 'layer3.5.conv1': [2, 2], 'layer3.5.conv2': [2, 2], 'layer3.5.conv3': [2, 2], 'layer4.0.conv1': [2, 2], 'layer4.0.conv2': [2, 2], 'layer4.0.conv3': [2, 2], 'layer4.0.downsample.0': [2, 2], 'layer4.1.conv1': [2, 2], 'layer4.1.conv2': [2, 2], 'layer4.1.conv3': [2, 2], 'layer4.2.conv1': [2, 2], 'layer4.2.conv2': [2, 2], 'layer4.2.conv3': [2, 2], 'fc': [4, 4]}"
+parser.add_argument('--layers_precision_json', '-lpj', default=None,
+                    help='Json file that describes precision for every layers') # "{'conv1': [8, 8], 'layer1.0.conv1': [8, 8], 'layer1.0.conv2': [4, 4], 'layer1.0.conv3': [4, 4], 'layer1.0.downsample.0': [8, 8], 'layer1.1.conv1': [4, 4], 'layer1.1.conv2': [4, 4], 'layer1.1.conv3': [4, 4], 'layer1.2.conv1': [4, 4], 'layer1.2.conv2': [4, 4], 'layer1.2.conv3': [4, 4], 'layer2.0.conv1': [4, 4], 'layer2.0.conv2': [2, 2], 'layer2.0.conv3': [4, 4], 'layer2.0.downsample.0': [4, 4], 'layer2.1.conv1': [2, 2], 'layer2.1.conv2': [4, 4], 'layer2.1.conv3': [4, 4], 'layer2.2.conv1': [2, 2], 'layer2.2.conv2': [2, 2], 'layer2.2.conv3': [4, 4], 'layer2.3.conv1': [2, 2], 'layer2.3.conv2': [2, 2], 'layer2.3.conv3': [4, 4], 'layer3.0.conv1': [4, 4], 'layer3.0.conv2': [2, 2], 'layer3.0.conv3': [2, 2], 'layer3.0.downsample.0': [2, 2], 'layer3.1.conv1': [2, 2], 'layer3.1.conv2': [2, 2], 'layer3.1.conv3': [2, 2], 'layer3.2.conv1': [2, 2], 'layer3.2.conv2': [2, 2], 'layer3.2.conv3': [2, 2], 'layer3.3.conv1': [2, 2], 'layer3.3.conv2': [2, 2], 'layer3.3.conv3': [2, 2], 'layer3.4.conv1': [2, 2], 'layer3.4.conv2': [2, 2], 'layer3.4.conv3': [2, 2], 'layer3.5.conv1': [2, 2], 'layer3.5.conv2': [2, 2], 'layer3.5.conv3': [2, 2], 'layer4.0.conv1': [2, 2], 'layer4.0.conv2': [2, 2], 'layer4.0.conv3': [2, 2], 'layer4.0.downsample.0': [2, 2], 'layer4.1.conv1': [2, 2], 'layer4.1.conv2': [2, 2], 'layer4.1.conv3': [2, 2], 'layer4.2.conv1': [2, 2], 'layer4.2.conv2': [2, 2], 'layer4.2.conv3': [2, 2], 'fc': [4, 4]}"
 parser.add_argument('--keep_first_last', dest='keep_first_last', action='store_true', default=False,
                     help='keep first and last layer in base precision')     
 parser.add_argument('--pretrained', dest='pretrained', action='store_true', default=False,
@@ -224,7 +226,24 @@ def saveacc(args, val_results, acctype):
         df.loc[ckp, 'loss_' + acctype] = val_results['loss']
         df.to_csv(args.res_log)
         # print(df)
+        
+def preprocess_config(precision_config):
+    precision_config_result = {}
+    for key,value in precision_config.items():
+        if type(value) is dict:
+            flag = False
+            for k,v in value.items():
+                if k == "weight_name" or k == "bias_name":
+                    flag = True
+                    value[k][0] = value[k][0].replace("_kn","")
+                    print("key: " + key + ". k = " + k + " . v=" + value[k][0])
+            if flag:
+                newkey = value["weight_name"][0].replace(".weight","")
+                precision_config_result[newkey]=value                       
+                        
+    return precision_config_result
 
+    
 
 def save2onnx(model_orig, img, onnx_export_file, disable_quantization=False):
 
@@ -532,6 +551,21 @@ def main_worker(args):
         else:
             model = search_replace_layer(model, args.names_sp_layers, num_bits_activation=args.nbits_act,
                                          num_bits_weight=args.nbits_weight)
+
+    if args.layers_precision_json is not None:
+        import onnx
+        from utils.layer_sensativity import search_replace_layer_from_json
+        print("Bernard: json = " + args.layers_precision_json)
+        with open(args.layers_precision_json, "r") as fp:
+            precision_config = json.load(fp)
+            # print(precision_config)
+            precision_config = preprocess_config(precision_config)
+        onnx_filestr = args.layers_precision_json.replace(".json","")
+        onnx_model = onnx.load(onnx_filestr)
+        # onnx.checker.check_model(onnx_model) 
+        # print(onnx.helper.printable_graph(onnx_model.graph))
+        model = search_replace_layer_from_json(model, onnx_model, precision_config)
+        
 
     cached_input_output = {}
     quant_keys = ['.weight', '.bias', '.equ_scale', '.quantize_input.running_zero_point', '.quantize_input.running_range',
