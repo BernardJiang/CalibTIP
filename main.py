@@ -112,8 +112,8 @@ parser.add_argument('--autoaugment', action='store_true', default=False,
                     help='use autoaugment policies')
 parser.add_argument('--grad-clip', default=-1, type=float,
                     help='maximum grad norm value, -1 for none')
-parser.add_argument('--loss-scale', default=1, type=float,
-                    help='loss scale for mixed precision training.')
+parser.add_argument('--loss-stepsize', default=1, type=float,
+                    help='loss stepsize for mixed precision training.')
 parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
                     metavar='LR', help='initial learning rate')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
@@ -123,7 +123,7 @@ parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float,
 parser.add_argument('--print-freq', '-p', default=10, type=int,
                     metavar='N', help='print frequency (default: 10)')
 parser.add_argument('--adapt-grad-norm', default=None, type=int,
-                    help='adapt gradient scale frequency (default: None)')
+                    help='adapt gradient stepsize frequency (default: None)')
 parser.add_argument('--resume', default='', type=str, metavar='PATH',
                     help='path to latest checkpoint (default: none)')
 parser.add_argument('-e', '--evaluate', type=str, metavar='FILE',
@@ -527,7 +527,7 @@ def main_worker(args):
     prunner = None 
     trainer = Trainer(model,prunner, criterion, optimizer,
                       device_ids=args.device_ids, device=args.device, dtype=dtype,
-                      distributed=args.distributed, local_rank=args.local_rank, mixup=args.mixup, loss_scale=args.loss_scale,
+                      distributed=args.distributed, local_rank=args.local_rank, mixup=args.mixup, loss_stepsize=args.loss_stepsize,
                       grad_clip=args.grad_clip, print_freq=args.print_freq, adapt_grad_norm=args.adapt_grad_norm,epoch=args.start_epoch,update_only_th=args.update_only_th,optimize_rounding=args.optimize_rounding)
 
     

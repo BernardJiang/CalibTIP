@@ -143,7 +143,7 @@ class Inception3(nn.Module):
                 if isinstance(m, QConv2d) or isinstance(m, QLinear):
                     import scipy.stats as stats
                     stddev = m.stddev if hasattr(m, 'stddev') else 0.1
-                    X = stats.truncnorm(-2, 2, scale=stddev)
+                    X = stats.truncnorm(-2, 2, stepsize=stddev)
                     values = torch.as_tensor(X.rvs(m.weight.numel()), dtype=m.weight.dtype)
                     values = values.view(m.weight.size())
                     with torch.no_grad():

@@ -79,19 +79,19 @@ class LpBatchNorm2d(nn.Module):
             t = z.view(z.size(0), -1)
             Var = (torch.abs((t.transpose(1, 0) - mean))**p).mean(0)
 
-            scale = (Var + self.eps)**(-1 / p)
+            stepsize = (Var + self.eps)**(-1 / p)
 
             self.running_mean.mul_(self.momentum).add_(
                 mean.data * (1 - self.momentum))
 
             self.running_var.mul_(self.momentum).add_(
-                scale.data * (1 - self.momentum))
+                stepsize.data * (1 - self.momentum))
         else:
             mean = torch.autograd.Variable(self.running_mean)
-            scale = torch.autograd.Variable(self.running_var)
+            stepsize = torch.autograd.Variable(self.running_var)
 
         out = (x - mean.view(1, mean.size(0), 1, 1)) * \
-            scale.view(1, scale.size(0), 1, 1)
+            stepsize.view(1, stepsize.size(0), 1, 1)
 
         if self.noise and self.training:
             std = 0.1 * _std(x, self.dim).data
@@ -135,19 +135,19 @@ class TopkBatchNorm2d(nn.Module):
                 ((2 * np.log(A.size(0))) ** 0.5)
 
             MeanTOPK = (torch.topk(A, self.k, dim=0)[0].mean(0)) * const
-            scale = 1 / (MeanTOPK + self.eps)
+            stepsize = 1 / (MeanTOPK + self.eps)
 
             self.running_mean.mul_(self.momentum).add_(
                 mean.data * (1 - self.momentum))
 
             self.running_var.mul_(self.momentum).add_(
-                scale.data * (1 - self.momentum))
+                stepsize.data * (1 - self.momentum))
         else:
             mean = torch.autograd.Variable(self.running_mean)
-            scale = torch.autograd.Variable(self.running_var)
+            stepsize = torch.autograd.Variable(self.running_var)
 
         out = (x - mean.view(1, mean.size(0), 1, 1)) * \
-            scale.view(1, scale.size(0), 1, 1)
+            stepsize.view(1, stepsize.size(0), 1, 1)
 
         if self.noise and self.training:
             std = 0.1 * _std(x, self.dim).data
@@ -205,20 +205,20 @@ class GhostTopkBatchNorm2d(nn.Module):
             # print(self.biasTOPK)
             self.biasTOPK.copy_(meanTOPK.data)
             # self.biasTOPK = MeanTOPK.data
-            scale = 1 / (meanTOPK + self.eps)
+            stepsize = 1 / (meanTOPK + self.eps)
 
             self.running_mean.mul_(self.momentum).add_(
                 mean.data * (1 - self.momentum))
 
             self.running_var.mul_(self.momentum).add_(
-                scale.data * (1 - self.momentum))
+                stepsize.data * (1 - self.momentum))
         else:
             mean = torch.autograd.Variable(self.running_mean)
-            scale = torch.autograd.Variable(self.running_var)
+            stepsize = torch.autograd.Variable(self.running_var)
 
         out = (x - mean.view(1, mean.size(0), 1, 1)) * \
-            scale.view(1, scale.size(0), 1, 1)
-        # out = (x - mean.view(1, mean.size(0), 1, 1)) * final_scale.view(1, scale.size(0), 1, 1)
+            stepsize.view(1, stepsize.size(0), 1, 1)
+        # out = (x - mean.view(1, mean.size(0), 1, 1)) * final_scale.view(1, stepsize.size(0), 1, 1)
 
         if self.noise and self.training:
             std = 0.1 * _std(x, self.dim).data
@@ -237,7 +237,7 @@ class GhostTopkBatchNorm2d(nn.Module):
 # L1
 class L1BatchNorm2d(nn.Module):
     # This is normalized L1 Batch norm; note the normalization term (np.pi / 2) ** 0.5) when multiplying by Var:
-    # scale = ((Var * (np.pi / 2) ** 0.5) + self.eps) ** (-1)
+    # stepsize = ((Var * (np.pi / 2) ** 0.5) + self.eps) ** (-1)
 
     """docstring for L1BatchNorm2d."""
 
@@ -264,18 +264,18 @@ class L1BatchNorm2d(nn.Module):
             z = y.contiguous()
             t = z.view(z.size(0), -1)
             Var = (torch.abs((t.transpose(1, 0) - mean))).mean(0)
-            scale = (Var * self.weight_fix + self.eps) ** (-1)
+            stepsize = (Var * self.weight_fix + self.eps) ** (-1)
             self.running_mean.mul_(self.momentum).add_(
                 mean.data * (1 - self.momentum))
 
             self.running_var.mul_(self.momentum).add_(
-                scale.data * (1 - self.momentum))
+                stepsize.data * (1 - self.momentum))
         else:
             mean = torch.autograd.Variable(self.running_mean)
-            scale = torch.autograd.Variable(self.running_var)
+            stepsize = torch.autograd.Variable(self.running_var)
 
         out = (x - mean.view(1, mean.size(0), 1, 1)) * \
-            scale.view(1, scale.size(0), 1, 1)
+            stepsize.view(1, stepsize.size(0), 1, 1)
 
         if self.noise and self.training:
             std = 0.1 * _std(x, self.dim).data

@@ -6,7 +6,7 @@ from scipy.linalg import hadamard
 
 class HadamardProj(nn.Module):
 
-    def __init__(self, input_size, output_size, bias=True, fixed_weights=True, fixed_scale=None):
+    def __init__(self, input_size, output_size, bias=True, fixed_weights=True, fixed_stepsize=None):
         super(HadamardProj, self).__init__()
         self.output_size = output_size
         self.input_size = input_size
@@ -17,29 +17,29 @@ class HadamardProj(nn.Module):
         else:
             self.proj = nn.Parameter(mat)
 
-        init_scale = 1. / math.sqrt(self.output_size)
+        init_stepsize = 1. / math.sqrt(self.output_size)
 
-        if fixed_scale is not None:
-            self.scale = Variable(torch.Tensor(
-                [fixed_scale]), requires_grad=False)
+        if fixed_stepsize is not None:
+            self.stepsize = Variable(torch.Tensor(
+                [fixed_stepsize]), requires_grad=False)
         else:
-            self.scale = nn.Parameter(torch.Tensor([init_scale]))
+            self.stepsize = nn.Parameter(torch.Tensor([init_stepsize]))
 
         if bias:
             self.bias = nn.Parameter(torch.Tensor(
-                output_size).uniform_(-init_scale, init_scale))
+                output_size).uniform_(-init_stepsize, init_stepsize))
         else:
             self.register_parameter('bias', None)
 
         self.eps = 1e-8
 
     def forward(self, x):
-        if not isinstance(self.scale, nn.Parameter):
-            self.scale = self.scale.type_as(x)
+        if not isinstance(self.stepsize, nn.Parameter):
+            self.stepsize = self.stepsize.type_as(x)
         x = x / (x.norm(2, -1, keepdim=True) + self.eps)
         w = self.proj.type_as(x)
 
-        out = -self.scale * \
+        out = -self.stepsize * \
             nn.functional.linear(x, w[:self.output_size, :self.input_size])
         if self.bias is not None:
             out = out + self.bias.view(1, -1)
@@ -48,10 +48,10 @@ class HadamardProj(nn.Module):
 
 class Proj(nn.Module):
 
-    def __init__(self, input_size, output_size, bias=True, init_scale=10):
+    def __init__(self, input_size, output_size, bias=True, init_stepsize=10):
         super(Proj, self).__init__()
-        if init_scale is not None:
-            self.weight = nn.Parameter(torch.Tensor(1).fill_(init_scale))
+        if init_stepsize is not None:
+            self.weight = nn.Parameter(torch.Tensor(1).fill_(init_stepsize))
         if bias:
             self.bias = nn.Parameter(torch.Tensor(output_size).fill_(0))
         self.proj = Variable(torch.Tensor(
@@ -71,9 +71,9 @@ class Proj(nn.Module):
 
 class LinearFixed(nn.Linear):
 
-    def __init__(self, input_size, output_size, bias=True, init_scale=10):
+    def __init__(self, input_size, output_size, bias=True, init_stepsize=10):
         super(LinearFixed, self).__init__(input_size, output_size, bias)
-        self.scale = nn.Parameter(torch.Tensor(1).fill_(init_scale))
+        self.stepsize = nn.Parameter(torch.Tensor(1).fill_(init_stepsize))
 
     def forward(self, x):
         w = self.weight / self.weight.norm(2, -1, keepdim=True)

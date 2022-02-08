@@ -249,10 +249,10 @@ class LARS(Regularizer):
                 else:
                     norm = param.norm(p=self.p)
                     grad_norm = param.grad.norm(p=self.p)
-                scale = self.value * norm/grad_norm
+                stepsize = self.value * norm/grad_norm
                 if self.min_scale is not None or self.max_scale is not None:
-                    scale.clamp_(min=self.min_scale, max=self.max_scale)
-                param.grad.mul_(scale)
+                    stepsize.clamp_(min=self.min_scale, max=self.max_scale)
+                param.grad.mul_(stepsize)
 
 
 class DropConnect(Regularizer):

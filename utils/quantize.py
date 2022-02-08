@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 from models.modules.quantize import calculate_qparams, quantize, QConv2d,QLinear
 
-QTensor = namedtuple('QTensor', ['tensor', 'scale', 'zero_point'])
+QTensor = namedtuple('QTensor', ['tensor', 'stepsize', 'zero_point'])
 
 
 def get_broadcastshape(x):
@@ -20,30 +20,30 @@ def quantize_tensor(x, num_bits=8):
     newshape = get_broadcastshape(x)
     abs_max_val = torch.max(torch.abs(torch.reshape(x, (x.shape[0], -1))), 1)[0]
     zero_point = 0
-    scale = torch.reshape(abs_max_val / qmax, newshape)
+    stepsize = torch.reshape(abs_max_val / qmax, newshape)
     
-    # q_x = x / scale
+    # q_x = x / stepsize
     # q_x.clamp_(qmin, qmax).round_()
     # q_x = q_x.to(torch.int8)
-    # return QTensor(tensor=q_x, scale=scale, zero_point=zero_point)
+    # return QTensor(tensor=q_x, stepsize=stepsize, zero_point=zero_point)
     
     radix = torch.floor( torch.log2( (2.**(num_bits-1))/abs_max_val )).to(torch.int8)
     radix = torch.reshape(radix, newshape)
     q_x = x * (2.**radix) 
     q_x.clamp_(qmin, qmax).round_()
     q_x = q_x.to(torch.int8)
-    return QTensor(tensor=q_x, scale=radix, zero_point=zero_point)  #re-use the scale as redix
+    return QTensor(tensor=q_x, stepsize=radix, zero_point=zero_point)  #re-use the stepsize as redix
 
 def dequantize_tensor(q_x):
-    # return q_x.scale * q_x.tensor.float() 
-    return q_x.tensor.float() / (2.**q_x.scale )  #re-use scale as radix.
+    # return q_x.stepsize * q_x.tensor.float() 
+    return q_x.tensor.float() / (2.**q_x.stepsize )  #re-use stepsize as radix.
 
 def quantize_model(model):
     qparams = {}
 
     for n, p in model.state_dict().items():
         qp = quantize_tensor(p)
-        qparams[n + '.quantization.scale'] = torch.FloatTensor([qp.scale])
+        qparams[n + '.quantization.stepsize'] = torch.FloatTensor([qp.stepsize])
         qparams[n + '.quantization.zero_point'] = torch.ByteTensor([qp.zero_point])
         p.copy_(qp.tensor)
     model.type('torch.ByteTensor')
@@ -58,10 +58,10 @@ def dequantize_model(model):
     for n, p in params.items():
         if 'quantization' not in n:
             qp = QTensor(tensor=p,
-                         scale=params[n + '.quantization.scale'][0],
+                         stepsize=params[n + '.quantization.stepsize'][0],
                          zero_point=params[n + '.quantization.zero_point'][0])
             p.copy_(dequantize_tensor(qp))
-            model.register_buffer(n + '.quantization.scale', None)
+            model.register_buffer(n + '.quantization.stepsize', None)
             model.register_buffer(n + '.quantization.zero_point', None)
             
     model.quantized = None
@@ -84,7 +84,7 @@ def get_quantized_model_and_params(model, qparams = {}):
                 dqw = dequantize_tensor(qw)
                 
                 m.weight.copy_(dqw)
-                radix = qw.scale #re-use scale as radix
+                radix = qw.stepsize #re-use stepsize as radix
                 
                 qmax = 2.**(m.quantize_input.num_bits-1)
                 radix_input = torch.floor(torch.log2(qmax/m.quantize_input.running_range)).to(torch.int8)
@@ -101,7 +101,7 @@ def get_quantized_model_and_params(model, qparams = {}):
                         'range_input': m.quantize_input.running_range.flatten().tolist(),
                         'zero_point_input': m.quantize_input.running_zero_point.flatten().tolist(),
                         
-                        'scale': { 
+                        'stepsize': { 
                             'all': 1.0,
                         },
                         'scale_input': { 

@@ -55,7 +55,7 @@ class Trainer(object):
     def __init__(self, model,pruner, criterion, optimizer=None,
                  device_ids=[0], device=torch.cuda, dtype=torch.float,
                  distributed=False, local_rank=-1, adapt_grad_norm=None,
-                 mixup=None, loss_scale=1., grad_clip=-1, print_freq=100, epoch=0, update_only_th=False,optimize_rounding=False):
+                 mixup=None, loss_stepsize=1., grad_clip=-1, print_freq=100, epoch=0, update_only_th=False,optimize_rounding=False):
         self._model = model
         self.fp_state_dict=copy.deepcopy(model.state_dict())
         self.criterion = criterion
@@ -68,8 +68,8 @@ class Trainer(object):
         self.print_freq = print_freq
         self.grad_clip = grad_clip
         self.mixup = mixup
-        self.grad_scale = None
-        self.loss_scale = loss_scale
+        self.grad_stepsize = None
+        self.loss_stepsize = loss_stepsize
         self.adapt_grad_norm = adapt_grad_norm
         self.pruner=pruner
         self.iter = 0
@@ -199,21 +199,21 @@ class Trainer(object):
             if training:
                 if i == 0:
                     self.optimizer.pre_backward()
-                if self.grad_scale is not None:
-                    loss = loss * self.grad_scale
-                if self.loss_scale is not None:
-                    loss = loss * self.loss_scale
+                if self.grad_stepsize is not None:
+                    loss = loss * self.grad_stepsize
+                if self.loss_stepsize is not None:
+                    loss = loss * self.loss_stepsize
                 loss.backward()   # accumulate gradient
                 if self.update_only_th and not self.optimize_rounding:
                     for p in self.model.parameters():
                         if p.shape[0]==1000 or p.dim()==2:
                             p.grad=None 
         if training:  # post gradient accumulation
-            if self.loss_scale is not None:
+            if self.loss_stepsize is not None:
                 for p in self.model.parameters():
                     if p.grad is None:
                         continue
-                    p.grad.data.div_(self.loss_scale)
+                    p.grad.data.div_(self.loss_stepsize)
 
             if self.grad_clip > 0:
                 grad = clip_grad_norm_(self.model.parameters(), self.grad_clip)
@@ -265,8 +265,8 @@ class Trainer(object):
                 grad_mean /= num
                 grad_all = float(self._grad_norm(
                     *_flatten_duplicates(inputs, target, batch_first)))
-                self.grad_scale = grad_mean / grad_all
-                logging.info('New loss scale: %s', self.grad_scale)
+                self.grad_stepsize = grad_mean / grad_all
+                logging.info('New loss stepsize: %s', self.grad_stepsize)
 
             # measure data loading time
             meters['data'].update(time.time() - end)

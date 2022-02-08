@@ -149,19 +149,19 @@ class UniformQuantize(InplaceFunction):
         # qmin = -(2.**(num_bits - 1)) if signed else 0.
         # qmax = qmin + 2.**num_bits - 1.
         # running_range=qparams.range.clamp(min=1e-6,max=1e5)
-        # scale = running_range / (qmax - qmin)
+        # stepsize = running_range / (qmax - qmin)
         # if quant_zp:
-        #     running_zero_point_round = Round().apply(qmin-zero_point/scale,False)
+        #     running_zero_point_round = Round().apply(qmin-zero_point/stepsize,False)
         # else:
         #     zero_point = torch.min(zero_point, zero_point.new_tensor([0.]))
-        # output.add_(qmin * scale - zero_point).div_(scale)
+        # output.add_(qmin * stepsize - zero_point).div_(stepsize)
 
         qmin = -(2.**(num_bits-1) - 1.)
         qmax = 2.**(num_bits-1) - 1.
         running_range=qparams.range.clamp(min=1e-6,max=1e5)
         
-        # scale = running_range / qmax 
-        # output.div_(scale)
+        # stepsize = running_range / qmax 
+        # output.div_(stepsize)
         
         radix = torch.floor( torch.log2( (2.**(num_bits-1))/running_range )).to(torch.int8)
         # radix = torch.reshape(radix, newshape)
@@ -174,9 +174,9 @@ class UniformQuantize(InplaceFunction):
         # quantize
         output.clamp_(qmin, qmax).round_()
         if dequantize:
-            # output.mul_(scale).add_(
-            #     zero_point - qmin * scale)  # dequantize
-            # output.mul_(scale)  # dequantize
+            # output.mul_(stepsize).add_(
+            #     zero_point - qmin * stepsize)  # dequantize
+            # output.mul_(stepsize)  # dequantize
             output.div_(2.**radix)  # dequantize
         return output
 
@@ -275,20 +275,20 @@ def quantize_with_grad(input, num_bits=None, qparams=None, flatten_dims=_DEFAULT
     # qmax = qmin + 2.**num_bits - 1.
     # # ZP quantization for HW compliance
     # running_range=qparams.range.clamp(min=1e-6,max=1e5)
-    # scale = running_range / (qmax - qmin)
+    # stepsize = running_range / (qmax - qmin)
     # if quant_zp:
-    #     running_zero_point_round = Round().apply(qmin-zero_point/scale,False)
-    #     zero_point = (qmin-running_zero_point_round.clamp(qmin,qmax))*scale
+    #     running_zero_point_round = Round().apply(qmin-zero_point/stepsize,False)
+    #     zero_point = (qmin-running_zero_point_round.clamp(qmin,qmax))*stepsize
     # else:
     #     zero_point = torch.min(zero_point, zero_point.new_tensor([0.]))    
-    # output.add_(qmin * scale - zero_point).div_(scale)  
+    # output.add_(qmin * stepsize - zero_point).div_(stepsize)  
     
     qmin = -(2.**(num_bits-1) - 1.)
     qmax = 2.**(num_bits-1) - 1.
     running_range=qparams.range.clamp(min=1e-6,max=1e5)
     
-    # scale = running_range / qmax 
-    # output.div_(scale)
+    # stepsize = running_range / qmax 
+    # output.div_(stepsize)
     radix1 = torch.log2((2.**(num_bits-1))/running_range)
     radix = torch.floor( radix1 ).to(torch.int8)
     # radix = torch.reshape(radix, newshape)
@@ -301,13 +301,13 @@ def quantize_with_grad(input, num_bits=None, qparams=None, flatten_dims=_DEFAULT
         # quantize
         output = Round().apply(output.clamp_(qmin, qmax),inplace)
         if dequantize:
-            # output.mul_(scale).add_(
-            #     zero_point - qmin * scale)  # dequantize
-            # output.mul_(scale)  # dequantize
+            # output.mul_(stepsize).add_(
+            #     zero_point - qmin * stepsize)  # dequantize
+            # output.mul_(stepsize)  # dequantize
             output.div_(2.**radix)  # dequantize
         return output
     else:
-        # return output,scale,qmin * scale - zero_point       
+        # return output,stepsize,qmin * stepsize - zero_point       
         return output, radix1, qmin * (2.** radix) #not sure what the last 2 parameters are for.
       
 
@@ -321,15 +321,15 @@ def dequantize(input, num_bits=None, qparams=None,signed=False, inplace=False):
     num_bits = qparams.num_bits
     # qmin = -(2.**(num_bits - 1)) if signed else 0.
     # qmax = qmin + 2.**num_bits - 1.
-    # scale = qparams.range / (qmax - qmin)        
-    # output.mul_(scale).add_(
-    #     zero_point - qmin * scale)  # dequantize
+    # stepsize = qparams.range / (qmax - qmin)        
+    # output.mul_(stepsize).add_(
+    #     zero_point - qmin * stepsize)  # dequantize
     
     qmin = -(2.**(num_bits-1) - 1.)
     qmax = 2.**(num_bits-1) - 1.
     running_range=qparams.range.clamp(min=1e-6,max=1e5)
-    # scale = running_range / qmax 
-    # output.mul_(scale) # dequantize
+    # stepsize = running_range / qmax 
+    # output.mul_(stepsize) # dequantize
     
     radix = torch.floor( torch.log2( (2.**(num_bits-1))/running_range )).to(torch.int8)
     output.div_(2.**radix) # dequantize
@@ -913,20 +913,20 @@ class RangeBN(nn.Module):
             scale_fix = (0.5 * 0.35) * (1 + (math.pi * math.log(4)) **
                                         0.5) / ((2 * math.log(y.size(-1))) ** 0.5)
 
-            scale = (mean_max - mean_min) * scale_fix
+            stepsize = (mean_max - mean_min) * scale_fix
             with torch.no_grad():
                 self.running_mean.mul_(self.momentum).add_(
                     mean * (1 - self.momentum))
 
                 self.running_var.mul_(self.momentum).add_(
-                    scale * (1 - self.momentum))
+                    stepsize * (1 - self.momentum))
         else:
             mean = self.running_mean
-            scale = self.running_var
-        # scale = quantize(scale, num_bits=self.num_bits, min_value=float(
-        #     scale.min()), max_value=float(scale.max()))
+            stepsize = self.running_var
+        # stepsize = quantize(stepsize, num_bits=self.num_bits, min_value=float(
+        #     stepsize.min()), max_value=float(stepsize.max()))
         out = (x - mean.view(1, -1, 1, 1)) / \
-            (scale.view(1, -1, 1, 1) + self.eps)
+            (stepsize.view(1, -1, 1, 1) + self.eps)
 
         if self.weight is not None:
             qweight = self.weight
