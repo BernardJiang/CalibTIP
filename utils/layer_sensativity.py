@@ -46,12 +46,19 @@ def search_replace_layer_from_json(model, onnx_model, layers_precision_json, nam
             new_prec = layers_precision_json[layer_name]
             wbits = new_prec["weight_bitwidth"]
             dbits = new_prec["output_datapath_bitwidth"]
-            print("Layer {}, precision switch from w{}a{} to w{}a{}.".format(
-                layer_name, m.num_bits_weight, m.num_bits, wbits, dbits))
             m.num_bits=dbits
             m.num_bits_weight = wbits
             m.quantize_input.num_bits=dbits
             m.quantize_weight.num_bits=wbits
+            m.output_scale = new_prec["output_scale"]
+            m.input_scale = new_prec["input_scale"]
+            m.output_datapath_radix = new_prec["output_datapath_radix"]
+            m.weight_radix = new_prec["weight_radix"]
+            m.input_max_val_per_channel = new_prec["input_max_val_per_channel"][0]             
+            m.output_max_val_per_channel = new_prec["output_max_val_per_channel"]             
+            print("Layer {}, precision switch from w{}a{} to w{}a{}.".format(
+                layer_name, m.num_bits_weight, m.num_bits, wbits, dbits))
+            
         search_replace_layer_from_json(m,onnx_model, layers_precision_json, layer_name)
     return model
 

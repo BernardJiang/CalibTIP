@@ -9,7 +9,7 @@ import numpy as np
 import os
 
 
-QParams = namedtuple('QParams', ['range', 'zero_point', 'num_bits'])
+QParams = namedtuple('QParams', ['range', 'num_bits', 'radix', 'input_scale', 'output_scale'])
 
 _DEFAULT_FLATTEN = (1, -1)
 _DEFAULT_FLATTEN_GRAD = (0, -1)
@@ -57,13 +57,13 @@ def zero_point(x, pcq=False):
  
 
 def quant_err(p, t, num_bits=4, metric='mse'):
-    qp = QParams(range=t.new_tensor(p[0]), zero_point=t.new_tensor(p[1]), num_bits=num_bits)
+    qp = QParams(num_bits=num_bits, radix=0, input_scale = None, output_scale = None)
     tq = quantize_with_grad(t, num_bits=qp.num_bits, qparams=qp)
     # TODO: Add other metrics
     return mse(t, tq).item()
 
 def quant_round_constrain(t1, t2, trange, tzp):
-    qp = QParams(range=t1.new_tensor(trange), zero_point=t1.new_tensor(tzp), num_bits=4)
+    qp = QParams(num_bits=4, radix=0, input_scale = None, output_scale = None)
     t1q = quantize_with_grad(t1, num_bits=qp.num_bits, qparams=qp, dequantize=False)
     t2q = quantize_with_grad(t2, num_bits=qp.num_bits, qparams=qp, dequantize=False)
     out=torch.max(torch.min(t2q,t1q+1),t1q-1)
@@ -120,8 +120,7 @@ def calculate_qparams(x, num_bits, flatten_dims=_DEFAULT_FLATTEN, reduce_dim=0, 
         zero_values = min_values.new_zeros(min_values.size())
 
         range_values[range_values==0] = 1
-        return QParams(range=range_values, zero_point=zero_values,
-                       num_bits=num_bits)
+        return QParams(num_bits=num_bits, radix=0, input_scale = None, output_scale = None)
 
 
 class UniformQuantize(InplaceFunction):
@@ -140,11 +139,31 @@ class UniformQuantize(InplaceFunction):
 
         if qparams is None:
             assert num_bits is not None, "either provide qparams of num_bits to quantize"
-            qparams = calculate_qparams(
-                input, num_bits=num_bits, flatten_dims=flatten_dims, reduce_dim=reduce_dim)
+            # qparams = calculate_qparams(
+            #     input, num_bits=num_bits, flatten_dims=flatten_dims, reduce_dim=reduce_dim)
+            return output
 
-        zero_point = qparams.zero_point
+        radix = qparams.radix
         num_bits = qparams.num_bits
+
+        running_range=output.new_tensor(qparams.range).clamp(min=1e-6,max=1e5)
+        output_scale = qparams.output_scale
+        if qparams.output_scale is None and qparams.input_scale is None: 
+            scale = radix
+        elif qparams.output_scale is None: #is datapath input, 
+            scale = output.new_tensor(qparams.input_scale[0])
+            scale = torch.reshape(scale, (1, -1, 1, 1))
+        elif qparams.input_scale is None: #for bias 
+            scale = output.new_tensor(output_scale) 
+            # scale = torch.reshape(scale, (output.shape[0], -1,-1,-1))            
+            running_range = torch.reshape(running_range, (1, -1 , 1, 1))
+        else: # is weight, qweight = weight * outputscale / inputscale
+            scale1 = torch.reshape(output.new_tensor(output_scale), (-1, 1,1,1))
+            scale2 = torch.reshape(output.new_tensor(qparams.input_scale[0]), (1,-1,1,1))
+            scale = scale1/scale2 
+            running_range = torch.reshape(running_range, (-1, 1, 1, 1))
+        
+        output.mul_(scale)
 
         # qmin = -(2.**(num_bits - 1)) if signed else 0.
         # qmax = qmin + 2.**num_bits - 1.
@@ -158,7 +177,7 @@ class UniformQuantize(InplaceFunction):
 
         qmin = -(2.**(num_bits-1) - 1.)
         qmax = 2.**(num_bits-1) - 1.
-        running_range=qparams.range.clamp(min=1e-6,max=1e5)
+        running_range=output.new_tensor(qparams.range).clamp(min=1e-6,max=1e5)
         
         # stepsize = running_range / qmax 
         # output.div_(stepsize)
@@ -166,7 +185,6 @@ class UniformQuantize(InplaceFunction):
         radix = torch.floor( torch.log2( (2.**(num_bits-1))/running_range )).to(torch.int8)
         # radix = torch.reshape(radix, newshape)
         output.mul_(2.**radix)
-        
 
         if stochastic:
             noise = output.new(output.shape).uniform_(-0.5, 0.5)
@@ -178,6 +196,7 @@ class UniformQuantize(InplaceFunction):
             #     zero_point - qmin * stepsize)  # dequantize
             # output.mul_(stepsize)  # dequantize
             output.div_(2.**radix)  # dequantize
+            output.div_(scale)  # dequantize
         return output
 
     @staticmethod
@@ -268,8 +287,29 @@ def quantize_with_grad(input, num_bits=None, qparams=None, flatten_dims=_DEFAULT
         assert num_bits is not None, "either provide qparams of num_bits to quantize"
         qparams = calculate_qparams(
             input, num_bits=num_bits, flatten_dims=flatten_dims, reduce_dim=reduce_dim)
-    zero_point = qparams.zero_point
+        return output, 0, 0
+    # zero_point = qparams.zero_point
     num_bits = qparams.num_bits
+    scale = qparams.output_scale
+    output_scale = qparams.output_scale
+    running_range=output.new_tensor(qparams.range).clamp(min=1e-6,max=1e5)
+    if qparams.output_scale is None and qparams.input_scale is None: 
+        scale = 1.0
+    elif qparams.output_scale is None: #is datapath input, 
+        scale = output.new_tensor(qparams.input_scale[0])
+        scale = torch.reshape(scale, (1, -1, 1, 1))
+        running_range = torch.reshape(running_range, (1, -1 , 1, 1))
+    elif qparams.input_scale is None: #for bias 
+        scale = output.new_tensor(output_scale) 
+        # scale = torch.reshape(scale, (output.shape[0], -1,-1,-1))            
+        running_range = torch.reshape(running_range, (-1, 1 , 1, 1))
+    else: # is weight, qweight = weight * outputscale / inputscale
+        scale1 = torch.reshape(output.new_tensor(output_scale), (-1, 1,1,1))
+        scale2 = torch.reshape(output.new_tensor(qparams.input_scale[0]), (1,-1,1,1))
+        scale = scale1/scale2 
+        running_range = torch.reshape(running_range, (-1, 1, 1, 1))
+
+    output.mul_(scale)
 
     # qmin = -(2.**(num_bits - 1)) if signed else 0.
     # qmax = qmin + 2.**num_bits - 1.
@@ -285,7 +325,6 @@ def quantize_with_grad(input, num_bits=None, qparams=None, flatten_dims=_DEFAULT
     
     qmin = -(2.**(num_bits-1) - 1.)
     qmax = 2.**(num_bits-1) - 1.
-    running_range=qparams.range.clamp(min=1e-6,max=1e5)
     
     # stepsize = running_range / qmax 
     # output.div_(stepsize)
@@ -305,6 +344,7 @@ def quantize_with_grad(input, num_bits=None, qparams=None, flatten_dims=_DEFAULT
             #     zero_point - qmin * stepsize)  # dequantize
             # output.mul_(stepsize)  # dequantize
             output.div_(2.**radix)  # dequantize
+            output.div_(scale)  # dequantize
         return output
     else:
         # return output,stepsize,qmin * stepsize - zero_point       
@@ -317,7 +357,6 @@ def dequantize(input, num_bits=None, qparams=None,signed=False, inplace=False):
         output = input
     else:
         output = input.clone()
-    zero_point = qparams.zero_point
     num_bits = qparams.num_bits
     # qmin = -(2.**(num_bits - 1)) if signed else 0.
     # qmax = qmin + 2.**num_bits - 1.
@@ -331,8 +370,18 @@ def dequantize(input, num_bits=None, qparams=None,signed=False, inplace=False):
     # stepsize = running_range / qmax 
     # output.mul_(stepsize) # dequantize
     
+    if qparams.output_scale is None and qparams.input_scale is None: 
+        scale = 1.0
+    elif qparams.output_scale is None: #is datapath input, 
+        scale = output.new_tensor(qparams.input_scale[0])
+        scale = torch.reshape(scale, (output.shape[0], 1,1,1))
+    else: # is weight, qweight = weight * outputscale / inputscale
+        scale = output.new_tensor(output_scale) / output.new_tensor(qparams.input_scale[0])
+        scale = torch.reshape(scale, (output.shape[0], 1,1,1))
+    
     radix = torch.floor( torch.log2( (2.**(num_bits-1))/running_range )).to(torch.int8)
     output.div_(2.**radix) # dequantize
+    output.dev_(scale)
     
     return output
 
@@ -372,7 +421,7 @@ class QuantMeasure(nn.Module):
                 if self.cal_qparams:
                     init = np.array([tensor_range(input, pcq=False).item(), zero_point(input, pcq=False).item()])
                     res = opt.minimize(lambda p: quant_err(p, input, num_bits=self.num_bits, metric='mse'), init, method=methods[0])
-                    qparams = QParams(range=input.new_tensor(res.x[0]), zero_point=input.new_tensor(res.x[1]), num_bits=self.num_bits)
+                    # qparams = QParams(num_bits=self.num_bits, radix=0, input_scale = None, output_scale = None)
                     print("Measure and optimize: bits - {}, error before - {:.6f}, error after {:.6f}".format(self.num_bits, quant_err(init, input), res.fun))
                 else:
                     reduce_dim = None if self.per_ch_input else self.reduce_dim
@@ -389,8 +438,9 @@ class QuantMeasure(nn.Module):
                 self.running_range.mul_(momentum).add_(
                     qparams.range * (1 - momentum))
         else:
-            qparams = QParams(range=self.running_range,
-                              zero_point=self.running_zero_point, num_bits=self.num_bits)
+            # qparams = QParams(num_bits=self.num_bits, radix=0, input_scale = None, output_scale = None)
+            pass
+        
         if self.measure:
             return input
         else:
@@ -419,8 +469,7 @@ class QuantThUpdate(nn.Module):
         self.reduce_dim = reduce_dim
 
     def forward(self, input, qparams=None):
-        qparams = QParams(range=self.running_range,
-                          zero_point=self.running_zero_point, num_bits=self.num_bits)
+        # qparams = QParams(num_bits=self.num_bits, radix=0, input_scale = None, output_scale = None)
         
         if self.per_ch_input: input=input.transpose(0,1)
         q_input = quantize_with_grad(input, qparams=qparams, dequantize=self.dequantize,
@@ -583,8 +632,10 @@ class QConv2d(nn.Conv2d):
         self.quantize = QUANTIZE
 
     def forward(self, input):
-        qinput = self.quantize_input(input) if self.quantize else input
-        qweight = self.quantize_weight(self.weight * self.equ_scale) if self.quantize and not self.cal_params else self.weight
+        qparams_input = QParams(range=self.input_max_val_per_channel, num_bits=self.num_bits, radix=self.output_datapath_radix, input_scale = self.input_scale, output_scale = None)
+        qparams_weight = QParams(range=self.output_max_val_per_channel, num_bits=self.num_bits_weight, radix=self.weight_radix, input_scale = self.input_scale, output_scale = self.output_scale)
+        qinput = self.quantize_input(input, qparams=qparams_input) if self.quantize else input
+        qweight = self.quantize_weight(self.weight * self.equ_scale, qparams=qparams_weight) if self.quantize and not self.cal_params else self.weight
         #if not self.measure:
         #    import pdb; pdb.set_trace()
         #else:
@@ -593,7 +644,8 @@ class QConv2d(nn.Conv2d):
             assert  qinput.unique().numel()<=2**self.num_bits
             assert  qweight[0].unique().numel()<=2**self.num_bits_weight
         if self.bias is not None:
-            qbias = self.bias if (self.measure or not self.quantize) else quantize(self.bias, num_bits=self.num_bits_weight + self.num_bits,flatten_dims=(0, -1))
+            qparams_bias = QParams(range=self.output_max_val_per_channel, num_bits=self.num_bits_weight, radix=self.weight_radix, input_scale = None, output_scale = self.output_scale)
+            qbias = self.bias if (self.measure or not self.quantize) else quantize(self.bias, num_bits=self.num_bits_weight + self.num_bits,flatten_dims=(0, -1), qparams=qparams_bias)
         else:
             qbias = None
         if not self.biprecision or self.num_bits_grad is None:
