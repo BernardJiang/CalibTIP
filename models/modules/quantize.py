@@ -173,7 +173,7 @@ class UniformQuantize(InplaceFunction):
             output.add_(noise)
             
         # quantize
-        output.clamp_(qmin, qmax).round_()
+        output = Round().apply(output.clamp_(qmin, qmax),inplace)
 
         if dequantize:
             output.div_(2.**radix)  # dequantize
