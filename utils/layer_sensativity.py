@@ -44,18 +44,28 @@ def search_replace_layer_from_json(model, onnx_model, layers_precision_json, nam
         m.name=layer_name
         if layer_name in layers_precision_json:
             new_prec = layers_precision_json[layer_name]
+
+
+
             wbits = new_prec["weight_bitwidth"]
-            dbits = new_prec["output_datapath_bitwidth"]
+            dbits = new_prec["input_datapath_bitwidth"][0]
             m.num_bits=dbits
             m.num_bits_weight = wbits
-            m.quantize_input.num_bits=dbits
-            m.quantize_weight.num_bits=wbits
+            m.quantize_input.num_bits = dbits
+            m.quantize_weight.num_bits = wbits
+                        
+            m.bias_bitwidth = new_prec["bias_bitwidth"]
+            
             m.output_scale = new_prec["output_scale"]
-            m.input_scale = new_prec["input_scale"]
-            m.output_datapath_radix = new_prec["output_datapath_radix"]
+            m.input_scale = new_prec["input_scale"][0]
+            
+            m.input_datapath_radix = new_prec["input_datapath_radix"][0]
             m.weight_radix = new_prec["weight_radix"]
-            m.input_max_val_per_channel = new_prec["input_max_val_per_channel"][0]             
-            m.output_max_val_per_channel = new_prec["output_max_val_per_channel"]             
+            m.bias_radix = new_prec["bias_radix"]            
+            
+            # m.output_datapath_radix = new_prec["output_datapath_radix"]
+            # m.input_max_val_per_channel = new_prec["input_max_val_per_channel"][0]             
+            # m.output_max_val_per_channel = new_prec["output_max_val_per_channel"]             
             print("Layer {}, precision switch from w{}a{} to w{}a{}.".format(
                 layer_name, m.num_bits_weight, m.num_bits, wbits, dbits))
             

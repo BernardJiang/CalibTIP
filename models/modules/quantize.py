@@ -9,7 +9,7 @@ import numpy as np
 import os
 
 
-QParams = namedtuple('QParams', ['range', 'num_bits', 'radix', 'input_scale', 'output_scale'])
+QParams = namedtuple('QParams', ['num_bits', 'radix', 'input_scale', 'output_scale'])
 
 _DEFAULT_FLATTEN = (1, -1)
 _DEFAULT_FLATTEN_GRAD = (0, -1)
@@ -138,66 +138,50 @@ class UniformQuantize(InplaceFunction):
             output = input.clone()
 
         if qparams is None:
-            assert num_bits is not None, "either provide qparams of num_bits to quantize"
-            # qparams = calculate_qparams(
-            #     input, num_bits=num_bits, flatten_dims=flatten_dims, reduce_dim=reduce_dim)
             return output
 
-        radix = qparams.radix
         num_bits = qparams.num_bits
-
-        running_range=output.new_tensor(qparams.range).clamp(min=1e-6,max=1e5)
+        scale = qparams.output_scale
         output_scale = qparams.output_scale
+        radix =output.new_tensor(qparams.radix) 
         if qparams.output_scale is None and qparams.input_scale is None: 
-            scale = radix
+            scale = 1.0
         elif qparams.output_scale is None: #is datapath input, 
             scale = output.new_tensor(qparams.input_scale[0])
             scale = torch.reshape(scale, (1, -1, 1, 1))
         elif qparams.input_scale is None: #for bias 
             scale = output.new_tensor(output_scale) 
-            # scale = torch.reshape(scale, (output.shape[0], -1,-1,-1))            
-            running_range = torch.reshape(running_range, (1, -1 , 1, 1))
         else: # is weight, qweight = weight * outputscale / inputscale
-            scale1 = torch.reshape(output.new_tensor(output_scale), (-1, 1,1,1))
-            scale2 = torch.reshape(output.new_tensor(qparams.input_scale[0]), (1,-1,1,1))
+            inshape = (-1, 1,1,1)
+            outshape = (1, -1, 1,1)
+            if len(output.shape) == 2:
+                inshape = (-1, 1)
+                outshape = (1, -1)
+            scale1 = torch.reshape(output.new_tensor(qparams.output_scale),   inshape)
+            scale2 = torch.reshape(output.new_tensor(qparams.input_scale[0]), outshape)
             scale = scale1/scale2 
-            running_range = torch.reshape(running_range, (-1, 1, 1, 1))
-        
-        output.mul_(scale)
-
-        # qmin = -(2.**(num_bits - 1)) if signed else 0.
-        # qmax = qmin + 2.**num_bits - 1.
-        # running_range=qparams.range.clamp(min=1e-6,max=1e5)
-        # stepsize = running_range / (qmax - qmin)
-        # if quant_zp:
-        #     running_zero_point_round = Round().apply(qmin-zero_point/stepsize,False)
-        # else:
-        #     zero_point = torch.min(zero_point, zero_point.new_tensor([0.]))
-        # output.add_(qmin * stepsize - zero_point).div_(stepsize)
-
+            radix = torch.reshape(radix, inshape)
+   
         qmin = -(2.**(num_bits-1) - 1.)
         qmax = 2.**(num_bits-1) - 1.
-        running_range=output.new_tensor(qparams.range).clamp(min=1e-6,max=1e5)
-        
-        # stepsize = running_range / qmax 
-        # output.div_(stepsize)
-        
-        radix = torch.floor( torch.log2( (2.**(num_bits-1))/running_range )).to(torch.int8)
-        # radix = torch.reshape(radix, newshape)
+    
+        output.mul_(scale)
         output.mul_(2.**radix)
 
         if stochastic:
             noise = output.new(output.shape).uniform_(-0.5, 0.5)
             output.add_(noise)
+            
         # quantize
         output.clamp_(qmin, qmax).round_()
+
         if dequantize:
-            # output.mul_(stepsize).add_(
-            #     zero_point - qmin * stepsize)  # dequantize
-            # output.mul_(stepsize)  # dequantize
             output.div_(2.**radix)  # dequantize
             output.div_(scale)  # dequantize
-        return output
+            return output
+        else:
+            # return output,stepsize,qmin * stepsize - zero_point       
+            return output
 
     @staticmethod
     def backward(ctx, grad_output):
@@ -283,54 +267,35 @@ def quantize_with_grad(input, num_bits=None, qparams=None, flatten_dims=_DEFAULT
     else:
         output = input.clone()
     if qparams is None:
-        import pdb; pdb.set_trace()
-        assert num_bits is not None, "either provide qparams of num_bits to quantize"
-        qparams = calculate_qparams(
-            input, num_bits=num_bits, flatten_dims=flatten_dims, reduce_dim=reduce_dim)
-        return output, 0, 0
-    # zero_point = qparams.zero_point
-    num_bits = qparams.num_bits
+        return output
+    inshape = (-1, 1,1,1)
+    outshape = (1, -1, 1,1)
+    if len(output.shape) == 2:
+        inshape = (-1, 1)
+        outshape = (1, -1)
+
+    num_bits = torch.reshape(output.new_tensor(qparams.num_bits), inshape)
     scale = qparams.output_scale
     output_scale = qparams.output_scale
-    running_range=output.new_tensor(qparams.range).clamp(min=1e-6,max=1e5)
+    radix =torch.reshape(output.new_tensor(qparams.radix), inshape)
     if qparams.output_scale is None and qparams.input_scale is None: 
         scale = 1.0
     elif qparams.output_scale is None: #is datapath input, 
         scale = output.new_tensor(qparams.input_scale[0])
-        scale = torch.reshape(scale, (1, -1, 1, 1))
-        running_range = torch.reshape(running_range, (1, -1 , 1, 1))
+        scale = torch.reshape(scale, outshape)
+        radix = torch.reshape(radix, outshape)
     elif qparams.input_scale is None: #for bias 
         scale = output.new_tensor(output_scale) 
-        # scale = torch.reshape(scale, (output.shape[0], -1,-1,-1))            
-        running_range = torch.reshape(running_range, (-1, 1 , 1, 1))
     else: # is weight, qweight = weight * outputscale / inputscale
-        scale1 = torch.reshape(output.new_tensor(output_scale), (-1, 1,1,1))
-        scale2 = torch.reshape(output.new_tensor(qparams.input_scale[0]), (1,-1,1,1))
-        scale = scale1/scale2 
-        running_range = torch.reshape(running_range, (-1, 1, 1, 1))
-
-    output.mul_(scale)
-
-    # qmin = -(2.**(num_bits - 1)) if signed else 0.
-    # qmax = qmin + 2.**num_bits - 1.
-    # # ZP quantization for HW compliance
-    # running_range=qparams.range.clamp(min=1e-6,max=1e5)
-    # stepsize = running_range / (qmax - qmin)
-    # if quant_zp:
-    #     running_zero_point_round = Round().apply(qmin-zero_point/stepsize,False)
-    #     zero_point = (qmin-running_zero_point_round.clamp(qmin,qmax))*stepsize
-    # else:
-    #     zero_point = torch.min(zero_point, zero_point.new_tensor([0.]))    
-    # output.add_(qmin * stepsize - zero_point).div_(stepsize)  
-    
+        scale1 = torch.reshape(output.new_tensor(qparams.output_scale),   inshape)
+        scale2 = torch.reshape(output.new_tensor(qparams.input_scale[0]), outshape)
+        scale = scale1 / scale2 
+        radix = torch.reshape(radix, inshape)
+   
     qmin = -(2.**(num_bits-1) - 1.)
     qmax = 2.**(num_bits-1) - 1.
     
-    # stepsize = running_range / qmax 
-    # output.div_(stepsize)
-    radix1 = torch.log2((2.**(num_bits-1))/running_range)
-    radix = torch.floor( radix1 ).to(torch.int8)
-    # radix = torch.reshape(radix, newshape)
+    output.mul_(scale)
     output.mul_(2.**radix)
 
     if stochastic:
@@ -340,15 +305,12 @@ def quantize_with_grad(input, num_bits=None, qparams=None, flatten_dims=_DEFAULT
         # quantize
         output = Round().apply(output.clamp_(qmin, qmax),inplace)
         if dequantize:
-            # output.mul_(stepsize).add_(
-            #     zero_point - qmin * stepsize)  # dequantize
-            # output.mul_(stepsize)  # dequantize
             output.div_(2.**radix)  # dequantize
             output.div_(scale)  # dequantize
         return output
     else:
         # return output,stepsize,qmin * stepsize - zero_point       
-        return output, radix1, qmin * (2.** radix) #not sure what the last 2 parameters are for.
+        return output
       
 
 def dequantize(input, num_bits=None, qparams=None,signed=False, inplace=False):
@@ -357,29 +319,28 @@ def dequantize(input, num_bits=None, qparams=None,signed=False, inplace=False):
         output = input
     else:
         output = input.clone()
-    num_bits = qparams.num_bits
-    # qmin = -(2.**(num_bits - 1)) if signed else 0.
-    # qmax = qmin + 2.**num_bits - 1.
-    # stepsize = qparams.range / (qmax - qmin)        
-    # output.mul_(stepsize).add_(
-    #     zero_point - qmin * stepsize)  # dequantize
-    
-    qmin = -(2.**(num_bits-1) - 1.)
-    qmax = 2.**(num_bits-1) - 1.
-    running_range=qparams.range.clamp(min=1e-6,max=1e5)
-    # stepsize = running_range / qmax 
-    # output.mul_(stepsize) # dequantize
-    
+
+    scale = qparams.output_scale
+    output_scale = qparams.output_scale
+    radix =output.new_tensor(qparams.radix) 
     if qparams.output_scale is None and qparams.input_scale is None: 
         scale = 1.0
     elif qparams.output_scale is None: #is datapath input, 
         scale = output.new_tensor(qparams.input_scale[0])
-        scale = torch.reshape(scale, (output.shape[0], 1,1,1))
+        scale = torch.reshape(scale, (1, -1, 1, 1))
+    elif qparams.input_scale is None: #for bias 
+        scale = output.new_tensor(output_scale) 
     else: # is weight, qweight = weight * outputscale / inputscale
-        scale = output.new_tensor(output_scale) / output.new_tensor(qparams.input_scale[0])
-        scale = torch.reshape(scale, (output.shape[0], 1,1,1))
+        inshape = (-1, 1,1,1)
+        outshape = (1, -1, 1,1)
+        if len(output.shape) == 2:
+            inshape = (-1, 1)
+            outshape = (1, -1)
+        scale1 = torch.reshape(output.new_tensor(qparams.output_scale),   inshape)
+        scale2 = torch.reshape(output.new_tensor(qparams.input_scale[0]), outshape)
+        scale = scale1/scale2 
+        radix = torch.reshape(radix, inshape)
     
-    radix = torch.floor( torch.log2( (2.**(num_bits-1))/running_range )).to(torch.int8)
     output.div_(2.**radix) # dequantize
     output.dev_(scale)
     
@@ -518,7 +479,7 @@ class QConv2dSamePadding(nn.Conv2d):
         qweight = quantize(self.weight, qparams=weight_qparams) if not self.measure else self.weight
 
         if self.bias is not None:
-            qbias = self.bias if self.measure else quantize(self.bias, num_bits=self.num_bits_weight + self.num_bits,flatten_dims=(0, -1))
+            qbias = self.bias if self.measure else quantize(self.bias, num_bits=self.num_bits_weight,flatten_dims=(0, -1)) #TODO: add qparams
         else:
             qbias = None
         if not self.biprecision or self.num_bits_grad is None:
@@ -555,7 +516,7 @@ class QConv2d_o(nn.Conv2d):
         qweight = quantize(self.weight, qparams=weight_qparams) if not self.measure else self.weight
 
         if self.bias is not None:
-            qbias = self.bias if self.measure else quantize(self.bias, num_bits=self.num_bits_weight + self.num_bits,flatten_dims=(0, -1))
+            qbias = self.bias if self.measure else quantize(self.bias, num_bits=self.num_bits_weight,flatten_dims=(0, -1)) #TODO: add qparams
         else:
             qbias = None
         if not self.biprecision or self.num_bits_grad is None:
@@ -588,10 +549,13 @@ class QConv2d_lapq(nn.Conv2d):
         self.biprecision = biprecision
 
     def forward(self, input):
-        qinput = self.quantize_input(input)
-        qweight = self.quantize_weight(self.weight)
+        qparams_input = QParams(num_bits=self.num_bits, radix=self.input_datapath_radix, input_scale=self.input_scale, output_scale = None)
+        qparams_weight = QParams(num_bits=self.num_bits_weight, radix=self.weight_radix, input_scale = self.input_scale, output_scale = self.output_scale)
+        qinput = self.quantize_input(input, qparams=qparams_input)
+        qweight = self.quantize_weight(self.weight, qparams=qparams_weight)
         if self.bias is not None:
-            qbias = self.bias if self.measure else quantize(self.bias, num_bits=self.num_bits_weight + self.num_bits,flatten_dims=(0, -1))
+            qparams_bias = QParams(num_bits=self.bias_bitwidth, radix=self.bias_radix, input_scale = None, output_scale = self.output_scale)
+            qbias = self.bias if self.measure else quantize(self.bias, flatten_dims=(0, -1), qparams=qparams_bias)
         else:
             qbias = None
         if not self.biprecision or self.num_bits_grad is None:
@@ -632,8 +596,8 @@ class QConv2d(nn.Conv2d):
         self.quantize = QUANTIZE
 
     def forward(self, input):
-        qparams_input = QParams(range=self.input_max_val_per_channel, num_bits=self.num_bits, radix=self.output_datapath_radix, input_scale = self.input_scale, output_scale = None)
-        qparams_weight = QParams(range=self.output_max_val_per_channel, num_bits=self.num_bits_weight, radix=self.weight_radix, input_scale = self.input_scale, output_scale = self.output_scale)
+        qparams_input = QParams(num_bits=self.num_bits, radix=self.input_datapath_radix, input_scale=self.input_scale, output_scale = None)
+        qparams_weight = QParams(num_bits=self.num_bits_weight, radix=self.weight_radix, input_scale = self.input_scale, output_scale = self.output_scale)
         qinput = self.quantize_input(input, qparams=qparams_input) if self.quantize else input
         qweight = self.quantize_weight(self.weight * self.equ_scale, qparams=qparams_weight) if self.quantize and not self.cal_params else self.weight
         #if not self.measure:
@@ -644,8 +608,8 @@ class QConv2d(nn.Conv2d):
             assert  qinput.unique().numel()<=2**self.num_bits
             assert  qweight[0].unique().numel()<=2**self.num_bits_weight
         if self.bias is not None:
-            qparams_bias = QParams(range=self.output_max_val_per_channel, num_bits=self.num_bits_weight, radix=self.weight_radix, input_scale = None, output_scale = self.output_scale)
-            qbias = self.bias if (self.measure or not self.quantize) else quantize(self.bias, num_bits=self.num_bits_weight + self.num_bits,flatten_dims=(0, -1), qparams=qparams_bias)
+            qparams_bias = QParams(num_bits=self.bias_bitwidth, radix=self.bias_radix, input_scale = None, output_scale = self.output_scale)
+            qbias = self.bias if (self.measure or not self.quantize) else quantize(self.bias, flatten_dims=(0, -1), qparams=qparams_bias)
         else:
             qbias = None
         if not self.biprecision or self.num_bits_grad is None:
@@ -695,11 +659,12 @@ class QConv2dVQ(nn.Conv2d):
         self.V.data.uniform_(-stdv,stdv)
 
     def forward(self, input):
-        
-        qweight = self.quantize_weight(self.weight * self.equ_scale) if self.quantize and not self.cal_params else self.weight
+        qparams_input = QParams(num_bits=self.num_bits, radix=self.input_datapath_radix, input_scale=self.input_scale, output_scale = None)
+        qparams_weight = QParams(num_bits=self.num_bits_weight, radix=self.weight_radix, input_scale = self.input_scale, output_scale = self.output_scale)
+        qweight = self.quantize_weight(self.weight * self.equ_scale, qparams=qparams_weight) if self.quantize and not self.cal_params else self.weight
         B,C,H,W=input.shape
         vx=self.V.mm(input.transpose(0,1).contiguous().view(C,-1))
-        qvx = self.quantize_input(vx.view(C,B,H,W).transpose(1,0).contiguous()).transpose(0,1).contiguous().view(C,-1) if self.quantize else input
+        qvx = self.quantize_input(vx.view(C,B,H,W).transpose(1,0).contiguous(), qparams=qparams_input).transpose(0,1).contiguous().view(C,-1) if self.quantize else input
         qinput = self.U.mm(qvx).view(C,B,H,W).transpose(1,0).contiguous() if self.quantize else qvx
         #import pdb; pdb.set_trace()
         #qinput = self.quantize_input(input) if self.quantize else input
@@ -714,7 +679,8 @@ class QConv2dVQ(nn.Conv2d):
             assert  qinput.unique().numel()<=2**self.num_bits
             assert  qweight[0].unique().numel()<=2**self.num_bits_weight
         if self.bias is not None:
-            qbias = self.bias if (self.measure or not self.quantize) else quantize(self.bias, num_bits=self.num_bits_weight + self.num_bits,flatten_dims=(0, -1))
+            qparams_bias = QParams(num_bits=self.bias_bitwidth, radix=self.bias_radix, input_scale = None, output_scale = self.output_scale)
+            qbias = self.bias if (self.measure or not self.quantize) else quantize(self.bias, flatten_dims=(0, -1), qparams=qparams_bias)
         else:
             qbias = None
         if not self.biprecision or self.num_bits_grad is None:
@@ -770,14 +736,17 @@ class QLinear_o(nn.Linear):
         self.measure = measure
 
     def forward(self, input):
-        qinput = self.quantize_input(input)
-        weight_qparams = calculate_qparams(
-            self.weight, num_bits=self.num_bits_weight, flatten_dims=(1, -1), reduce_dim=None)
-        qweight = quantize(self.weight, qparams=weight_qparams) if not self.measure else self.weight
+        qparams_input = QParams(num_bits=self.num_bits, radix=self.input_datapath_radix, input_scale=self.input_scale, output_scale = None)
+        qparams_weight = QParams(num_bits=self.num_bits_weight, radix=self.weight_radix, input_scale = self.input_scale, output_scale = self.output_scale)
+        qinput = self.quantize_input(input, qparams=qparams_input)
+        # weight_qparams = calculate_qparams(
+        #     self.weight, num_bits=self.num_bits_weight, flatten_dims=(1, -1), reduce_dim=None)
+        qweight = quantize(self.weight, qparams=qparams_weight) if not self.measure else self.weight
         if self.bias is not None:
+            qparams_bias = QParams(num_bits=self.bias_bitwidth, radix=self.bias_radix, input_scale = None, output_scale = self.output_scale)
             qbias = self.bias if self.measure else quantize(
-                self.bias, num_bits=self.num_bits_weight + self.num_bits,
-                flatten_dims=(0, -1))
+                self.bias, 
+                flatten_dims=(0, -1), qparams=qparams_bias)
         else:
             qbias = None
 
@@ -804,13 +773,16 @@ class QLinear_lapq(nn.Linear):
         self.measure = measure
 
     def forward(self, input):
-        qinput = self.quantize_input(input)
-        qweight = self.quantize_weight(self.weight)
+        qparams_input = QParams(num_bits=self.num_bits, radix=self.input_datapath_radix, input_scale=self.input_scale, output_scale = None)
+        qparams_weight = QParams(num_bits=self.num_bits_weight, radix=self.weight_radix, input_scale = self.input_scale, output_scale = self.output_scale)
+        qinput = self.quantize_input(input, qparams=qparams_input)
+        qweight = self.quantize_weight(self.weight, qparams=qparams_weight)
 
         if self.bias is not None:
+            qparams_bias = QParams(num_bits=self.bias_bitwidth, radix=self.bias_radix, input_scale = None, output_scale = self.output_scale)
             qbias = self.bias if self.measure else quantize(
-                self.bias, num_bits=self.num_bits_weight + self.num_bits,
-                flatten_dims=(0, -1))
+                self.bias, 
+                flatten_dims=(0, -1), qparams=qparams_bias)
         else:
             qbias = None
 
@@ -844,15 +816,18 @@ class QLinear(nn.Linear):
         self.quantize = QUANTIZE
 
     def forward(self, input):
-        qinput = self.quantize_input(input) if self.quantize else input
-        qweight = self.quantize_weight(self.weight * self.equ_scale) if self.quantize and not self.cal_params else self.weight
+        qparams_input = QParams(num_bits=self.num_bits, radix=self.input_datapath_radix, input_scale=self.input_scale, output_scale = None)
+        qparams_weight = QParams(num_bits=self.num_bits_weight, radix=self.weight_radix, input_scale = self.input_scale, output_scale = self.output_scale)
+        qinput = self.quantize_input(input, qparams=qparams_input) if self.quantize else input
+        qweight = self.quantize_weight(self.weight * self.equ_scale, qparams=qparams_weight) if self.quantize and not self.cal_params else self.weight
         if not self.measure and os.environ.get('DEBUG')=='True':
             assert  qinput.unique().numel()<=2**self.num_bits
             assert  qweight[0].unique().numel()<=2**self.num_bits_weight
         if self.bias is not None:
+            qparams_bias = QParams(num_bits=self.bias_bitwidth, radix=self.bias_radix, input_scale = None, output_scale = self.output_scale)
             qbias = self.bias if (self.measure or not self.quantize) else quantize(
-                self.bias, num_bits=self.num_bits_weight + self.num_bits,
-                flatten_dims=(0, -1))
+                self.bias,
+                flatten_dims=(0, -1), qparams=qparams_bias)
         else:
             qbias = None
 
@@ -894,11 +869,12 @@ class QLinearVQ(nn.Linear):
         self.V.data.uniform_(-stdv,stdv)
 
     def forward(self, input):
-        
+        qparams_input = QParams(num_bits=self.num_bits, radix=self.input_datapath_radix, input_scale=self.input_scale, output_scale = None)
+        qparams_weight = QParams(num_bits=self.num_bits_weight, radix=self.weight_radix, input_scale = self.input_scale, output_scale = self.output_scale)
         vx=self.V.mm(input.transpose(0,1).contiguous())
-        qvx = self.quantize_input(vx) if self.quantize else input
+        qvx = self.quantize_input(vx, qparams=qparams_input) if self.quantize else input
         qinput=self.U.mm(qvx).transpose(1,0).contiguous() if self.quantize else input
-        qweight = self.quantize_weight(self.weight) if self.quantize and not self.cal_params else self.weight
+        qweight = self.quantize_weight(self.weight, qparams=qparams_weight) if self.quantize and not self.cal_params else self.weight
         
         #qinput = self.quantize_input(input) if self.quantize else input
         #vq_weight=self.V.mm(self.weight.view(self.out_features,-1)).view(self.weight.shape)
@@ -908,9 +884,10 @@ class QLinearVQ(nn.Linear):
             assert  qinput.unique().numel()<=2**self.num_bits
             assert  qweight[0].unique().numel()<=2**self.num_bits_weight
         if self.bias is not None:
+            qparams_bias = QParams(num_bits=self.bias_bitwidth, radix=self.bias_radix, input_scale = None, output_scale = self.output_scale)
             qbias = self.bias if (self.measure or not self.quantize) else quantize(
-                self.bias, num_bits=self.num_bits_weight + self.num_bits,
-                flatten_dims=(0, -1))
+                self.bias,
+                flatten_dims=(0, -1), qparams=qparams_bias)
         else:
             qbias = None
 
