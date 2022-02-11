@@ -173,7 +173,8 @@ class UniformQuantize(InplaceFunction):
             output.add_(noise)
             
         # quantize
-        output = Round().apply(output.clamp_(qmin, qmax),inplace)
+        # output = Round().apply(output.clamp_(qmin, qmax),inplace)
+        output = Round().apply(Clamp().apply(output, inplace, qmin, qmax),inplace)
 
         if dequantize:
             output.div_(2.**radix)  # dequantize
@@ -211,6 +212,25 @@ class Round(InplaceFunction):
         grad_input = grad_output
         return grad_input,None
 
+class Clamp(InplaceFunction):
+    
+    @staticmethod
+    def forward(ctx, input,inplace, min, max):
+
+        ctx.inplace = inplace                                                                          
+        if ctx.inplace:
+            ctx.mark_dirty(input)
+            output = input
+        else:
+            output = input.clone()
+        output.clamp_(min, max)
+        return output
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        # straight-through estimator
+        grad_input = grad_output
+        return grad_input,None, None, None
 
 
 class UniformQuantizeGrad(InplaceFunction):
@@ -303,7 +323,7 @@ def quantize_with_grad(input, num_bits=None, qparams=None, flatten_dims=_DEFAULT
         output.add_(noise)
     if clamp:    
         # quantize
-        output = Round().apply(output.clamp_(qmin, qmax),inplace)
+        output = Round().apply(Clamp().apply(output, inplace, qmin, qmax),inplace)
         if dequantize:
             output.div_(2.**radix)  # dequantize
             output.div_(scale)  # dequantize
