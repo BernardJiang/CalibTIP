@@ -57,10 +57,10 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
 
     opt_w = torch.optim.Adam([layer.weight], lr=lr_w)
     if hasattr(layer, 'bias') and layer.bias is not None: opt_bias = torch.optim.Adam([layer.bias], lr=lr_b)
-    opt_qparams_in = torch.optim.Adam([layer.quantize_input.running_range,
-                                       layer.quantize_input.running_zero_point], lr=lr_qpin)
-    opt_qparams_w = torch.optim.Adam([layer.quantize_weight.running_range,
-                                      layer.quantize_weight.running_zero_point], lr=lr_qpw)
+    # opt_qparams_in = torch.optim.Adam([layer.quantize_input.running_range,
+    #                                    layer.quantize_input.running_zero_point], lr=lr_qpin)
+    # opt_qparams_w = torch.optim.Adam([layer.quantize_weight.running_range,
+    #                                   layer.quantize_weight.running_zero_point], lr=lr_qpw)
 
     losses = []
     for j in (tqdm(range(iters)) if progress else range(iters)):
@@ -78,13 +78,13 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
         losses.append(loss.item())
         opt_w.zero_grad()
         if hasattr(layer, 'bias') and layer.bias is not None: opt_bias.zero_grad()
-        opt_qparams_in.zero_grad()
-        opt_qparams_w.zero_grad()
+        # opt_qparams_in.zero_grad()
+        # opt_qparams_w.zero_grad()
         loss.backward()
         opt_w.step()
         if hasattr(layer, 'bias') and layer.bias is not None: opt_bias.step()
-        opt_qparams_in.step()
-        opt_qparams_w.step()
+        # opt_qparams_in.step()
+        # opt_qparams_w.step()
         
         # if layer.name == 'conv1':
         #     print("iter {}, in range/zp {} {}, w range/zp {} {} ".format(j, layer.quantize_input.running_range.item(), layer.quantize_input.running_zero_point.item(), layer.quantize_weight.running_range[0].item(), layer.quantize_weight.running_zero_point[0].item()))
