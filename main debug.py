@@ -600,7 +600,8 @@ def main_worker(args):
                     count += 1
 
         # Store input/output for all quantizable layers
-        trainer.validate(train_data.get_loader())
+        val_results = trainer.validate(val_data.get_loader())
+        logging.info(val_results)        
         print("Input/outputs cached")
 
         for handler in handlers:
@@ -634,8 +635,8 @@ def main_worker(args):
             print("\nOptimize {}:{} for {} bit of shape {}".format(i, layer.name, layer.num_bits, layer.weight.shape))
             mse_before, mse_after, snr_before, snr_after, kurt_in, kurt_w = \
                 optimize_layer(layer, cached_input_output[layer], args.optimize_weights, batch_size=args.batch_size, model_name=args.model)
-            print("\nMSE before optimization: {}".format(mse_before))
-            print("MSE after optimization:  {}".format(mse_after))
+            print("\nMSE before optimization: {:e}".format(mse_before))
+            print("MSE after  optimization:  {:e}".format(mse_after))
             mse_df.loc[i, 'name'] = layer.name
             mse_df.loc[i, 'bit'] = layer.num_bits
             mse_df.loc[i, 'shape'] = str(layer.weight.shape)
