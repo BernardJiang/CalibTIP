@@ -539,10 +539,6 @@ def main_worker(args):
                                     'input_size': args.input_size, 'batch_size': args.eval_batch_size, 'shuffle': True,
                                     'num_workers': args.workers, 'pin_memory': True, 'drop_last': False})
 
-    # print("Bernard!")
-    # results = trainer.validate(train_data.get_loader(),rec=args.rec)
-    # logging.info(results)
-
     if args.evaluate or args.resume:
         from utils.layer_sensativity import search_replace_layer , extract_save_quant_state_dict, search_replace_layer_from_dict
         if args.layers_precision_dict is not None:
@@ -615,6 +611,10 @@ def main_worker(args):
         for m in model.modules():
             if isinstance(m, QConv2d) or isinstance(m, QLinear):
                 m.quantize = True
+
+        print("Bernard calculate fixed point model accuracy before training!")
+        results = trainer.validate(train_data.get_loader(),rec=args.rec)
+        logging.info(results)
 
         mse_df = pd.DataFrame(index=np.arange(len(cached_input_output)), columns=['name', 'bit', 'shape', 'mse_before', 'mse_after'])
         print_freq = 100
