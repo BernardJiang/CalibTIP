@@ -147,7 +147,7 @@ class UniformQuantize(InplaceFunction):
         if qparams.output_scale is None and qparams.input_scale is None: 
             scale = 1.0
         elif qparams.output_scale is None: #is datapath input, 
-            scale = output.new_tensor(qparams.input_scale[0])
+            scale = output.new_tensor(qparams.input_scale)
             scale = torch.reshape(scale, (1, -1, 1, 1))
         elif qparams.input_scale is None: #for bias 
             scale = output.new_tensor(output_scale) 
@@ -158,7 +158,7 @@ class UniformQuantize(InplaceFunction):
                 inshape = (-1, 1)
                 outshape = (1, -1)
             scale1 = torch.reshape(output.new_tensor(qparams.output_scale),   inshape)
-            scale2 = torch.reshape(output.new_tensor(qparams.input_scale[0]), outshape)
+            scale2 = torch.reshape(output.new_tensor(qparams.input_scale), outshape)
             scale = scale1/scale2 
             radix = torch.reshape(radix, inshape)
    
@@ -301,14 +301,14 @@ def quantize_with_grad(input, num_bits=None, qparams=None, flatten_dims=_DEFAULT
     if qparams.output_scale is None and qparams.input_scale is None: 
         scale = 1.0
     elif qparams.output_scale is None: #is datapath input, 
-        scale = output.new_tensor(qparams.input_scale[0])
+        scale = output.new_tensor(qparams.input_scale)
         scale = torch.reshape(scale, outshape)
         radix = torch.reshape(radix, outshape)
     elif qparams.input_scale is None: #for bias 
         scale = output.new_tensor(output_scale) 
     else: # is weight, qweight = weight * outputscale / inputscale
         scale1 = torch.reshape(output.new_tensor(qparams.output_scale),   inshape)
-        scale2 = torch.reshape(output.new_tensor(qparams.input_scale[0]), outshape)
+        scale2 = torch.reshape(output.new_tensor(qparams.input_scale), outshape)
         scale = scale1 / scale2 
         radix = torch.reshape(radix, inshape)
    
@@ -346,7 +346,7 @@ def dequantize(input, num_bits=None, qparams=None,signed=False, inplace=False):
     if qparams.output_scale is None and qparams.input_scale is None: 
         scale = 1.0
     elif qparams.output_scale is None: #is datapath input, 
-        scale = output.new_tensor(qparams.input_scale[0])
+        scale = output.new_tensor(qparams.input_scale)
         scale = torch.reshape(scale, (1, -1, 1, 1))
     elif qparams.input_scale is None: #for bias 
         scale = output.new_tensor(output_scale) 
@@ -357,7 +357,7 @@ def dequantize(input, num_bits=None, qparams=None,signed=False, inplace=False):
             inshape = (-1, 1)
             outshape = (1, -1)
         scale1 = torch.reshape(output.new_tensor(qparams.output_scale),   inshape)
-        scale2 = torch.reshape(output.new_tensor(qparams.input_scale[0]), outshape)
+        scale2 = torch.reshape(output.new_tensor(qparams.input_scale), outshape)
         scale = scale1/scale2 
         radix = torch.reshape(radix, inshape)
     
