@@ -380,8 +380,8 @@ class QuantMeasure(nn.Module):
     def __init__(self, num_bits=8, shape_measure=(1,), flatten_dims=_DEFAULT_FLATTEN,
                  inplace=False, dequantize=True, stochastic=False, momentum=0.1, measure=False,per_ch_input=False,reduce_dim=0, cal_qparams=False):
         super(QuantMeasure, self).__init__()
-        self.register_buffer('running_zero_point', torch.zeros(*shape_measure))
-        self.register_buffer('running_range', torch.zeros(*shape_measure))
+        # self.register_buffer('running_zero_point', torch.zeros(*shape_measure))
+        # self.register_buffer('running_range', torch.zeros(*shape_measure))
         self.measure = measure
         if self.measure:
             self.register_buffer('num_measured', torch.zeros(1))
@@ -416,8 +416,8 @@ class QuantMeasure(nn.Module):
                     momentum = self.momentum
                 # self.running_zero_point.mul_(momentum).add_(
                 #     qparams.zero_point * (1 - momentum))
-                self.running_range.mul_(momentum).add_(
-                    qparams.range * (1 - momentum))
+                # self.running_range.mul_(momentum).add_(
+                #     qparams.range * (1 - momentum))
         else:
             # qparams = QParams(num_bits=self.num_bits, radix=0, input_scale = None, output_scale = None)
             pass
@@ -438,8 +438,8 @@ class QuantThUpdate(nn.Module):
     def __init__(self, num_bits=8, shape_measure=(1,), flatten_dims=_DEFAULT_FLATTEN,
                  inplace=False, dequantize=True, stochastic=False, momentum=0.1, measure=False,per_ch_input=False,reduce_dim=0):
         super(QuantThUpdate, self).__init__()
-        self.running_zero_point = nn.Parameter(torch.ones(*shape_measure))
-        self.running_range = nn.Parameter(torch.ones(*shape_measure))
+        # self.running_zero_point = nn.Parameter(torch.ones(*shape_measure))
+        # self.running_range = nn.Parameter(torch.ones(*shape_measure))
         self.measure = measure
         self.flatten_dims = flatten_dims
         self.dequantize = dequantize
@@ -616,10 +616,15 @@ class QConv2d(nn.Conv2d):
         self.quantize = QUANTIZE
 
     def forward(self, input):
-        qparams_input = QParams(num_bits=self.num_bits, radix=self.input_datapath_radix, input_scale=self.input_scale, output_scale = None)
-        qparams_weight = QParams(num_bits=self.num_bits_weight, radix=self.weight_radix, input_scale = self.input_scale, output_scale = self.output_scale)
-        qinput = self.quantize_input(input, qparams=qparams_input) if self.quantize else input
-        qweight = self.quantize_weight(self.weight * self.equ_scale, qparams=qparams_weight) if self.quantize and not self.cal_params else self.weight
+        if self.quantize:
+            qparams_input = QParams(num_bits=self.num_bits, radix=self.input_datapath_radix, input_scale=self.input_scale, output_scale = None)
+            qparams_weight = QParams(num_bits=self.num_bits_weight, radix=self.weight_radix, input_scale = self.input_scale, output_scale = self.output_scale)
+            qinput = self.quantize_input(input, qparams=qparams_input)
+            qweight = self.quantize_weight(self.weight * self.equ_scale, qparams=qparams_weight) if not self.cal_params else self.weight
+        else:
+            qinput = input
+            qweight = self.weight
+            
         #if not self.measure:
         #    import pdb; pdb.set_trace()
         #else:
@@ -628,8 +633,11 @@ class QConv2d(nn.Conv2d):
             assert  qinput.unique().numel()<=2**self.num_bits
             assert  qweight[0].unique().numel()<=2**self.num_bits_weight
         if self.bias is not None:
-            qparams_bias = QParams(num_bits=self.bias_bitwidth, radix=self.bias_radix, input_scale = None, output_scale = self.output_scale)
-            qbias = self.bias if (self.measure or not self.quantize) else quantize(self.bias, flatten_dims=(0, -1), qparams=qparams_bias)
+            if (self.measure or not self.quantize):
+                qbias = self.bias 
+            else:
+                qparams_bias = QParams(num_bits=self.bias_bitwidth, radix=self.bias_radix, input_scale = None, output_scale = self.output_scale)
+                qbias = quantize(self.bias, flatten_dims=(0, -1), qparams=qparams_bias)
         else:
             qbias = None
         if not self.biprecision or self.num_bits_grad is None:
