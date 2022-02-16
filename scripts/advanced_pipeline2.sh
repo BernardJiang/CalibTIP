@@ -16,9 +16,9 @@
 # rm results
 # ln -sf ../results.backup/results.20211221.sequential results
 
-# sh scripts/adaquant.sh resnet resnet50 4 4 True --seq_adaquant
+sh scripts/adaquant.sh resnet resnet50 4 8 True --seq_adaquant
 sh scripts/adaquant.sh resnet resnet50 8 8 True --seq_adaquant
-sh scripts/integer-programing.sh resnet resnet50 4 4 8 8 50 loss True
+sh scripts/integer-programing.sh resnet resnet50 4 8 8 8 50 loss True
 
 # Uncomment to run first configuration only
 #for cfg_idx in 0

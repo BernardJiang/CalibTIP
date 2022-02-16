@@ -539,10 +539,6 @@ def main_worker(args):
                                     'input_size': args.input_size, 'batch_size': args.eval_batch_size, 'shuffle': True,
                                     'num_workers': args.workers, 'pin_memory': True, 'drop_last': False})
 
-    # print("Bernard!")
-    # results = trainer.validate(train_data.get_loader(),rec=args.rec)
-    # logging.info(results)
-
     if args.evaluate or args.resume:
         from utils.layer_sensativity import search_replace_layer , extract_save_quant_state_dict, search_replace_layer_from_dict
         if args.layers_precision_dict is not None:
@@ -600,7 +596,8 @@ def main_worker(args):
                     count += 1
 
         # Store input/output for all quantizable layers
-        trainer.validate(train_data.get_loader())
+        train_results = trainer.validate(train_data.get_loader())
+        logging.info(train_results)        
         print("Input/outputs cached")
 
         for handler in handlers:
@@ -611,9 +608,17 @@ def main_worker(args):
         input_image = torch.zeros(1,3,224, 224).cuda()
         save2onnx(model, input_image, filename+'.onnx')
 
+        print("Bernard calculate float point model accuracy before enabling quantization!")
+        val_results = trainer.validate(val_data.get_loader())
+        logging.info(val_results)
+        
         for m in model.modules():
             if isinstance(m, QConv2d) or isinstance(m, QLinear):
                 m.quantize = True
+
+        print("Bernard calculate fixed point model accuracy before training!")
+        val_results = trainer.validate(val_data.get_loader())
+        logging.info(val_results)
 
         mse_df = pd.DataFrame(index=np.arange(len(cached_input_output)), columns=['name', 'bit', 'shape', 'mse_before', 'mse_after'])
         print_freq = 100
@@ -634,8 +639,8 @@ def main_worker(args):
             print("\nOptimize {}:{} for {} bit of shape {}".format(i, layer.name, layer.num_bits, layer.weight.shape))
             mse_before, mse_after, snr_before, snr_after, kurt_in, kurt_w = \
                 optimize_layer(layer, cached_input_output[layer], args.optimize_weights, batch_size=args.batch_size, model_name=args.model)
-            print("\nMSE before optimization: {}".format(mse_before))
-            print("MSE after optimization:  {}".format(mse_after))
+            print("\nMSE before optimization: {:e}".format(mse_before))
+            print("MSE after  optimization: {:e}".format(mse_after))
             mse_df.loc[i, 'name'] = layer.name
             mse_df.loc[i, 'bit'] = layer.num_bits
             mse_df.loc[i, 'shape'] = str(layer.weight.shape)
