@@ -21,7 +21,7 @@ python main.py --model $model   --save $workdir -b 128  -lfv $model_vis --model-
              
 # measure range and zero point on calibset
 echo "step 2: " 
-python main.py --model $model  --nbits_weight $nbits_weight --nbits_act $nbits_act --num-sp-layers $num_sp_layers --evaluate results/$workdir/$model.absorb_bn --model-config "{'batch_norm': False,'measure': True, 'perC': $perC}" -b 128 --rec --dataset imagenet_calib --datasets-dir $datasets_dir
+python main.py --model $model  --nbits_weight $nbits_weight --nbits_act $nbits_act --num-sp-layers $num_sp_layers --evaluate results/$workdir/$model.absorb_bn --model-config "{'batch_norm': False,'measure': True, 'perC': $perC}" -b 128 --rec --dataset imagenet_calib --datasets-dir $datasets_dir -lpj results/$workdir/resnet_adaquant.piano.kdp530.scaled.onnx.json
 
 
 if [ "$5" = True ]; then
@@ -30,10 +30,10 @@ echo "step 3: "
 # --seq_adaquant
     if [ -n "$6" ]; then 
         # echo "six is $6"
-        python main.py --optimize-weights  --nbits_weight $nbits_weight --nbits_act $nbits_act  --num-sp-layers $num_sp_layers  --model $model -b 64 --evaluate results/$workdir/$model.absorb_bn.measure$perC_suffix --model-config "{'batch_norm': False,'measure': False, 'perC': $perC}" --dataset imagenet_calib --datasets-dir $datasets_dir --adaquant --res_log results/$workdir/$model.absorb_bn.measure$perC_suffix.adaquant.csv "$6"
+        python main.py --optimize-weights  --nbits_weight $nbits_weight --nbits_act $nbits_act  --num-sp-layers $num_sp_layers  --model $model -b 64 --evaluate results/$workdir/$model.absorb_bn.measure$perC_suffix --model-config "{'batch_norm': False,'measure': False, 'perC': $perC}" --dataset imagenet_calib --datasets-dir $datasets_dir --adaquant --res_log results/$workdir/$model.absorb_bn.measure$perC_suffix.adaquant.csv "$6" -lpj results/$workdir/resnet_adaquant.piano.kdp530.scaled.onnx.json
     else
         # echo "six not $6"
-        python main.py --optimize-weights  --nbits_weight $nbits_weight --nbits_act $nbits_act  --num-sp-layers $num_sp_layers  --model $model -b 64 --evaluate results/$workdir/$model.absorb_bn.measure$perC_suffix --model-config "{'batch_norm': False,'measure': False, 'perC': $perC}" --dataset imagenet_calib --datasets-dir $datasets_dir --adaquant --res_log results/$workdir/$model.absorb_bn.measure$perC_suffix.adaquant.csv
+        python main.py --optimize-weights  --nbits_weight $nbits_weight --nbits_act $nbits_act  --num-sp-layers $num_sp_layers  --model $model -b 64 --evaluate results/$workdir/$model.absorb_bn.measure$perC_suffix --model-config "{'batch_norm': False,'measure': False, 'perC': $perC}" --dataset imagenet_calib --datasets-dir $datasets_dir --adaquant --res_log results/$workdir/$model.absorb_bn.measure$perC_suffix.adaquant.csv -lpj results/$workdir/resnet_adaquant.piano.kdp530.scaled.onnx.json
     fi
 fi
 

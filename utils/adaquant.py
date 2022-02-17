@@ -9,16 +9,16 @@ import math
 
 def optimize_qparams(layer, cached_inps, cached_outs, test_inp, test_out, batch_size=100):
     print("\nOptimize quantization params")
-    w_range_orig = layer.quantize_weight.running_range.data.clone()
-    w_zp_orig = layer.quantize_weight.running_zero_point.data.clone()
-    inp_range_orig = layer.quantize_input.running_range.data.clone()
-    inp_zp_orig = layer.quantize_input.running_zero_point.data.clone()
+    # w_range_orig = layer.quantize_weight.running_range.data.clone()
+    # w_zp_orig = layer.quantize_weight.running_zero_point.data.clone()
+    # inp_range_orig = layer.quantize_input.running_range.data.clone()
+    # inp_zp_orig = layer.quantize_input.running_zero_point.data.clone()
 
     def layer_err(p, inp, out):
-        layer.quantize_weight.running_range.data = w_range_orig * p[0]
-        layer.quantize_weight.running_zero_point.data = w_zp_orig + p[1]
-        layer.quantize_input.running_range.data = inp_range_orig * p[2]
-        layer.quantize_input.running_zero_point.data = inp_zp_orig + p[3]
+        # layer.quantize_weight.running_range.data = w_range_orig * p[0]
+        # layer.quantize_weight.running_zero_point.data = w_zp_orig + p[1]
+        # layer.quantize_input.running_range.data = inp_range_orig * p[2]
+        # layer.quantize_input.running_zero_point.data = inp_zp_orig + p[3]
         yq = layer(inp)
         return F.mse_loss(yq, out).item()
 

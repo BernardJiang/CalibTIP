@@ -87,19 +87,19 @@ def get_quantized_model_and_params(model, qparams = {}):
                 radix = qw.stepsize #re-use stepsize as radix
                 
                 qmax = 2.**(m.quantize_input.num_bits-1)
-                radix_input = torch.floor(torch.log2(qmax/m.quantize_input.running_range)).to(torch.int8)
+                # radix_input = torch.floor(torch.log2(qmax/m.quantize_input.running_range)).to(torch.int8)
                 
                 
                 qparams[m.name] = {
                         'shape': list(m.weight.shape),
                         
                         'num_bits': m.quantize_weight.num_bits,
-                        'range': m.quantize_weight.running_range.flatten().tolist(),
-                        'zero_point': m.quantize_weight.running_zero_point.flatten().tolist(),
+                        # 'range': m.quantize_weight.running_range.flatten().tolist(),
+                        # 'zero_point': m.quantize_weight.running_zero_point.flatten().tolist(),
                         
                         'num_bits_input': m.quantize_input.num_bits,
-                        'range_input': m.quantize_input.running_range.flatten().tolist(),
-                        'zero_point_input': m.quantize_input.running_zero_point.flatten().tolist(),
+                        # 'range_input': m.quantize_input.running_range.flatten().tolist(),
+                        # 'zero_point_input': m.quantize_input.running_zero_point.flatten().tolist(),
                         
                         'stepsize': { 
                             'all': 1.0,
@@ -108,7 +108,7 @@ def get_quantized_model_and_params(model, qparams = {}):
                             'all': 1.0,
                         },
                         'radix': radix.flatten().tolist(),
-                        'radix_input':radix_input.flatten().tolist(),
+                        # 'radix_input':radix_input.flatten().tolist(),
                         'bitwidth': {
                             'all': m.quantize_weight.num_bits,                        
                         },                        

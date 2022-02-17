@@ -34,17 +34,17 @@ def absorb_bn(module, bn_module, remove_bn=True, verbose=False):
             invstd = bn_module.running_var.clone().add_(bn_module.eps).pow_(-0.5)
             w.mul_(invstd.view(w.size(0), 1, 1, 1))
             b.mul_(invstd)
-            if hasattr(module, 'quantize_weight'):
-                module.quantize_weight.running_range.mul_(invstd.view(w.size(0), 1, 1, 1))
-                module.quantize_weight.running_zero_point.mul_(invstd.view(w.size(0), 1, 1, 1))
+            # if hasattr(module, 'quantize_weight'):
+                # module.quantize_weight.running_range.mul_(invstd.view(w.size(0), 1, 1, 1))
+                # module.quantize_weight.running_zero_point.mul_(invstd.view(w.size(0), 1, 1, 1))
 
         if hasattr(bn_module, 'weight'):
             w.mul_(bn_module.weight.view(w.size(0), 1, 1, 1))
             b.mul_(bn_module.weight)
             module.register_parameter('gamma', nn.Parameter(bn_module.weight.data.clone()))
-            if hasattr(module, 'quantize_weight'):
-                module.quantize_weight.running_range.mul_(bn_module.weight.view(w.size(0), 1, 1, 1))
-                module.quantize_weight.running_zero_point.mul_(bn_module.weight.view(w.size(0), 1, 1, 1))
+            # if hasattr(module, 'quantize_weight'):
+            #     module.quantize_weight.running_range.mul_(bn_module.weight.view(w.size(0), 1, 1, 1))
+            #     module.quantize_weight.running_zero_point.mul_(bn_module.weight.view(w.size(0), 1, 1, 1))
         if hasattr(bn_module, 'bias'):
             b.add_(bn_module.bias)
             module.register_parameter('beta', nn.Parameter(bn_module.bias.data.clone()))

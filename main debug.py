@@ -43,6 +43,7 @@ import copy
 from models.modules.quantize import QConv2d, QLinear
 import json
 from itertools import zip_longest
+from utils.layer_sensativity import search_replace_layer_from_json
 
 
 model_names = sorted(name for name in models.__dict__
@@ -547,16 +548,23 @@ def main_worker(args):
         else:
             model = search_replace_layer(model, args.names_sp_layers, num_bits_activation=args.nbits_act,
                                          num_bits_weight=args.nbits_weight)
+        jsonfile = args.evaluate + '.json'
+        if os.path.exists(jsonfile):
+            with open(jsonfile, "r") as fp:    
+                precision_config = json.load(fp)
+                model = search_replace_layer_from_json(model, None, precision_config)
 
     if args.layers_precision_json is not None:
         import onnx
-        from utils.layer_sensativity import search_replace_layer_from_json
         print("read json file " + args.layers_precision_json)
         with open(args.layers_precision_json, "r") as fp:
             precision_config = json.load(fp)
             # print(precision_config)
             precision_config = preprocess_config(precision_config)
-        onnx_filestr = args.layers_precision_json.replace(".json","")
+            jsonfile = args.evaluate + '.adaquant.json'
+            with open(jsonfile, 'w') as outfile:
+                json.dump(precision_config, outfile, indent=4)
+        onnx_filestr = args.layers_precision_json.replace(".json", "")
         onnx_model = onnx.load(onnx_filestr)
         # onnx.checker.check_model(onnx_model) 
         # print(onnx.helper.printable_graph(onnx_model.graph))
@@ -564,9 +572,11 @@ def main_worker(args):
         
 
     cached_input_output = {}
-    quant_keys = ['.weight', '.bias', '.equ_scale', '.quantize_input.running_zero_point', '.quantize_input.running_range',
-         '.quantize_weight.running_zero_point', '.quantize_weight.running_range','.quantize_input1.running_zero_point', '.quantize_input1.running_range',
-         '.quantize_input2.running_zero_point', '.quantize_input2.running_range']        
+    quant_keys = ['.weight', '.bias', '.equ_scale']
+        # , '.quantize_input.running_zero_point', '.quantize_input.running_range',
+        #  '.quantize_weight.running_zero_point', '.quantize_weight.running_range',
+        # '.quantize_input1.running_zero_point', '.quantize_input1.running_range',
+        #  '.quantize_input2.running_zero_point', '.quantize_input2.running_range']        
     if args.adaquant:
         def Qhook(name,module, input, output):
             if module not in cached_qinput:

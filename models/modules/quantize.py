@@ -382,6 +382,7 @@ class QuantMeasure(nn.Module):
         super(QuantMeasure, self).__init__()
         # self.register_buffer('running_zero_point', torch.zeros(*shape_measure))
         # self.register_buffer('running_range', torch.zeros(*shape_measure))
+        # self.register_parameter('weight_scale',  torch.zeros(*shape_measure))
         self.measure = measure
         if self.measure:
             self.register_buffer('num_measured', torch.zeros(1))
