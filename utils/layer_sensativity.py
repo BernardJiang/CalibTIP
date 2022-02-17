@@ -2,7 +2,7 @@ import torch
 from torch.utils import data
 import torch.nn as nn
 from models.modules.quantize import calculate_qparams, quantize, QConv2d,QLinear
-
+import numpy as np
 
 def search_replace_layer(model,all_names,num_bits_activation,num_bits_weight,name_model=''):
     for i,m in enumerate(model.children()):
@@ -45,10 +45,9 @@ def search_replace_layer_from_json(model, onnx_model, layers_precision_json, nam
         if layer_name in layers_precision_json:
             new_prec = layers_precision_json[layer_name]
 
-
-
             wbits = new_prec["weight_bitwidth"]
             dbits = new_prec["input_datapath_bitwidth"][0]
+            bbits = new_prec["bias_bitwidth"]
             m.num_bits=dbits
             m.num_bits_weight = wbits
             m.quantize_input.num_bits = dbits
@@ -61,11 +60,40 @@ def search_replace_layer_from_json(model, onnx_model, layers_precision_json, nam
             
             m.input_datapath_radix = new_prec["input_datapath_radix"][0]
             m.weight_radix = new_prec["weight_radix"]
-            m.bias_radix = new_prec["bias_radix"]            
+            m.bias_radix = new_prec["bias_radix"]
             
-            # m.output_datapath_radix = new_prec["output_datapath_radix"]
-            # m.input_max_val_per_channel = new_prec["input_max_val_per_channel"][0]             
-            # m.output_max_val_per_channel = new_prec["output_max_val_per_channel"]             
+            #new implemention:
+            m.data_scale = new_prec["input_scale"][0]
+            m.data_qmin = -(2.**(dbits-1) - 1.)
+            m.data_qmax = 2.**(dbits-1) - 1.
+            m.data_two_power_of_radix = 2.** np.array(new_prec["input_datapath_radix"][0])
+            
+            scale_out = np.array(new_prec["output_scale"]).reshape((-1, 1))
+            scale_in  = np.array(new_prec["input_scale"][0]).reshape((1, -1))
+            m.weight_scale = scale_out/scale_in 
+            m.weight_qmin = -(2.**(wbits-1) - 1.)
+            m.weight_qmax = 2.**(wbits-1) - 1.
+            m.weight_two_power_of_radix = 2.** np.array(new_prec["weight_radix"])
+
+            m.bias_scale = new_prec["output_scale"] # TODO: complex
+            m.bias_qmin = -(2.**(bbits-1) - 1.)
+            m.bias_qmax = 2.**(bbits-1) - 1.
+            m.bias_two_power_of_radix = 2.** np.array(new_prec["bias_radix"])
+            
+            # m.quantize_input.register_parameter('scale',     nn.Parameter(torch.tensor(new_prec["input_scale"][0])))
+            # a = torch.FloatTensor(new_prec["input_datapath_bitwidth"][0])
+            # b = nn.Parameter(a, requires_grad=False)
+            # m.quantize_input.register_parameter('bitwidth',  nn.Parameter(torch.FloatTensor(new_prec["input_datapath_bitwidth"][0])), requires_grad=False)
+            # m.quantize_input.register_parameter('radix',     nn.Parameter(torch.FloatTensor(new_prec["input_datapath_radix"][0])))
+
+            # m.quantize_weight.register_parameter('input_scale',     nn.Parameter(torch.tensor(new_prec["input_scale"][0])))
+            # m.quantize_weight.register_parameter('output_scale',     nn.Parameter(torch.tensor(new_prec["output_scale"])))
+            # m.quantize_weight.register_parameter('bitwidth',  nn.Parameter(torch.FloatTensor(new_prec["weight_bitwidth"])))
+            # m.quantize_weight.register_parameter('radix',     nn.Parameter(torch.FloatTensor(new_prec["weight_radix"])))
+            
+            # m.quantize_weight.register_parameter('bias_bitwidth',  nn.Parameter(torch.FloatTensor(new_prec["bias_bitwidth"])))
+            # m.quantize_weight.register_parameter('bias_radix',     nn.Parameter(torch.FloatTensor(new_prec["bias_radix"])))
+            
             print("Layer {}, precision switch from w{}a{} to w{}a{}.".format(
                 layer_name, m.num_bits_weight, m.num_bits, wbits, dbits))
             

@@ -351,7 +351,7 @@ def dequantize(input, num_bits=None, qparams=None,signed=False, inplace=False):
     elif qparams.input_scale is None: #for bias 
         scale = output.new_tensor(output_scale) 
     else: # is weight, qweight = weight * outputscale / inputscale
-        inshape = (-1, 1,1,1)
+        inshape = (-1, 1, 1, 1)
         outshape = (1, -1, 1,1)
         if len(output.shape) == 2:
             inshape = (-1, 1)
@@ -382,7 +382,7 @@ class QuantMeasure(nn.Module):
         super(QuantMeasure, self).__init__()
         # self.register_buffer('running_zero_point', torch.zeros(*shape_measure))
         # self.register_buffer('running_range', torch.zeros(*shape_measure))
-        # self.register_parameter('weight_scale',  torch.zeros(*shape_measure))
+        
         self.measure = measure
         if self.measure:
             self.register_buffer('num_measured', torch.zeros(1))
