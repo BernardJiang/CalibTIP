@@ -63,22 +63,31 @@ def search_replace_layer_from_json(model, onnx_model, layers_precision_json, nam
             m.bias_radix = new_prec["bias_radix"]
             
             #new implemention:
-            m.data_scale = new_prec["input_scale"][0]
-            m.data_qmin = -(2.**(dbits-1) - 1.)
-            m.data_qmax = 2.**(dbits-1) - 1.
-            m.data_two_power_of_radix = 2.** np.array(new_prec["input_datapath_radix"][0])
+            dev = next(m.parameters()).device
+            inshape = (-1, 1, 1)
+            weightoutshape = (-1, 1, 1, 1)
+            weightinshape = (1, -1, 1, 1)
+            if isinstance(m, nn.Linear):
+                inshape = (-1)
+                weightoutshape = (-1, 1)
+                weightinshape = (1, -1)
+                
+            m.data_scale = torch.tensor(new_prec["input_scale"][0]).reshape(inshape).to(dev)
+            m.data_qmin = torch.tensor(-(2.**(dbits-1) - 1.)).to(dev)
+            m.data_qmax = torch.tensor(2.**(dbits-1) - 1.).to(dev)
+            m.data_two_power_of_radix = torch.tensor(2.** np.array(new_prec["input_datapath_radix"][0])).reshape(inshape).to(dev)
             
-            scale_out = np.array(new_prec["output_scale"]).reshape((-1, 1))
-            scale_in  = np.array(new_prec["input_scale"][0]).reshape((1, -1))
-            m.weight_scale = scale_out/scale_in 
-            m.weight_qmin = -(2.**(wbits-1) - 1.)
-            m.weight_qmax = 2.**(wbits-1) - 1.
-            m.weight_two_power_of_radix = 2.** np.array(new_prec["weight_radix"])
+            scale_out = np.array(new_prec["output_scale"]).reshape(weightoutshape)
+            scale_in  = np.array(new_prec["input_scale"][0]).reshape(weightinshape)
+            m.weight_scale = torch.tensor(scale_out/scale_in ).to(dev)
+            m.weight_qmin = torch.tensor(-(2.**(wbits-1) - 1.)).to(dev)
+            m.weight_qmax = torch.tensor(2.**(wbits-1) - 1.).to(dev)
+            m.weight_two_power_of_radix = torch.tensor(2.** np.array(new_prec["weight_radix"])).reshape(weightoutshape).to(dev)
 
-            m.bias_scale = new_prec["output_scale"] # TODO: complex
-            m.bias_qmin = -(2.**(bbits-1) - 1.)
-            m.bias_qmax = 2.**(bbits-1) - 1.
-            m.bias_two_power_of_radix = 2.** np.array(new_prec["bias_radix"])
+            m.bias_scale = torch.tensor(new_prec["output_scale"]).to(dev)
+            m.bias_qmin = torch.tensor(-(2.**(bbits-1) - 1.)).to(dev)
+            m.bias_qmax = torch.tensor(2.**(bbits-1) - 1.).to(dev)
+            m.bias_two_power_of_radix = torch.tensor(2.** np.array(new_prec["bias_radix"])).to(dev)
             
             # m.quantize_input.register_parameter('scale',     nn.Parameter(torch.tensor(new_prec["input_scale"][0])))
             # a = torch.FloatTensor(new_prec["input_datapath_bitwidth"][0])
