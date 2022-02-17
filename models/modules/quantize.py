@@ -58,7 +58,7 @@ def zero_point(x, pcq=False):
 
 def quant_err(p, t, num_bits=4, metric='mse'):
     qp = QParams(scale = 1.0, qmin = -127, qmax = 127, two_power_of_radix = 1)
-    tq = quantize_with_grad(t, num_bits=8, qparams=qp)
+    tq = quantize_with_grad(t, num_bits=num_bits, qparams=qp)
     # TODO: Add other metrics
     return mse(t, tq).item()
 

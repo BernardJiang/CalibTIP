@@ -53,14 +53,14 @@ def search_replace_layer_from_json(model, onnx_model, layers_precision_json, nam
             m.quantize_input.num_bits = dbits
             m.quantize_weight.num_bits = wbits
                         
-            m.bias_bitwidth = new_prec["bias_bitwidth"]
+            # m.bias_bitwidth = new_prec["bias_bitwidth"]
             
-            m.output_scale = new_prec["output_scale"]
-            m.input_scale = new_prec["input_scale"][0]
+            # m.output_scale = new_prec["output_scale"]
+            # m.input_scale = new_prec["input_scale"][0]
             
-            m.input_datapath_radix = new_prec["input_datapath_radix"][0]
-            m.weight_radix = new_prec["weight_radix"]
-            m.bias_radix = new_prec["bias_radix"]
+            # m.input_datapath_radix = new_prec["input_datapath_radix"][0]
+            # m.weight_radix = new_prec["weight_radix"]
+            # m.bias_radix = new_prec["bias_radix"]
             
             #new implemention:
             dev = next(m.parameters()).device

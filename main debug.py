@@ -646,13 +646,13 @@ def main_worker(args):
                 print("cashed quant Input%s"%layer.name)
                 cached_input_output[layer][0] = (cached_qinput[layer][0],cached_input_output[layer][0][1])
                 handler.remove()            
-            print("\nOptimize {}:{} for {} bit of shape {}".format(i, layer.name, layer.num_bits, layer.weight.shape))
+            print("\nOptimize {}:{} for w{}a{} bit of shape {}".format(i, layer.name, layer.num_bits_weight, layer.num_bits, layer.weight.shape))
             mse_before, mse_after, snr_before, snr_after, kurt_in, kurt_w = \
                 optimize_layer(layer, cached_input_output[layer], args.optimize_weights, batch_size=args.batch_size, model_name=args.model)
             print("\nMSE before optimization: {:e}".format(mse_before))
             print("MSE after  optimization: {:e}".format(mse_after))
             mse_df.loc[i, 'name'] = layer.name
-            mse_df.loc[i, 'bit'] = layer.num_bits
+            mse_df.loc[i, 'bit'] = layer.num_bits_weight
             mse_df.loc[i, 'shape'] = str(layer.weight.shape)
             mse_df.loc[i, 'mse_before'] = mse_before
             mse_df.loc[i, 'mse_after'] = mse_after
