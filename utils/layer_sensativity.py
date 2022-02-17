@@ -89,19 +89,20 @@ def search_replace_layer_from_json(model, onnx_model, layers_precision_json, nam
             m.bias_qmax = torch.tensor(2.**(bbits-1) - 1.).to(dev)
             m.bias_two_power_of_radix = torch.tensor(2.** np.array(new_prec["bias_radix"])).to(dev)
             
-            # m.quantize_input.register_parameter('scale',     nn.Parameter(torch.tensor(new_prec["input_scale"][0])))
-            # a = torch.FloatTensor(new_prec["input_datapath_bitwidth"][0])
-            # b = nn.Parameter(a, requires_grad=False)
-            # m.quantize_input.register_parameter('bitwidth',  nn.Parameter(torch.FloatTensor(new_prec["input_datapath_bitwidth"][0])), requires_grad=False)
-            # m.quantize_input.register_parameter('radix',     nn.Parameter(torch.FloatTensor(new_prec["input_datapath_radix"][0])))
+            m.quantize_input.register_parameter('scale', nn.Parameter(m.data_scale))
+            m.quantize_input.register_parameter('qmin',  nn.Parameter(m.data_qmin))
+            m.quantize_input.register_parameter('qmax',  nn.Parameter(m.data_qmax))
+            m.quantize_input.register_parameter('two_power_of_radix',  nn.Parameter(m.data_two_power_of_radix))
 
-            # m.quantize_weight.register_parameter('input_scale',     nn.Parameter(torch.tensor(new_prec["input_scale"][0])))
-            # m.quantize_weight.register_parameter('output_scale',     nn.Parameter(torch.tensor(new_prec["output_scale"])))
-            # m.quantize_weight.register_parameter('bitwidth',  nn.Parameter(torch.FloatTensor(new_prec["weight_bitwidth"])))
-            # m.quantize_weight.register_parameter('radix',     nn.Parameter(torch.FloatTensor(new_prec["weight_radix"])))
-            
-            # m.quantize_weight.register_parameter('bias_bitwidth',  nn.Parameter(torch.FloatTensor(new_prec["bias_bitwidth"])))
-            # m.quantize_weight.register_parameter('bias_radix',     nn.Parameter(torch.FloatTensor(new_prec["bias_radix"])))
+            m.quantize_weight.register_parameter('scale', nn.Parameter(m.weight_scale))
+            m.quantize_weight.register_parameter('qmin',  nn.Parameter(m.weight_qmin))
+            m.quantize_weight.register_parameter('qmax',  nn.Parameter(m.weight_qmax))
+            m.quantize_weight.register_parameter('two_power_of_radix',  nn.Parameter(m.weight_two_power_of_radix))
+
+            m.quantize_weight.register_parameter('bias_scale', nn.Parameter(m.bias_scale))
+            m.quantize_weight.register_parameter('bias_qmin',  nn.Parameter(m.bias_qmin))
+            m.quantize_weight.register_parameter('bias_qmax',  nn.Parameter(m.bias_qmax))
+            m.quantize_weight.register_parameter('bias_two_power_of_radix',  nn.Parameter(m.bias_two_power_of_radix))
             
             print("Layer {}, precision switch from w{}a{} to w{}a{}.".format(
                 layer_name, m.num_bits_weight, m.num_bits, wbits, dbits))
