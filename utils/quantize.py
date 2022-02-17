@@ -14,29 +14,34 @@ def get_broadcastshape(x):
     p3 = tuple(p2)
     return p3
     
-def quantize_tensor(x, num_bits=8):
-    qmin = -(2.**(num_bits-1) - 1.)
-    qmax = 2.**(num_bits-1) - 1.
-    newshape = get_broadcastshape(x)
-    abs_max_val = torch.max(torch.abs(torch.reshape(x, (x.shape[0], -1))), 1)[0]
-    zero_point = 0
-    stepsize = torch.reshape(abs_max_val / qmax, newshape)
+def quantize_tensor(x, scale, qmin, qmax, two_power_of_radix):
+    # newshape = get_broadcastshape(x)
+    # abs_max_val = torch.max(torch.abs(torch.reshape(x, (x.shape[0], -1))), 1)[0]
+    # zero_point = 0
+    # stepsize = torch.reshape(abs_max_val / qmax, newshape)
     
     # q_x = x / stepsize
     # q_x.clamp_(qmin, qmax).round_()
     # q_x = q_x.to(torch.int8)
     # return QTensor(tensor=q_x, stepsize=stepsize, zero_point=zero_point)
     
-    radix = torch.floor( torch.log2( (2.**(num_bits-1))/abs_max_val )).to(torch.int8)
-    radix = torch.reshape(radix, newshape)
-    q_x = x * (2.**radix) 
-    q_x.clamp_(qmin, qmax).round_()
-    q_x = q_x.to(torch.int8)
-    return QTensor(tensor=q_x, stepsize=radix, zero_point=zero_point)  #re-use the stepsize as redix
+    # radix = torch.floor( torch.log2( (2.**(num_bits-1))/abs_max_val )).to(torch.int8)
+    # radix = torch.reshape(radix, newshape)
+    # q_x = x * (2.**radix) 
+    # q_x.clamp_(qmin, qmax).round_()
+    # q_x = q_x.to(torch.int8)
+    # return QTensor(tensor=q_x, stepsize=radix, zero_point=zero_point)  #re-use the stepsize as redix
+    x.mul_(scale)
+    x.mul_(two_power_of_radix)
+    x.clamp_(qmin, qmax).round_()
+    return x
 
-def dequantize_tensor(q_x):
+
+def dequantize_tensor(q_x, scale, qmin, qmax, two_power_of_radix):
     # return q_x.stepsize * q_x.tensor.float() 
-    return q_x.tensor.float() / (2.**q_x.stepsize )  #re-use stepsize as radix.
+    # return q_x.tensor.float() / (2.**q_x.stepsize )  #re-use stepsize as radix.
+    return q_x.div_(two_power_of_radix).div_(scale)
+    
 
 def quantize_model(model):
     qparams = {}
@@ -80,17 +85,23 @@ def get_quantized_model_and_params(model, qparams = {}):
         if is_q_module(m):
             with torch.no_grad():
                 # dqw = tensor_fl2fx2fl(m.weight, num_bits=m.quantize_weight.num_bits)
-                qw = quantize_tensor(m.weight, num_bits=m.quantize_weight.num_bits)
-                dqw = dequantize_tensor(qw)
-                
+                qw = quantize_tensor(m.weight, m.weight_scale, m.weight_qmin, m.weight_qmax, m.weight_two_power_of_radix)
+                dqw = dequantize_tensor(m.weight, m.weight_scale, m.weight_qmin, m.weight_qmax, m.weight_two_power_of_radix)
                 m.weight.copy_(dqw)
-                radix = qw.stepsize #re-use stepsize as radix
+               
+                if m.bias is not None:
+                    qb = quantize_tensor(m.bias, m.bias_scale, m.bias_qmin, m.bias_qmax, m.bias_two_power_of_radix)
+                    dqb = dequantize_tensor(m.bias, m.bias_scale, m.bias_qmin, m.bias_qmax, m.bias_two_power_of_radix)
+                    m.bias.copy_(dqb)
+                    
+                radix = 1. #qw.stepsize #re-use stepsize as radix
                 
                 qmax = 2.**(m.quantize_input.num_bits-1)
                 # radix_input = torch.floor(torch.log2(qmax/m.quantize_input.running_range)).to(torch.int8)
                 
                 
                 qparams[m.name] = {
+                        # this file seems no longer needed. Just keep it for now.
                         'shape': list(m.weight.shape),
                         
                         'num_bits': m.quantize_weight.num_bits,
@@ -107,7 +118,7 @@ def get_quantized_model_and_params(model, qparams = {}):
                         'scale_input': { 
                             'all': 1.0,
                         },
-                        'radix': radix.flatten().tolist(),
+                        'radix': 1.0, # radix.flatten().tolist(),
                         # 'radix_input':radix_input.flatten().tolist(),
                         'bitwidth': {
                             'all': m.quantize_weight.num_bits,                        
