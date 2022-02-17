@@ -85,13 +85,13 @@ def get_quantized_model_and_params(model, qparams = {}):
         if is_q_module(m):
             with torch.no_grad():
                 # dqw = tensor_fl2fx2fl(m.weight, num_bits=m.quantize_weight.num_bits)
-                qw = quantize_tensor(m.weight, m.weight_scale, m.weight_qmin, m.weight_qmax, m.weight_two_power_of_radix)
-                dqw = dequantize_tensor(m.weight, m.weight_scale, m.weight_qmin, m.weight_qmax, m.weight_two_power_of_radix)
+                qw = quantize_tensor(m.weight, m.quantize_weight.scale, m.quantize_weight.qmin, m.quantize_weight.qmax, m.quantize_weight.two_power_of_radix)
+                dqw = dequantize_tensor(m.weight, m.quantize_weight.scale, m.quantize_weight.qmin, m.quantize_weight.qmax, m.quantize_weight.two_power_of_radix)
                 m.weight.copy_(dqw)
                
                 if m.bias is not None:
-                    qb = quantize_tensor(m.bias, m.bias_scale, m.bias_qmin, m.bias_qmax, m.bias_two_power_of_radix)
-                    dqb = dequantize_tensor(m.bias, m.bias_scale, m.bias_qmin, m.bias_qmax, m.bias_two_power_of_radix)
+                    qb = quantize_tensor(m.bias, m.quantize_weight.bias_scale, m.quantize_weight.bias_qmin, m.quantize_weight.bias_qmax, m.quantize_weight.bias_two_power_of_radix)
+                    dqb = dequantize_tensor(m.bias, m.quantize_weight.bias_scale, m.quantize_weight.bias_qmin, m.quantize_weight.bias_qmax, m.quantize_weight.bias_two_power_of_radix)
                     m.bias.copy_(dqb)
                     
                 radix = 1. #qw.stepsize #re-use stepsize as radix
