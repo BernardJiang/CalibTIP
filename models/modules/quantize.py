@@ -397,15 +397,23 @@ class QuantMeasure(nn.Module):
         self.reduce_dim = reduce_dim
         self.cal_qparams = cal_qparams
         
-        self.register_parameter('scale', nn.Parameter(torch.ones(1)))
-        self.register_parameter('qmin',  nn.Parameter(torch.tensor(1.0)))
-        self.register_parameter('qmax',  nn.Parameter(torch.tensor(1.0)))
-        self.register_parameter('two_power_of_radix',  nn.Parameter(torch.ones(1)))
         if weight_flag:
-            self.register_parameter('bias_scale', nn.Parameter(torch.ones(1)))
+            self.register_parameter('scale', nn.Parameter(torch.ones(*shape_measure)))
+            self.register_parameter('qmin',  nn.Parameter(torch.tensor(1.0)))
+            self.register_parameter('qmax',  nn.Parameter(torch.tensor(1.0)))
+            y = list(shape_measure)
+            y[1] = 1
+            x = tuple(y) 
+            self.register_parameter('two_power_of_radix',  nn.Parameter(torch.ones(x)))
+            self.register_parameter('bias_scale', nn.Parameter(torch.ones((shape_measure[0]))))
             self.register_parameter('bias_qmin',  nn.Parameter(torch.tensor(1.0)))
             self.register_parameter('bias_qmax',  nn.Parameter(torch.tensor(1.0)))
-            self.register_parameter('bias_two_power_of_radix',  nn.Parameter(torch.ones(1)))
+            self.register_parameter('bias_two_power_of_radix',  nn.Parameter(torch.ones(shape_measure[0])))
+        else:
+            self.register_parameter('scale', nn.Parameter(torch.ones(*shape_measure[1:])))
+            self.register_parameter('qmin',  nn.Parameter(torch.tensor(1.0)))
+            self.register_parameter('qmax',  nn.Parameter(torch.tensor(1.0)))
+            self.register_parameter('two_power_of_radix',  nn.Parameter(torch.ones(*shape_measure[1:])))
 
     def forward(self, input, qparams=None):
 
@@ -465,7 +473,7 @@ class QuantThUpdate(nn.Module):
             self.register_parameter('qmax',  nn.Parameter(torch.tensor(1.0)))
             y = list(shape_measure)
             y[1] = 1
-            x = tuple(y)
+            x = tuple(y) 
             self.register_parameter('two_power_of_radix',  nn.Parameter(torch.ones(x)))
             self.register_parameter('bias_scale', nn.Parameter(torch.ones((shape_measure[0]))))
             self.register_parameter('bias_qmin',  nn.Parameter(torch.tensor(1.0)))
@@ -506,7 +514,7 @@ class QConv2dSamePadding(nn.Conv2d):
         self.measure = measure
         num_measure = in_channels if per_ch_input else 1
         self.quantize_input = QuantMeasure(
-            self.num_bits, shape_measure=(num_measure, 1, 1, 1), flatten_dims=(1, -1), measure=measure,per_ch_input=per_ch_input)
+            self.num_bits, shape_measure=(out_channels, num_measure, 1, 1), flatten_dims=(1, -1), measure=measure,per_ch_input=per_ch_input)
         self.biprecision = biprecision
         self.stride = self.stride if len(self.stride) == 2 else [self.stride[0]]*2
 
@@ -552,7 +560,7 @@ class QConv2d_o(nn.Conv2d):
         self.num_bits_grad = num_bits_grad
         self.measure = measure
         self.quantize_input = QuantMeasure(
-            self.num_bits, shape_measure=(1, 1, 1, 1), flatten_dims=(1, -1), measure=measure)
+            self.num_bits, shape_measure=(out_channels, in_channels, 1, 1), flatten_dims=(1, -1), measure=measure)
         self.biprecision = biprecision
 
     def forward(self, input):
@@ -590,9 +598,9 @@ class QConv2d_lapq(nn.Conv2d):
         self.num_bits_grad = num_bits_grad
         self.measure = measure
         self.quantize_input = QuantMeasure(
-            self.num_bits, shape_measure=(1, 1, 1, 1), flatten_dims=(1, -1), measure=measure)
+            self.num_bits, shape_measure=(out_channels, in_channels, 1, 1), flatten_dims=(1, -1), measure=measure)
         self.quantize_weight = QuantMeasure(
-            self.num_bits, shape_measure=(out_channels, 1, 1, 1), flatten_dims=(1, -1), measure=measure, reduce_dim=None, weight_flag=True)
+            self.num_bits, shape_measure=(out_channels, in_channels, 1, 1), flatten_dims=(1, -1), measure=measure, reduce_dim=None, weight_flag=True)
         self.biprecision = biprecision
 
     def forward(self, input):
@@ -696,12 +704,12 @@ class QConv2dVQ(nn.Conv2d):
         self.U = nn.Parameter(torch.eye(in_channels)) #,out_channels))
         if measure:
             self.quantize_input = QuantMeasure(
-                self.num_bits, shape_measure=(1, 1, 1, 1), flatten_dims=(1, -1), measure=measure, cal_qparams=cal_qparams)
+                self.num_bits, shape_measure=(out_channels, in_channels, 1, 1), flatten_dims=(1, -1), measure=measure, cal_qparams=cal_qparams)
             self.quantize_weight = QuantMeasure(
                 self.num_bits, shape_measure=(out_channels if perC else 1, 1, 1, 1), flatten_dims=(1,-1) if perC else (0,-1), measure=measure, reduce_dim=None if perC else 0, weight_flag=True)
         else:
             self.quantize_input = QuantThUpdate(
-                self.num_bits, shape_measure=(1, 1, 1, 1), flatten_dims=(1, -1), measure=measure)
+                self.num_bits, shape_measure=(out_channels, in_channels, 1, 1), flatten_dims=(1, -1), measure=measure)
             self.quantize_weight = QuantThUpdate(
                 self.num_bits, shape_measure=(out_channels if perC else 1, 1, 1, 1), flatten_dims=(1,-1) if perC else (0,-1), measure=measure, reduce_dim=None if perC else 0, weight_flag=True)
         self.biprecision = biprecision
@@ -787,7 +795,7 @@ class QLinear_o(nn.Linear):
         self.num_bits_weight = num_bits_weight or num_bits
         self.num_bits_grad = num_bits_grad
         self.biprecision = biprecision
-        self.quantize_input = QuantMeasure(self.num_bits,measure=measure)
+        self.quantize_input = QuantMeasure(self.num_bits,measure=measure, shape_measure=(out_features, in_features))
         self.measure = measure
 
     def forward(self, input):
@@ -823,8 +831,8 @@ class QLinear_lapq(nn.Linear):
         self.num_bits_weight = num_bits_weight or num_bits
         self.num_bits_grad = num_bits_grad
         self.biprecision = biprecision
-        self.quantize_input = QuantMeasure(self.num_bits,measure=measure)
-        self.quantize_weight = QuantMeasure(self.num_bits,shape_measure=(out_features, 1), measure=measure,reduce_dim=None, weight_flag=True)
+        self.quantize_input = QuantMeasure(self.num_bits,measure=measure,shape_measure=(out_features, in_features))
+        self.quantize_weight = QuantMeasure(self.num_bits,shape_measure=(out_features, in_features), measure=measure,reduce_dim=None, weight_flag=True)
         self.measure = measure
 
     def forward(self, input):
@@ -909,10 +917,10 @@ class QLinearVQ(nn.Linear):
         self.U = nn.Parameter(torch.eye(in_features))
 
         if measure:
-            self.quantize_input = QuantMeasure(self.num_bits,measure=measure, cal_qparams=cal_qparams)
+            self.quantize_input = QuantMeasure(self.num_bits,measure=measure, shape_measure=(out_features if perC else 1, 1), cal_qparams=cal_qparams)
             self.quantize_weight = QuantMeasure(self.num_bits,shape_measure=(out_features if perC else 1, 1), flatten_dims=(1,-1) if perC else (0,-1), measure=measure,reduce_dim=None if perC else 0, weight_flag=True)
         else:
-            self.quantize_input = QuantThUpdate(self.num_bits,measure=measure)
+            self.quantize_input = QuantThUpdate(self.num_bits,measure=measure,shape_measure=(out_features if perC else 1, 1))
             self.quantize_weight = QuantThUpdate(self.num_bits,shape_measure=(out_features if perC else 1, 1), flatten_dims=(1,-1) if perC else (0,-1), measure=measure,reduce_dim=None if perC else 0, weight_flag=True)
         self.measure = measure
         self.cal_params = cal_qparams
