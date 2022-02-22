@@ -572,7 +572,10 @@ def main_worker(args):
         
 
     cached_input_output = {}
-    quant_keys = ['.weight', '.bias', '.equ_scale']
+    quant_keys = ['.weight', '.bias', '.equ_scale',
+         '.quantize_input.scale', '.quantize_input.qmin', '.quantize_input.qmax', '.quantize_input.two_power_of_radix',
+         '.quantize_weight.scale', '.quantize_weight.qmin', '.quantize_weight.qmax', '.quantize_weight.two_power_of_radix',
+         '.quantize_weight.bias_scale', '.quantize_weight.bias_qmin', '.quantize_weight.bias_qmax', '.quantize_weight.bias_two_power_of_radix']
         # , '.quantize_input.running_zero_point', '.quantize_input.running_range',
         #  '.quantize_weight.running_zero_point', '.quantize_weight.running_range',
         # '.quantize_input1.running_zero_point', '.quantize_input1.running_range',
@@ -607,6 +610,7 @@ def main_worker(args):
 
         # Store input/output for all quantizable layers
         train_results = trainer.validate(train_data.get_loader())
+        logging.info("Train:")
         logging.info(train_results)        
         print("Input/outputs cached")
 
@@ -620,6 +624,7 @@ def main_worker(args):
 
         print("Bernard calculate float point model accuracy before enabling quantization!")
         val_results = trainer.validate(val_data.get_loader())
+        logging.info("Val:")
         logging.info(val_results)
         
         for m in model.modules():
@@ -628,6 +633,7 @@ def main_worker(args):
 
         print("Bernard calculate fixed point model accuracy before training!")
         val_results = trainer.validate(val_data.get_loader())
+        logging.info("Val:")
         logging.info(val_results)
 
         mse_df = pd.DataFrame(index=np.arange(len(cached_input_output)), columns=['name', 'bit', 'shape', 'mse_before', 'mse_after'])
@@ -670,6 +676,7 @@ def main_worker(args):
         train_data = None
         cached_input_output = None
         val_results = trainer.validate(val_data.get_loader())
+        logging.info("Val:")
         logging.info(val_results)
 
         adaquant_type = 'adaquant_seq' if args.seq_adaquant else 'adaquant_parallel'
@@ -681,9 +688,24 @@ def main_worker(args):
     elif args.per_layer:
         # Store input/output for all quantizable layers
         calib_all_8_results = trainer.validate(train_data.get_loader())
-        print('########## All 8bit results ###########', calib_all_8_results)
+        print('Train: ########### All 8bit results ###########', calib_all_8_results)
         int8_opt_model_state_dict = torch.load(args.int8_opt_model_path)
         int4_opt_model_state_dict = torch.load(args.int4_opt_model_path)
+        calib_all_8_results = trainer.validate(train_data.get_loader())
+        print('Train: ########### All 8bit results ###########', calib_all_8_results)
+
+        # model.load_state_dict(int4_opt_model_state_dict,strict=False)
+        # calib_all_8_results = trainer.validate(train_data.get_loader())
+        # print('Train: ########### All 4bit results ###########', calib_all_8_results)
+
+        # model.load_state_dict(int8_opt_model_state_dict,strict=False)
+        # calib_all_8_results = trainer.validate(train_data.get_loader())
+        # print('Train: ########### All 8bit results ###########', calib_all_8_results)
+
+        # model.load_state_dict(int4_opt_model_state_dict,strict=False)
+        # calib_all_8_results = trainer.validate(train_data.get_loader())
+        # print('Train: ########### All 4bit results ###########', calib_all_8_results)
+
         
         per_layer_results={}
         args.names_sp_layers =  [key[:-7] for key in model.state_dict().keys() if 'weight' in key and 'running' not in key and 'quantize' not in key and ('conv' in key or 'downsample.0' in key or 'fc' in key)]
@@ -697,11 +719,13 @@ def main_worker(args):
             model = search_replace_layer(model, [layer], num_bits_activation=8, num_bits_weight=8)
             print('finished %d out of %d'%(layer_idx,len(args.names_sp_layers)))
             logging.info(layer)
+            logging.info("Train:")
             logging.info(calib_results)
-            per_layer_results[layer] = {'base precision': 8, 'replaced precision': args.nbits_act, 'replaced layer': layer, 'accuracy': calib_results['prec1'] , 'loss': calib_results['loss'], 'Parameters Size [Elements]':  model.state_dict()[layer+'.weight'].numel() , 'MACs': '-'}
+            new_precision = "w{}a{}".format(args.nbits_weight, args.nbits_act)
+            per_layer_results[layer] = {'base precision': 'w8a8', 'replaced precision': new_precision, 'replaced layer': layer, 'accuracy': calib_results['prec1'] , 'loss': calib_results['loss'], 'Parameters Size [Elements]':  model.state_dict()[layer+'.weight'].numel() , 'MACs': '-'}
         
         torch.save(per_layer_results,args.evaluate+'.per_layer_accuracy.A'+str(args.nbits_act)+'.W'+str(args.nbits_weight))
-        all_8_dict = {'base precision': 8, 'replaced precision': args.nbits_act, 'replaced layer': '-', 'accuracy': calib_all_8_results['prec1'] , 'loss': calib_all_8_results['loss'], 'Parameters Size [Elements]':  '-', 'MACs': '-'}
+        all_8_dict = {'base precision': 'w8a8', 'replaced precision': 'w8a8', 'replaced layer': '-', 'accuracy': calib_all_8_results['prec1'] , 'loss': calib_all_8_results['loss'], 'Parameters Size [Elements]':  '-', 'MACs': '-'}
         columns = [key for key in all_8_dict]
         with open(args.evaluate+'.per_layer_accuracy.A'+str(args.nbits_act)+'.W'+str(args.nbits_weight)+'.csv', "w") as f:
             f.write(",".join(columns) + "\n")
@@ -751,8 +775,10 @@ def main_worker(args):
                 logging.info(fp_names)
         if args.eval_on_train:
             mixedIP_results = trainer.validate(train_data.get_loader())
+            logging.info("Train:")
         else:
             mixedIP_results = trainer.validate(val_data.get_loader())
+            logging.info("Val:")
         torch.save({'state_dict': model.state_dict(), 'config-ip': args.names_sp_layers},args.evaluate+'.mixed-ip-results.'+args.suffix)
         logging.info(mixedIP_results)
         acc = mixedIP_results['prec1']
@@ -768,6 +794,7 @@ def main_worker(args):
                                          num_bits_weight=args.nbits_weight)
 
         val_results = trainer.validate(val_data.get_loader())
+        logging.info("Val:")
         logging.info(val_results)
     
         saveacc(args, val_results, 'before_bn_tuning')
@@ -801,6 +828,7 @@ def main_worker(args):
         torch.save(model.state_dict(), filename)
 
         val_results = trainer.validate(val_data.get_loader())
+        logging.info("Val:")
         logging.info(val_results)
     
         saveacc(args, val_results, 'bn_tuning')
@@ -810,6 +838,7 @@ def main_worker(args):
 
     elif args.bias_tuning:
         val_results = trainer.validate(val_data.get_loader())
+        logging.info("Val:")
         logging.info(val_results)
 
         saveacc(args, val_results, 'before_bias_tuning')
@@ -829,6 +858,7 @@ def main_worker(args):
                 logging.info(train_results)
 
         val_results = trainer.validate(val_data.get_loader())
+        logging.info("Val:")
         logging.info(val_results)
         saveacc(args, val_results, 'bias_tuning')
 
@@ -857,6 +887,7 @@ def main_worker(args):
             filename = args.evaluate+'.measure'
             if 'perC' in args.model_config: filename += '_perC'
             torch.save(model.state_dict(),filename)
+            logging.info("Train:")
             logging.info(results)
             
             input_image = torch.zeros(1,3,224, 224).cuda()
@@ -864,6 +895,7 @@ def main_worker(args):
         
         else:
             if args.evaluate_init_configuration:
+                logging.info("Val:")
                 logging.info(results)
     return acc, loss
 if __name__ == '__main__':
