@@ -688,11 +688,13 @@ def main_worker(args):
     elif args.per_layer:
         # Store input/output for all quantizable layers
         calib_all_8_results = trainer.validate(train_data.get_loader())
-        print('Train: ########### All 8bit results ###########', calib_all_8_results)
+        print('Train: ########### All 8bit results ###########')
+        logging.info(calib_all_8_results)
         int8_opt_model_state_dict = torch.load(args.int8_opt_model_path)
         int4_opt_model_state_dict = torch.load(args.int4_opt_model_path)
         calib_all_8_results = trainer.validate(train_data.get_loader())
-        print('Train: ########### All 8bit results ###########', calib_all_8_results)
+        print('Train: ########### All 8bit results ###########')
+        logging.info(calib_all_8_results)
 
         # model.load_state_dict(int4_opt_model_state_dict,strict=False)
         # calib_all_8_results = trainer.validate(train_data.get_loader())
