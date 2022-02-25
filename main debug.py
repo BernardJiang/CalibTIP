@@ -548,14 +548,15 @@ def main_worker(args):
         else:
             model = search_replace_layer(model, args.names_sp_layers, num_bits_activation=args.nbits_act,
                                          num_bits_weight=args.nbits_weight)
-        jsonfile = args.evaluate + '.json'
-        if os.path.exists(jsonfile):
-            with open(jsonfile, "r") as fp:    
-                precision_config = json.load(fp)
-                model = search_replace_layer_from_json(model, None, precision_config)
+        # jsonfile = args.evaluate + '.json'
+        # if os.path.exists(jsonfile):
+        #     with open(jsonfile, "r") as fp:    
+        #         precision_config = json.load(fp)
+        #         model = search_replace_layer_from_json(model, None, precision_config)
 
     if args.layers_precision_json is not None:
         import onnx
+        from utils.layer_sensativity import search_replace_layer_from_json
         print("read json file " + args.layers_precision_json)
         with open(args.layers_precision_json, "r") as fp:
             precision_config = json.load(fp)
@@ -655,8 +656,8 @@ def main_worker(args):
             print("\nOptimize {}:{} for w{}a{} bit of shape {}".format(i, layer.name, layer.num_bits_weight, layer.num_bits, layer.weight.shape))
             mse_before, mse_after, snr_before, snr_after, kurt_in, kurt_w = \
                 optimize_layer(layer, cached_input_output[layer], args.optimize_weights, batch_size=args.batch_size, model_name=args.model)
-            print("\nMSE before optimization: {:e}".format(mse_before))
-            print("MSE after  optimization: {:e}".format(mse_after))
+            # print("\nMSE before optimization: {:e}".format(mse_before))
+            # print("MSE after  optimization: {:e}".format(mse_after))
             mse_df.loc[i, 'name'] = layer.name
             mse_df.loc[i, 'bit'] = layer.num_bits_weight
             mse_df.loc[i, 'shape'] = str(layer.weight.shape)
@@ -692,9 +693,9 @@ def main_worker(args):
         logging.info(calib_all_8_results)
         int8_opt_model_state_dict = torch.load(args.int8_opt_model_path)
         int4_opt_model_state_dict = torch.load(args.int4_opt_model_path)
-        calib_all_8_results = trainer.validate(train_data.get_loader())
-        print('Train: ########### All 8bit results ###########')
-        logging.info(calib_all_8_results)
+        # calib_all_8_results = trainer.validate(train_data.get_loader())
+        # print('Train: ########### All 8bit results ###########')
+        # logging.info(calib_all_8_results)
 
         # model.load_state_dict(int4_opt_model_state_dict,strict=False)
         # calib_all_8_results = trainer.validate(train_data.get_loader())
