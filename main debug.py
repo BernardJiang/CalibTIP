@@ -546,8 +546,9 @@ def main_worker(args):
             args.layers_precision_dict = args.layers_precision_dict.replace('\\', '')
             model = search_replace_layer_from_dict(model, ast.literal_eval(args.layers_precision_dict))
         else:
-            model = search_replace_layer(model, args.names_sp_layers, num_bits_activation=args.nbits_act,
-                                         num_bits_weight=args.nbits_weight)
+            pass
+            # model = search_replace_layer(model, args.names_sp_layers, num_bits_activation=args.nbits_act,
+            #                              num_bits_weight=args.nbits_weight)
         # jsonfile = args.evaluate + '.json'
         # if os.path.exists(jsonfile):
         #     with open(jsonfile, "r") as fp:    

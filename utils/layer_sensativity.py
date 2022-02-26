@@ -104,7 +104,7 @@ def search_replace_layer_from_json(model, onnx_model, layers_precision_json, nam
             m.quantize_weight.register_parameter('bias_qmax',  nn.Parameter(bias_qmax))
             m.quantize_weight.register_parameter('bias_two_power_of_radix',  nn.Parameter(bias_two_power_of_radix))
             
-            print("Layer {}, precision switch from w{}a{} to w{}a{}.".format(
+            print("Json : Layer {}, precision switch from w{}a{} to w{}a{}.".format(
                 layer_name, m.num_bits_weight, m.num_bits, wbits, dbits))
             
         search_replace_layer_from_json(m,onnx_model, layers_precision_json, layer_name)
