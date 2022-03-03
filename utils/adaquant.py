@@ -5,6 +5,7 @@ import torch.nn.functional as F
 from tqdm import tqdm
 import scipy.optimize as opt
 import math
+from .log import get_linenumber, get_gpu_memory_map, check_memory_usage
 
 
 def optimize_qparams(layer, cached_inps, cached_outs, test_inp, test_out, batch_size=100):
@@ -42,6 +43,10 @@ def optimize_qparams(layer, cached_inps, cached_outs, test_inp, test_out, batch_
 
 def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=1e-2, iters=100, progress=True, batch_size=64, relu=False):
     print("\nRun adaquant")
+    
+    get_gpu_memory_map()
+    check_memory_usage()
+    
     if relu:
         mse_before = F.mse_loss(F.relu_(layer(test_inp)), F.relu_(test_out))
     else:
@@ -65,6 +70,10 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     losses = []
     for j in (tqdm(range(iters)) if progress else range(iters)):
         idx = torch.randperm(cached_inps.size(0))[:batch_size]
+
+        # print("idx: ", j)
+        # print(__file__, get_linenumber())
+        # get_gpu_memory_map()
 
         train_inp = cached_inps[idx]#.cuda()
         train_out = cached_outs[idx]#.cuda()
@@ -130,10 +139,14 @@ def optimize_layer(layer, in_out, optimize_weights=False, batch_size=100, model_
         elif 'mobilenet_v2' == model_name:
             relu_condition = lambda layer_name: layer_name.endswith('0.0') or layer_name.endswith('0.1') or layer_name.endswith('18.0')
 
+        # print(__file__, get_linenumber())
+        # get_gpu_memory_map()
+        # check_memory_usage()
+        
         if relu_condition(layer.name):
-            mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=1000, lr1=1e-5, lr2=1e-4, relu=True) # batch_size=batch_size,
+            mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=1000, batch_size=batch_size, lr1=1e-5, lr2=1e-4, relu=True) 
         else:
-            mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=1000, lr1=1e-5, lr2=1e-4) #, batch_size=batch_size
+            mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=1000, batch_size=batch_size, lr1=1e-5, lr2=1e-4)
         mse_before_opt = mse_before
         print("\nMSE before adaquant: {:e}".format(mse_before))
         print("MSE after  adaquant: {:e}".format(mse_after))
