@@ -51,19 +51,21 @@ def mpip_compression(files=None, replace_precisions=None, Degradation=None, nois
         accLoss[layer] = {}
         memorySaved[layer] = {}
         for prec_w, prec_a in grouper(2, replace_precisions):
+            layer_w_a = layer + '_{}W_{}A'.format(prec_w, prec_a)  # 4w8a or 8w8a
             acc_layer[prec_w] = data[prec_w][measurement][l]
             performance[prec_w] = int(data[prec_w][metric][l]) * (prec_w ** po)
-            Combinations[layer].append(layer + '_{}W_{}A'.format(prec_w, prec_a))
+            Combinations[layer].append(layer_w_a)
             if acc:
-                accLoss[layer][layer + '_{}W_{}A'.format(prec_w, prec_a)] = max(base_accuracy - acc_layer[prec_w], 1e-6)
+                accLoss[layer][layer_w_a] = max(base_accuracy - acc_layer[prec_w], 1e-6)
             else:
-                accLoss[layer][layer + '_{}W_{}A'.format(prec_w, prec_a)] = max(acc_layer[prec_w] - base_accuracy, 1e-6)
+                accLoss[layer][layer_w_a] = max(acc_layer[prec_w] - base_accuracy, 1e-6)
             if noise is not None:
-                accLoss[layer][layer + '_{}W_{}A'.format(prec_w, prec_a)] += noise * np.random.normal() * accLoss[layer][layer + '_{}W_{}A'.format(prec_w, prec_a)]
-            memorySaved[layer][layer + '_{}W_{}A'.format(prec_w, prec_a)] = base_performance - performance[prec_w]
-        Combinations[layer].append(layer + '_{}W_{}A'.format(base_precision, base_precision))
-        accLoss[layer][layer + '_{}W_{}A'.format(base_precision, base_precision)] = 0
-        memorySaved[layer][layer + '_{}W_{}A'.format(base_precision, base_precision)] = 0
+                accLoss[layer][layer_w_a] += noise * np.random.normal() * accLoss[layer][layer_w_a]
+            memorySaved[layer][layer_w_a] = base_performance - performance[prec_w]
+        layer_BW_BA = layer + '_{}W_{}A'.format(base_precision, base_precision) # 8W8A
+        Combinations[layer].append(layer_BW_BA)
+        accLoss[layer][layer_BW_BA] = 0
+        memorySaved[layer][layer_BW_BA] = 0
         Indicators[layer] = LpVariable.dicts("indicator"+layer,Combinations[layer],0,1,LpInteger)
         S[layer] =LpVariable("S"+layer, 0)
         DeltaL[layer] =LpVariable("DeltaL"+layer, 0)
@@ -102,16 +104,17 @@ def mpip_compression(files=None, replace_precisions=None, Degradation=None, nois
     policy = []
     all_precisions = replace_precisions + [base_precision, base_precision]
     total_params = {}
-    for prec in all_precisions:
-        total_params[prec] = 0
+    for prec_w, prec_a in grouper(2, all_precisions):
+            total_params[prec_w] = 0
     for l in range(1, num_layers + 1):
         layer = data[replace_precisions[0]]['replaced layer'][l]
         for prec_w, prec_a in grouper(2, all_precisions):
-            if Indicators[layer][layer + '_{}W_{}A'.format(prec_w, prec_a)].varValue:
+            layer_w_a = layer + '_{}W_{}A'.format(prec_w, prec_a)
+            if Indicators[layer][layer_w_a].varValue:
                 policy.append('w{}a{}'.format(prec_w, prec_a))
                 sol[layer] = [prec_w, prec_a]
-                memory_reduced += memorySaved[layer][layer + '_{}W_{}A'.format(prec_w, prec_a)]
-                acc_deg += accLoss[layer][layer + '_{}W_{}A'.format(prec_w, prec_a)]
+                memory_reduced += memorySaved[layer][layer_w_a]
+                acc_deg += accLoss[layer][layer_w_a]
                 total_params[prec_w] += int(data[replace_precisions[0]][metric][l])
 
     print('Final Solution: ', sol)
