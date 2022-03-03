@@ -11,6 +11,11 @@ from bokeh.io import output_file, save, show
 from bokeh.plotting import figure
 from bokeh.layouts import column
 from bokeh.models import Div
+from inspect import currentframe, getframeinfo
+import subprocess
+import time
+import uuid
+import gc
 
 try:
     import hyperdash
@@ -248,3 +253,56 @@ def save_checkpoint(state, is_best, path='.', filename='checkpoint.pth.tar', sav
     if save_all:
         shutil.copyfile(filename, os.path.join(
             path, 'checkpoint_epoch_%s.pth.tar' % state['epoch']))
+
+
+def get_linenumber():
+    cf = currentframe()
+    return cf.f_back.f_lineno
+
+def get_gpu_memory_map():
+    """Get the current gpu usage.
+
+    Returns
+    -------
+    usage: dict
+        Keys are device ids as integers.
+        Values are memory usage as integers in MB.
+    """
+    result = subprocess.check_output(
+        [
+            'nvidia-smi', '--query-gpu=memory.used',
+            '--format=csv,nounits,noheader'
+        ], encoding='utf-8')
+    # Convert lines into a dictionary
+    gpu_memory = [int(x) for x in result.strip().split('\n')]
+    gpu_memory_map = dict(zip(range(len(gpu_memory)), gpu_memory))
+    print("GPU mem: {}".format(gpu_memory_map[0]))
+    return gpu_memory_map
+
+
+def check_memory_usage():
+    filename = "snapshot.{}.{}".format(time.strftime("%Y%m%d-%H%M%S"), uuid.uuid4())
+    f = open(filename, "a")
+    total_cpu_size = 0
+    total_cuda_size = 0    
+    for obj in gc.get_objects():
+        try:
+            if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+                memsize = obj.element_size() * obj.nelement()
+                
+                whereis = "CUDA" if obj.is_cuda else "CPU"
+                name = obj.name 
+                if obj.is_cuda:
+                    total_cuda_size += memsize
+                else:
+                    total_cpu_size += memsize
+                    
+                # print(whereis, memsize, obj.size(), type(obj), name)
+                f.write("type {}, size {}, loc {}, name {}".format(type(obj), obj.size(), whereis, name))
+            
+        except:
+            pass
+    print("total size cuda {} cpu {}, total {}".format(total_cuda_size, total_cpu_size, total_cuda_size + total_cpu_size))
+    f.write("total size cuda {} cpu {}, total {}".format(total_cuda_size, total_cpu_size, total_cuda_size + total_cpu_size))
+    f.close()
+    
