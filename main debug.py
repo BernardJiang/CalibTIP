@@ -12,7 +12,7 @@ import torch.utils.data
 import models
 import torch.distributed as dist
 from data import DataRegime
-from utils.log import setup_logging, ResultsLog, save_checkpoint
+from utils.log import setup_logging, ResultsLog, save_checkpoint, get_linenumber, get_gpu_memory_map, check_memory_usage
 from utils.optim import OptimRegime
 from utils.cross_entropy import CrossEntropyLoss
 from utils.misc import torch_dtypes
@@ -44,7 +44,11 @@ from models.modules.quantize import QConv2d, QLinear
 import json
 from itertools import zip_longest
 from utils.layer_sensativity import search_replace_layer_from_json
+from pynvml import *
 
+print(__file__, get_linenumber())
+get_gpu_memory_map()
+check_memory_usage()
 
 model_names = sorted(name for name in models.__dict__
                      if name.islower() and not name.startswith("__")
@@ -322,7 +326,11 @@ def main_worker(args):
     save_path = os.path.join(args.results_dir, args.save)
 
     args.distributed = args.local_rank >= 0 or args.world_size > 1
-
+    
+    print(__file__, get_linenumber())
+    get_gpu_memory_map()
+    check_memory_usage()
+    
     if args.distributed:
         dist.init_process_group(backend=args.dist_backend, init_method=args.dist_init,
                                 world_size=args.world_size, rank=args.local_rank)
@@ -360,7 +368,11 @@ def main_worker(args):
     model = models.__dict__[args.model]
     dataset_type = 'imagenet' if args.dataset =='imagenet_calib' else args.dataset
     model_config = {'dataset': dataset_type}
-
+    
+    print(__file__, get_linenumber())
+    get_gpu_memory_map()
+    check_memory_usage()
+    
     if args.model_config != '':
         if isinstance(args.model_config, dict):
             for k, v in args.model_config.items():
@@ -431,6 +443,10 @@ def main_worker(args):
     num_parameters = sum([l.nelement() for l in model.parameters()])
     logging.info("number of parameters: %d", num_parameters)
 
+    print(__file__, get_linenumber())
+    get_gpu_memory_map()
+    check_memory_usage()
+
     # optionally resume from a checkpoint
     if args.evaluate:
         if not os.path.isfile(args.evaluate):
@@ -449,7 +465,10 @@ def main_worker(args):
             model.load_state_dict(checkpoint,strict=False)
             logging.info("loaded checkpoint '%s'",args.evaluate)
           
-
+    print(__file__, get_linenumber())
+    get_gpu_memory_map()
+    check_memory_usage()
+    
     if args.resume:
         checkpoint_file = args.resume
         if os.path.isdir(checkpoint_file):
@@ -478,6 +497,11 @@ def main_worker(args):
        criterion = nn.KLDivLoss(reduction='mean') 
     criterion.to(args.device, dtype)
     model.to(args.device, dtype)
+
+    print("Load the model")
+    print(get_linenumber())
+    get_gpu_memory_map()
+    check_memory_usage()
 
     # Batch-norm should always be done in float
     if 'half' in args.dtype:
@@ -539,6 +563,10 @@ def main_worker(args):
                           defaults={'datasets_path': args.datasets_dir, 'name': dataset_type, 'split': 'val', 'augment': False,
                                     'input_size': args.input_size, 'batch_size': args.eval_batch_size, 'shuffle': True,
                                     'num_workers': args.workers, 'pin_memory': True, 'drop_last': False})
+    print("Load the data")
+    print(__file__, get_linenumber())
+    get_gpu_memory_map()
+    check_memory_usage()
 
     if args.evaluate or args.resume:
         from utils.layer_sensativity import search_replace_layer , extract_save_quant_state_dict, search_replace_layer_from_dict
@@ -546,9 +574,8 @@ def main_worker(args):
             args.layers_precision_dict = args.layers_precision_dict.replace('\\', '')
             model = search_replace_layer_from_dict(model, ast.literal_eval(args.layers_precision_dict))
         else:
-            pass
-            # model = search_replace_layer(model, args.names_sp_layers, num_bits_activation=args.nbits_act,
-            #                              num_bits_weight=args.nbits_weight)
+            model = search_replace_layer(model, args.names_sp_layers, num_bits_activation=args.nbits_act,
+                                         num_bits_weight=args.nbits_weight)
         # jsonfile = args.evaluate + '.json'
         # if os.path.exists(jsonfile):
         #     with open(jsonfile, "r") as fp:    
@@ -571,7 +598,11 @@ def main_worker(args):
         # onnx.checker.check_model(onnx_model) 
         # print(onnx.helper.printable_graph(onnx_model.graph))
         model = search_replace_layer_from_json(model, onnx_model, precision_config)
-        
+    
+    print("Before adaquant")    
+    print(get_linenumber())
+    get_gpu_memory_map()
+    check_memory_usage()
 
     cached_input_output = {}
     quant_keys = ['.weight', '.bias', '.equ_scale',
@@ -637,6 +668,12 @@ def main_worker(args):
         val_results = trainer.validate(val_data.get_loader())
         logging.info("Val:")
         logging.info(val_results)
+        
+        print("Before adaquant training")
+        print(__file__, get_linenumber())
+        get_gpu_memory_map()
+        check_memory_usage()
+        
 
         mse_df = pd.DataFrame(index=np.arange(len(cached_input_output)), columns=['name', 'bit', 'shape', 'mse_before', 'mse_after'])
         print_freq = 100
@@ -653,7 +690,13 @@ def main_worker(args):
                 trainer.validate(train_data.get_loader())
                 print("cashed quant Input%s"%layer.name)
                 cached_input_output[layer][0] = (cached_qinput[layer][0],cached_input_output[layer][0][1])
-                handler.remove()            
+                handler.remove()    
+            
+            print(" ########################## Before training layer ", layer.name)
+            print(__file__, get_linenumber())
+            get_gpu_memory_map()
+            check_memory_usage()
+       
             print("\nOptimize {}:{} for w{}a{} bit of shape {}".format(i, layer.name, layer.num_bits_weight, layer.num_bits, layer.weight.shape))
             mse_before, mse_after, snr_before, snr_after, kurt_in, kurt_w = \
                 optimize_layer(layer, cached_input_output[layer], args.optimize_weights, batch_size=args.batch_size, model_name=args.model)
@@ -668,6 +711,11 @@ def main_worker(args):
             mse_df.loc[i, 'snr_after'] = snr_after
             mse_df.loc[i, 'kurt_in'] = kurt_in
             mse_df.loc[i, 'kurt_w'] = kurt_w
+
+            print(__file__, get_linenumber())
+            get_gpu_memory_map()
+            check_memory_usage()
+            print(" ----------------------------------- End of training layer \n\n", layer.name)
 
         mse_csv = args.evaluate + '.mse.csv'
         mse_df.to_csv(mse_csv)
