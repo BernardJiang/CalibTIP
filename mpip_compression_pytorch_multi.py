@@ -36,15 +36,16 @@ def mpip_compression(files=None, replace_precisions=None, Degradation=None, nois
     po = 2 if bops else 1
     prob = LpProblem('BitAllocationProblem',LpMinimize)
     Combinations={}; accLoss={}; memorySaved={}; Indicators={}; S={}; DeltaL={}
+    
+    replace_precision = replace_precisions[0]  # 0 weight, 1 activation
+    num_layers = len(data[replace_precision]['base precision']) - 1
 
-    num_layers = len(data[replace_precisions[0]]['base precision']) - 1
-
-    base_accuracy = data[replace_precisions[0]][measurement][0]
+    base_accuracy = data[replace_precision][measurement][0]
     total_mac=0
     for l in range(1,num_layers+1):
-        layer = data[replace_precisions[0]]['replaced layer'][l]
-        total_mac+= int(data[replace_precisions[0]][metric][l])
-        base_performance = int(data[replace_precisions[0]][metric][l]) * (base_precision ** po)
+        layer = data[replace_precision]['replaced layer'][l]
+        total_mac+= int(data[replace_precision][metric][l])
+        base_performance = int(data[replace_precision][metric][l]) * (base_precision ** po)
         acc_layer = {}
         performance = {}
         Combinations[layer] = []
