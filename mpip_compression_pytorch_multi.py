@@ -131,6 +131,140 @@ def mpip_compression(files=None, replace_precisions=None, Degradation=None, nois
 
     return sol, expected_acc, (total_performance - reduced_performance) / (total_performance * (32/base_precision)), policy
 
+def mpip_compression2(files=None, replace_precisions=None, Degradation=None, noise=None, method='acc', base_precision=8):
+    data = {}
+    if files[0] == '':
+        files = files[1:]
+
+    for f, prec in zip(files, replace_precisions):
+        data[prec] = pd.read_csv(f)
+
+    if Degradation is None:
+        Degradation = 0.18
+
+    bops=False
+    metric = 'MACs' if bops else 'Parameters Size [Elements]'
+
+    if method=='acc':
+        acc=True
+    elif method=='loss':
+        acc=False
+    measurement = 'accuracy' if acc else 'loss'
+
+    po = 2 if bops else 1
+    prob = LpProblem('BitAllocationProblem',LpMinimize)
+    Combinations={}; accLoss={}; memorySaved={}; Indicators={}; S={}; DeltaL={}
+    
+    replace_precision = replace_precisions[0]  # 0 weight, 1 activation
+    num_layers = len(data[replace_precision]['base precision']) - 1
+
+    base_accuracy = data[replace_precision][measurement][0]
+    total_mac=0
+    loss2gain = {}
+    gains = {}
+    for l in range(1,num_layers+1):
+        layer = data[replace_precision]['replaced layer'][l]
+        total_mac+= int(data[replace_precision][metric][l])
+        base_performance = int(data[replace_precision][metric][l]) * (base_precision ** po)
+        acc_layer = {}
+        performance = {}
+        Combinations[layer] = []
+        accLoss[layer] = {}
+        memorySaved[layer] = {}
+        loss2gain[layer] = 0
+        
+        # for prec_w, prec_a in grouper(2, replace_precisions):
+        prec_w = replace_precisions[0]
+        prec_a = replace_precisions[1]
+        layer_w_a = layer + '_{}W_{}A'.format(prec_w, prec_a)  # 4w8a or 8w8a
+        acc_layer[prec_w] = data[prec_w][measurement][l]
+        performance[prec_w] = int(data[prec_w][metric][l]) * (prec_w ** po)
+        Combinations[layer].append(layer_w_a)
+        if acc:
+            accLoss[layer][layer_w_a] = max(base_accuracy - acc_layer[prec_w], 1e-6)
+        else:
+            accLoss[layer][layer_w_a] = max(acc_layer[prec_w] - base_accuracy, 1e-6)
+        if noise is not None:
+            accLoss[layer][layer_w_a] += noise * np.random.normal() * accLoss[layer][layer_w_a]
+        
+        memorySaved[layer][layer_w_a] = base_performance - performance[prec_w]
+        
+        loss2gain[layer] = accLoss[layer][layer_w_a] / memorySaved[layer][layer_w_a]
+        gains[layer] = memorySaved[layer][layer_w_a]
+        
+        
+        layer_BW_BA = layer + '_{}W_{}A'.format(base_precision, base_precision) # 8W8A
+        Combinations[layer].append(layer_BW_BA)
+        accLoss[layer][layer_BW_BA] = 0
+        memorySaved[layer][layer_BW_BA] = 0
+
+    
+    #sort the loss2gain    
+    sorted_loss2gain = {}
+    weight_choices = {}
+    sorted_keys = sorted(loss2gain, key=loss2gain.get)
+    for w in sorted_keys:
+        sorted_loss2gain[w]=loss2gain[w]
+        weight_choices[w] = 8
+    
+    #search for K.
+    K = 0
+    gain_lower = 0
+    gain_higher = 0
+    total_performance = total_mac*base_precision**po  # bits
+    #degradation = {0.13, 0.25} from maximum compression 48% to no compression 0%.
+    target_gain = total_performance*(1- Degradation*(32/base_precision))
+    for l in sorted_loss2gain.keys():
+        gain_higher += gains[l]
+        if gain_lower <= target_gain and target_gain < gain_higher:
+            #TODO: found it.
+            break
+        gain_lower = gain_higher
+        weight_choices[l] = 4
+        K += 1
+    
+    print("Found K =", K)    
+    
+    reduced_performance = 0
+    sol = {}
+    memory_reduced = gain_lower
+    acc_deg = 0
+    policy = []
+    all_precisions = replace_precisions + [base_precision, base_precision]
+    total_params = {}
+    for prec_w, prec_a in grouper(2, all_precisions):
+            total_params[prec_w] = 0
+    for l in range(1, num_layers + 1):
+        layer = data[replace_precisions[0]]['replaced layer'][l]        
+        if weight_choices[layer] == 4:
+            prec_w = 4
+            prec_a = 8
+        else:
+            prec_w = 8
+            prec_a = 8
+        
+        layer_w_a = layer + '_{}W_{}A'.format(prec_w, prec_a)
+        policy.append('w{}a{}'.format(prec_w, prec_a)) 
+        sol[layer] = [prec_w, prec_a]
+        if weight_choices[layer] == 4:
+            # memory_reduced += performance[prec_w]
+            acc_deg += accLoss[layer][layer_w_a]
+        total_params[prec_w] += int(data[replace_precisions[0]][metric][l])
+            
+
+    print('Final Solution: ', sol)
+    print('Policy: ', policy)
+    print('Achieved compression: ', (total_performance - memory_reduced) / (total_performance * (32/base_precision)))
+    if acc:
+        expected_acc = base_accuracy - acc_deg
+    else:
+        expected_acc = base_accuracy + acc_deg
+    print('Expected acc: ', expected_acc)
+    for prec_w, prec_a in grouper(2, all_precisions):
+        print('Params % in int {} = {}'.format(prec_w, total_params[prec_w] / total_mac))
+    comp = (total_performance - reduced_performance) / (total_performance * (32/base_precision))
+
+    return sol, expected_acc, comp, policy
 
 def get_args():
     parser = argparse.ArgumentParser(description='PyTorch Reinforcement Learning')
@@ -226,7 +360,7 @@ for Deg in compressions:
     while valid_exp < num_exp:
         if Debug:
             import pdb; pdb.set_trace()
-        sol, expect_acc, comp, policy = mpip_compression(files=files, replace_precisions=replace_precisions, Degradation=Deg, noise=sigma, method=ip_method)
+        sol, expect_acc, comp, policy = mpip_compression2(files=files, replace_precisions=replace_precisions, Degradation=Deg, noise=sigma, method=ip_method)
         if str(policy) in attempted_policies.keys():
             continue
         valid_exp += 1
