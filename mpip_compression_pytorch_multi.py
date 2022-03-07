@@ -251,10 +251,10 @@ def mpip_compression2(files=None, replace_precisions=None, Degradation=None, noi
             acc_deg += accLoss[layer][layer_w_a]
         total_params[prec_w] += int(data[replace_precisions[0]][metric][l])
             
-
+    comp = (total_performance - memory_reduced) / (total_performance * (32/base_precision)) 
     print('Final Solution: ', sol)
     print('Policy: ', policy)
-    print('Achieved compression: ', (total_performance - memory_reduced) / (total_performance * (32/base_precision)))
+    print('Achieved compression: ', comp)
     if acc:
         expected_acc = base_accuracy - acc_deg
     else:
@@ -262,7 +262,6 @@ def mpip_compression2(files=None, replace_precisions=None, Degradation=None, noi
     print('Expected acc: ', expected_acc)
     for prec_w, prec_a in grouper(2, all_precisions):
         print('Params % in int {} = {}'.format(prec_w, total_params[prec_w] / total_mac))
-    comp = (total_performance - reduced_performance) / (total_performance * (32/base_precision))
 
     return sol, expected_acc, comp, policy
 
