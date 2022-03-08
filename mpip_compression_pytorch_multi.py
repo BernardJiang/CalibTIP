@@ -187,7 +187,7 @@ def mpip_compression2(files=None, replace_precisions=None, Degradation=None, noi
         if noise is not None:
             accLoss[layer][layer_w_a] += noise * np.random.normal() * accLoss[layer][layer_w_a]
         
-        memorySaved[layer][layer_w_a] = base_performance - performance[prec_w]
+        memorySaved[layer][layer_w_a] = max(base_performance - performance[prec_w], 1)
         
         loss2gain[layer] = accLoss[layer][layer_w_a] / memorySaved[layer][layer_w_a]
         gains[layer] = memorySaved[layer][layer_w_a]
