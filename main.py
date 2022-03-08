@@ -12,7 +12,7 @@ import torch.utils.data
 import models
 import torch.distributed as dist
 from data import DataRegime
-from utils.log import setup_logging, ResultsLog, save_checkpoint
+from utils.log import setup_logging, ResultsLog, save_checkpoint, get_linenumber, get_gpu_memory_map, check_memory_usage
 from utils.optim import OptimRegime
 from utils.cross_entropy import CrossEntropyLoss
 from utils.misc import torch_dtypes

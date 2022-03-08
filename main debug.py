@@ -831,7 +831,11 @@ def main_worker(args):
         else:
             mixedIP_results = trainer.validate(val_data.get_loader())
             logging.info("Val:")
-        torch.save({'state_dict': model.state_dict(), 'config-ip': args.names_sp_layers},args.evaluate+'.mixed-ip-results.'+args.suffix)
+        ptfilename = args.evaluate+'.mixed-ip-results.'+args.suffix
+        torch.save({'state_dict': model.state_dict(), 'config-ip': args.names_sp_layers}, ptfilename)
+        input_image = torch.zeros(1,3,224, 224).cuda()
+        save2onnx(model, input_image, ptfilename+'.onnx', True)  #True must be the last command because it modifies the model.        
+        
         logging.info(mixedIP_results)
         acc = mixedIP_results['prec1']
         loss = mixedIP_results['loss']
