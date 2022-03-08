@@ -366,6 +366,7 @@ for Deg in compressions:
 
         eval_dict['names_sp_layers'] = sol
         eval_dict['suffix'] = 'comp_{}_{}{}'.format( "{:.2f}".format(Deg), ip_method, args.suffix)
+        eval_dict['nbits_weight'] = replace_precisions[0]
         eval_dict['nbits_act'] = replace_precisions[1]
         acc, loss = main_per_layer(**eval_dict)
         # acc = 0.11; loss = 0.9
