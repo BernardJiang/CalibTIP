@@ -45,6 +45,7 @@ import json
 from itertools import zip_longest
 from utils.layer_sensativity import search_replace_layer_from_json
 from pynvml import *
+import re
 
 print(__file__, get_linenumber())
 get_gpu_memory_map()
@@ -675,7 +676,7 @@ def main_worker(args):
         check_memory_usage()
         
 
-        mse_df = pd.DataFrame(index=np.arange(len(cached_input_output)), columns=['name', 'bit', 'shape', 'mse_before', 'mse_after'])
+        mse_df = pd.DataFrame(index=np.arange(len(cached_input_output)), columns=['name', 'bit', 'shape', 'mse_before', 'mse_after', 'in_shape', 'out_shape'])
         print_freq = 100
         for i, layer in enumerate(cached_input_output):
             if i>0 and args.seq_adaquant:
@@ -711,6 +712,8 @@ def main_worker(args):
             mse_df.loc[i, 'snr_after'] = snr_after
             mse_df.loc[i, 'kurt_in'] = kurt_in
             mse_df.loc[i, 'kurt_w'] = kurt_w
+            mse_df.loc[i, 'in_shape'] = str(cached_input_output[layer][0][0].shape)
+            mse_df.loc[i, 'out_shape'] = str(cached_input_output[layer][0][1].shape)
 
             print(__file__, get_linenumber())
             get_gpu_memory_map()
@@ -758,6 +761,8 @@ def main_worker(args):
         # calib_all_8_results = trainer.validate(train_data.get_loader())
         # print('Train: ########### All 4bit results ###########', calib_all_8_results)
 
+        mse_csv = re.sub('.adaquant$', '.mse.csv', args.evaluate)
+        mse_df = pd.read_csv(mse_csv)
         
         per_layer_results={}
         args.names_sp_layers =  [key[:-7] for key in model.state_dict().keys() if 'weight' in key and 'running' not in key and 'quantize' not in key and ('conv' in key or 'downsample.0' in key or 'fc' in key)]
@@ -774,7 +779,24 @@ def main_worker(args):
             logging.info("Train:")
             logging.info(calib_results)
             new_precision = "w{}a{}".format(args.nbits_weight, args.nbits_act)
-            per_layer_results[layer] = {'base precision': 'w8a8', 'replaced precision': new_precision, 'replaced layer': layer, 'accuracy': calib_results['prec1'] , 'loss': calib_results['loss'], 'Parameters Size [Elements]':  model.state_dict()[layer+'.weight'].numel() , 'MACs': '-'}
+            # MACs = (K^2) * C_in * H_out * W_out * C_out
+            shapestr = mse_df.loc[mse_df['name'] == layer, 'shape'].values[0]
+            shapelist = [int(s) for s in shapestr.replace('[', ' ').replace(']', ' ').replace(',', ' ').split(' ') if s.isdigit()]
+            shapestr = mse_df.loc[mse_df['name'] == layer, 'in_shape'].values[0]
+            shapeinlist = [int(s) for s in shapestr.replace('[', ' ').replace(']', ' ').replace(',', ' ').split(' ') if s.isdigit()]
+            shapestr = mse_df.loc[mse_df['name'] == layer, 'out_shape'].values[0]
+            shapeoutlist = [int(s) for s in shapestr.replace('[', ' ').replace(']', ' ').replace(',', ' ').split(' ') if s.isdigit()]
+            if len(shapelist) == 4:
+                K2 = shapelist[2] * shapelist[3]
+                C_in = shapeinlist[1]
+                _, C_out, H_out, W_out = shapeoutlist
+                MACs = K2 * C_in * H_out * W_out * C_out
+            elif len(shapelist) == 2: #GEMM
+                MACs = shapelist[0] *shapelist[1]
+            else:
+                MACs = 0
+                logging.error("Can't process MACs for not 4,2 cases")
+            per_layer_results[layer] = {'base precision': 'w8a8', 'replaced precision': new_precision, 'replaced layer': layer, 'accuracy': calib_results['prec1'] , 'loss': calib_results['loss'], 'Parameters Size [Elements]':  model.state_dict()[layer+'.weight'].numel() , 'MACs': MACs}
         
         torch.save(per_layer_results,args.evaluate+'.per_layer_accuracy.A'+str(args.nbits_act)+'.W'+str(args.nbits_weight))
         all_8_dict = {'base precision': 'w8a8', 'replaced precision': 'w8a8', 'replaced layer': '-', 'accuracy': calib_all_8_results['prec1'] , 'loss': calib_all_8_results['loss'], 'Parameters Size [Elements]':  '-', 'MACs': '-'}
