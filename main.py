@@ -44,6 +44,8 @@ from models.modules.quantize import QConv2d, QLinear
 import json
 from itertools import zip_longest
 from utils.layer_sensativity import search_replace_layer_from_json
+from pynvml import *
+import re
 
 
 model_names = sorted(name for name in models.__dict__
@@ -202,6 +204,7 @@ parser.add_argument('--precisions', type=str, default='4;8',
 parser.add_argument('--tuning-iter', default=1, type=int, help='Number of iterations to tune batch normalization layers.')
 parser.add_argument('--res_log', default=None, help='path to result pandas log file')
 parser.add_argument('--cmp', type=str, help='compression_ratio')
+parser.add_argument('--layers_precision_json_4_IP', type=str, default=None, help='json file from knerex to use')
 
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
@@ -244,7 +247,37 @@ def preprocess_config(precision_config):
                         
     return precision_config_result
 
-    
+def get_name_mapping(precision_config):
+    knerex2pytorch_map = {}
+    pytorch2knerex_map = {}
+    for key,value in precision_config.items():
+        if type(value) is dict:
+            flag = False
+            for k,v in value.items():
+                if k == "weight_name":
+                    flag = True
+                    torchname = value[k][0].replace(".weight_kn","")
+                    knerex2pytorch_map[key] = torchname
+                    pytorch2knerex_map[torchname] = key
+                    # print("key: " + key + ". k = " + k + " . v=" + value[k][0])
+                    break
+                if k == "bias_name":
+                    flag = True
+                    torchname = value[k][0].replace(".bias_kn","")
+                    knerex2pytorch_map[key] = torchname
+                    pytorch2knerex_map[torchname] = key
+                    # print("key: " + key + ". k = " + k + " . v=" + value[k][0])
+                    break                
+                        
+    return knerex2pytorch_map, pytorch2knerex_map
+
+def savejson(model_orig, onnx_export_file, precision_config):
+    qparams = get_quantized_model_and_params(model_orig)
+    knerex2pytorch_map, pytorch2knerex_map = get_name_mapping(precision_config)
+    new_qparams = dict((pytorch2knerex_map[key], value) for (key, value) in qparams.items())
+    filename_json = onnx_export_file + ".json"
+    with open(filename_json, "w") as fp:
+        json.dump(new_qparams, fp, indent=4)
 
 def save2onnx(model_orig, img, onnx_export_file, disable_quantization=False):
 
@@ -637,7 +670,7 @@ def main_worker(args):
         logging.info("Val:")
         logging.info(val_results)
 
-        mse_df = pd.DataFrame(index=np.arange(len(cached_input_output)), columns=['name', 'bit', 'shape', 'mse_before', 'mse_after'])
+        mse_df = pd.DataFrame(index=np.arange(len(cached_input_output)), columns=['name', 'bit', 'shape', 'mse_before', 'mse_after', 'in_shape', 'out_shape'])
         print_freq = 100
         for i, layer in enumerate(cached_input_output):
             if i>0 and args.seq_adaquant:
@@ -652,7 +685,7 @@ def main_worker(args):
                 trainer.validate(train_data.get_loader())
                 print("cashed quant Input%s"%layer.name)
                 cached_input_output[layer][0] = (cached_qinput[layer][0],cached_input_output[layer][0][1])
-                handler.remove()            
+                handler.remove()    
             print("\nOptimize {}:{} for w{}a{} bit of shape {}".format(i, layer.name, layer.num_bits_weight, layer.num_bits, layer.weight.shape))
             mse_before, mse_after, snr_before, snr_after, kurt_in, kurt_w = \
                 optimize_layer(layer, cached_input_output[layer], args.optimize_weights, batch_size=args.batch_size, model_name=args.model)
@@ -667,6 +700,8 @@ def main_worker(args):
             mse_df.loc[i, 'snr_after'] = snr_after
             mse_df.loc[i, 'kurt_in'] = kurt_in
             mse_df.loc[i, 'kurt_w'] = kurt_w
+            mse_df.loc[i, 'in_shape'] = str(cached_input_output[layer][0][0].shape)
+            mse_df.loc[i, 'out_shape'] = str(cached_input_output[layer][0][1].shape)
 
         mse_csv = args.evaluate + '.mse.csv'
         mse_df.to_csv(mse_csv)
@@ -693,6 +728,8 @@ def main_worker(args):
         logging.info(calib_all_8_results)
         int8_opt_model_state_dict = torch.load(args.int8_opt_model_path)
         int4_opt_model_state_dict = torch.load(args.int4_opt_model_path)
+        mse_csv = re.sub('.adaquant$', '.mse.csv', args.evaluate)
+        mse_df = pd.read_csv(mse_csv)
         
         per_layer_results={}
         args.names_sp_layers =  [key[:-7] for key in model.state_dict().keys() if 'weight' in key and 'running' not in key and 'quantize' not in key and ('conv' in key or 'downsample.0' in key or 'fc' in key)]
@@ -709,9 +746,32 @@ def main_worker(args):
             logging.info("Train:")
             logging.info(calib_results)
             new_precision = "w{}a{}".format(args.nbits_weight, args.nbits_act)
-            per_layer_results[layer] = {'base precision': 'w8a8', 'replaced precision': new_precision, 'replaced layer': layer, 'accuracy': calib_results['prec1'] , 'loss': calib_results['loss'], 'Parameters Size [Elements]':  model.state_dict()[layer+'.weight'].numel() , 'MACs': '-'}
+            # MACs = (K^2) * C_in * H_out * W_out * C_out
+            shapestr = mse_df.loc[mse_df['name'] == layer, 'shape'].values[0]
+            shapelist = [int(s) for s in shapestr.replace('[', ' ').replace(']', ' ').replace(',', ' ').split(' ') if s.isdigit()]
+            shapestr = mse_df.loc[mse_df['name'] == layer, 'in_shape'].values[0]
+            shapeinlist = [int(s) for s in shapestr.replace('[', ' ').replace(']', ' ').replace(',', ' ').split(' ') if s.isdigit()]
+            shapestr = mse_df.loc[mse_df['name'] == layer, 'out_shape'].values[0]
+            shapeoutlist = [int(s) for s in shapestr.replace('[', ' ').replace(']', ' ').replace(',', ' ').split(' ') if s.isdigit()]
+            if len(shapelist) == 4:
+                K2 = shapelist[2] * shapelist[3]
+                C_in = shapeinlist[1]
+                _, C_out, H_out, W_out = shapeoutlist
+                MACs = K2 * C_in * H_out * W_out * C_out
+            elif len(shapelist) == 2: #GEMM
+                MACs = shapelist[0] *shapelist[1]
+            else:
+                MACs = 0
+                logging.error("Can't process MACs for not 4,2 cases")
+            per_layer_results[layer] = {'base precision': 'w8a8', 'replaced precision': new_precision, 'replaced layer': layer, 'accuracy': calib_results['prec1'] , 'loss': calib_results['loss'], 'Parameters Size [Elements]':  model.state_dict()[layer+'.weight'].numel() , 'MACs': MACs}
         
         torch.save(per_layer_results,args.evaluate+'.per_layer_accuracy.A'+str(args.nbits_act)+'.W'+str(args.nbits_weight))
+
+        #HACK!
+        per_layer_results['conv1']['Parameters Size [Elements]'] = 1
+        per_layer_results['conv1']['MACs'] = 1
+        #HACK! 
+
         all_8_dict = {'base precision': 'w8a8', 'replaced precision': 'w8a8', 'replaced layer': '-', 'accuracy': calib_all_8_results['prec1'] , 'loss': calib_all_8_results['loss'], 'Parameters Size [Elements]':  '-', 'MACs': '-'}
         columns = [key for key in all_8_dict]
         with open(args.evaluate+'.per_layer_accuracy.A'+str(args.nbits_act)+'.W'+str(args.nbits_weight)+'.csv', "w") as f:
@@ -769,8 +829,13 @@ def main_worker(args):
         ptfilename = args.evaluate+'.mixed-ip-results.'+args.suffix
         torch.save({'state_dict': model.state_dict(), 'config-ip': args.names_sp_layers}, ptfilename)
         input_image = torch.zeros(1,3,224, 224).cuda()
-        save2onnx(model, input_image, ptfilename+'.onnx', True)  #True must be the last command because it modifies the model.        
-        
+        save2onnx(model, input_image, ptfilename+'.onnx', False)
+        if args.layers_precision_json_4_IP is not None:
+            print("read json file " + args.layers_precision_json_4_IP)
+            with open(args.layers_precision_json_4_IP, "r") as fp:
+                precision_config = json.load(fp)
+                savejson(model, ptfilename+'.onnx', precision_config)
+
         logging.info(mixedIP_results)
         acc = mixedIP_results['prec1']
         loss = mixedIP_results['loss']

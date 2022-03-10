@@ -286,6 +286,7 @@ def get_args():
                         help='use non optimized model')
     parser.add_argument('--eval_on_train', action='store_true', default=False,
                         help='evaluate on calibration data')
+    parser.add_argument('--layers_precision_json_4_IP', type=str, default=None, help='json file from knerex to use')
 
     args = parser.parse_args()
     return args
@@ -325,7 +326,9 @@ eval_dict = {'model': model,
              'model_config': model_config,
              'mixed_builder': True,
              'device_ids': args.device_ids,
-             'precisions': precisions}
+             'precisions': precisions,
+             'layers_precision_json_4_IP': args.layers_precision_json_4_IP
+             }
 
 if args.do_not_use_adaquant:
     eval_dict['opt_model_paths'] = [os.path.join(dd, model + '.absorb_bn.measure_perC') for dd in workdirs]

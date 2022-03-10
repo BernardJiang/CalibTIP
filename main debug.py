@@ -207,6 +207,7 @@ parser.add_argument('--precisions', type=str, default='4;8',
 parser.add_argument('--tuning-iter', default=1, type=int, help='Number of iterations to tune batch normalization layers.')
 parser.add_argument('--res_log', default=None, help='path to result pandas log file')
 parser.add_argument('--cmp', type=str, help='compression_ratio')
+parser.add_argument('--layers_precision_json_4_IP', type=str, default=None, help='json file from knerex to use')
 
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
@@ -249,7 +250,37 @@ def preprocess_config(precision_config):
                         
     return precision_config_result
 
-    
+def get_name_mapping(precision_config):
+    knerex2pytorch_map = {}
+    pytorch2knerex_map = {}
+    for key,value in precision_config.items():
+        if type(value) is dict:
+            flag = False
+            for k,v in value.items():
+                if k == "weight_name":
+                    flag = True
+                    torchname = value[k][0].replace(".weight_kn","")
+                    knerex2pytorch_map[key] = torchname
+                    pytorch2knerex_map[torchname] = key
+                    # print("key: " + key + ". k = " + k + " . v=" + value[k][0])
+                    break
+                if k == "bias_name":
+                    flag = True
+                    torchname = value[k][0].replace(".bias_kn","")
+                    knerex2pytorch_map[key] = torchname
+                    pytorch2knerex_map[torchname] = key
+                    # print("key: " + key + ". k = " + k + " . v=" + value[k][0])
+                    break                
+                        
+    return knerex2pytorch_map, pytorch2knerex_map
+
+def savejson(model_orig, onnx_export_file, precision_config):
+    qparams = get_quantized_model_and_params(model_orig)
+    knerex2pytorch_map, pytorch2knerex_map = get_name_mapping(precision_config)
+    new_qparams = dict((pytorch2knerex_map[key], value) for (key, value) in qparams.items())
+    filename_json = onnx_export_file + ".json"
+    with open(filename_json, "w") as fp:
+        json.dump(new_qparams, fp, indent=4)
 
 def save2onnx(model_orig, img, onnx_export_file, disable_quantization=False):
 
@@ -862,8 +893,13 @@ def main_worker(args):
         ptfilename = args.evaluate+'.mixed-ip-results.'+args.suffix
         torch.save({'state_dict': model.state_dict(), 'config-ip': args.names_sp_layers}, ptfilename)
         input_image = torch.zeros(1,3,224, 224).cuda()
-        save2onnx(model, input_image, ptfilename+'.onnx', True)  #True must be the last command because it modifies the model.        
-        
+        save2onnx(model, input_image, ptfilename+'.onnx', False)
+        if args.layers_precision_json_4_IP is not None:
+            print("read json file " + args.layers_precision_json_4_IP)
+            with open(args.layers_precision_json_4_IP, "r") as fp:
+                precision_config = json.load(fp)
+                savejson(model, ptfilename+'.onnx', precision_config)
+
         logging.info(mixedIP_results)
         acc = mixedIP_results['prec1']
         loss = mixedIP_results['loss']
