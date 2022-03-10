@@ -799,6 +799,12 @@ def main_worker(args):
             per_layer_results[layer] = {'base precision': 'w8a8', 'replaced precision': new_precision, 'replaced layer': layer, 'accuracy': calib_results['prec1'] , 'loss': calib_results['loss'], 'Parameters Size [Elements]':  model.state_dict()[layer+'.weight'].numel() , 'MACs': MACs}
         
         torch.save(per_layer_results,args.evaluate+'.per_layer_accuracy.A'+str(args.nbits_act)+'.W'+str(args.nbits_weight))
+        
+        #HACK!
+        per_layer_results['conv1']['Parameters Size [Elements]'] = 1
+        per_layer_results['conv1']['MACs'] = 1
+        #HACK! 
+        
         all_8_dict = {'base precision': 'w8a8', 'replaced precision': 'w8a8', 'replaced layer': '-', 'accuracy': calib_all_8_results['prec1'] , 'loss': calib_all_8_results['loss'], 'Parameters Size [Elements]':  '-', 'MACs': '-'}
         columns = [key for key in all_8_dict]
         with open(args.evaluate+'.per_layer_accuracy.A'+str(args.nbits_act)+'.W'+str(args.nbits_weight)+'.csv', "w") as f:
