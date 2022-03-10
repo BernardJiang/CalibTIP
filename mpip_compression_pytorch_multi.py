@@ -131,7 +131,7 @@ def mpip_compression(files=None, replace_precisions=None, Degradation=None, nois
 
     return sol, expected_acc, (total_performance - reduced_performance) / (total_performance * (32/base_precision)), policy
 
-def mpip_compression2(files=None, replace_precisions=None, Degradation=None, noise=None, method='acc', base_precision=8):
+def mpip_compression2(files=None, replace_precisions=None, Degradation=None, noise=None, method='acc', base_precision=8, bops=False):
     data = {}
     if files[0] == '':
         files = files[1:]
@@ -142,7 +142,7 @@ def mpip_compression2(files=None, replace_precisions=None, Degradation=None, noi
     if Degradation is None:
         Degradation = 0.18
 
-    bops=False
+    # bops=False
     metric = 'MACs' if bops else 'Parameters Size [Elements]'
 
     if method=='acc':
@@ -165,7 +165,7 @@ def mpip_compression2(files=None, replace_precisions=None, Degradation=None, noi
     for l in range(1,num_layers+1):
         layer = data[replace_precision]['replaced layer'][l]
         total_mac+= int(data[replace_precision][metric][l])
-        base_performance = int(data[replace_precision][metric][l]) * (base_precision ** po)
+        base_performance = int(data[replace_precision][metric][l]) * ( base_precision * base_precision if bops else (base_precision ** po))
         acc_layer = {}
         performance = {}
         Combinations[layer] = []
@@ -178,7 +178,7 @@ def mpip_compression2(files=None, replace_precisions=None, Degradation=None, noi
         prec_a = replace_precisions[1]
         layer_w_a = layer + '_{}W_{}A'.format(prec_w, prec_a)  # 4w8a or 8w8a
         acc_layer[prec_w] = data[prec_w][measurement][l]
-        performance[prec_w] = int(data[prec_w][metric][l]) * (prec_w ** po)
+        performance[prec_w] = int(data[prec_w][metric][l]) * (prec_w * prec_a if bops else (prec_w ** po))
         Combinations[layer].append(layer_w_a)
         if acc:
             accLoss[layer][layer_w_a] = max(base_accuracy - acc_layer[prec_w], 1e-6)
@@ -211,7 +211,7 @@ def mpip_compression2(files=None, replace_precisions=None, Degradation=None, noi
     K = 0
     gain_lower = 0
     gain_higher = 0
-    total_performance = total_mac*base_precision**po  # bits
+    total_performance = total_mac * ( base_precision * base_precision if bops else (base_precision ** po))  # Macs or bits
     #degradation = {0.13, 0.25} from maximum compression 48% to no compression 0%.
     target_gain = total_performance*(1- Degradation*(32/base_precision))
     for l in sorted_loss2gain.keys():
@@ -271,6 +271,7 @@ def get_args():
     parser.add_argument('--device-ids', default=[0], type=int, nargs='+',
                         help='device ids assignment (e.g 0 1 2 3')
     parser.add_argument('--ip_method', type=str, default='loss', help='IP optimization target, loss / acc')
+    parser.add_argument('--ip_gain', type=bool, default=False, help='IP optimization gain, weight / MACs')
     parser.add_argument('--model', type=str, default='resnet', help='model to use')
     parser.add_argument('--model_vis', type=str, default='resnet50', help='torchvision model name')
     parser.add_argument('--num_exp', default=1, type=int, help='number of experiments per compression level')
@@ -359,7 +360,7 @@ for Deg in compressions:
     while valid_exp < num_exp:
         if Debug:
             import pdb; pdb.set_trace()
-        sol, expect_acc, comp, policy = mpip_compression2(files=files, replace_precisions=replace_precisions, Degradation=Deg, noise=sigma, method=ip_method)
+        sol, expect_acc, comp, policy = mpip_compression2(files=files, replace_precisions=replace_precisions, Degradation=Deg, noise=sigma, method=ip_method, bops=args.ip_gain)
         if str(policy) in attempted_policies.keys():
             continue
         valid_exp += 1
