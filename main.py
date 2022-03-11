@@ -832,12 +832,12 @@ def main_worker(args):
         ptfilename = args.evaluate+'.mixed-ip-results.'+args.suffix
         torch.save({'state_dict': model.state_dict(), 'config-ip': args.names_sp_layers}, ptfilename)
         input_image = torch.zeros(1,3,224, 224).cuda()
-        save2onnx(model, input_image, ptfilename+'.onnx', False)
-        if args.layers_precision_json_4_IP is not None:
-            print("read json file " + args.layers_precision_json_4_IP)
-            with open(args.layers_precision_json_4_IP, "r") as fp:
-                precision_config = json.load(fp)
-                savejson(model, ptfilename+'.onnx', precision_config)
+        save2onnx(model, input_image, ptfilename+'.onnx', True)
+        # if args.layers_precision_json_4_IP is not None:
+        #     print("read json file " + args.layers_precision_json_4_IP)
+        #     with open(args.layers_precision_json_4_IP, "r") as fp:
+        #         precision_config = json.load(fp)
+        #         savejson(model, ptfilename+'.onnx', precision_config)
 
         logging.info(mixedIP_results)
         acc = mixedIP_results['prec1']

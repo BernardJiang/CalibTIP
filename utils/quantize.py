@@ -88,30 +88,30 @@ def get_quantized_model_and_params(model, qparams = {}):
                 qw = quantize_tensor(m.weight, m.quantize_weight.scale, m.quantize_weight.qmin, m.quantize_weight.qmax, m.quantize_weight.two_power_of_radix)
                 dqw = dequantize_tensor(m.weight, m.quantize_weight.scale, m.quantize_weight.qmin, m.quantize_weight.qmax, m.quantize_weight.two_power_of_radix)
                 m.weight.copy_(dqw)
-               
-                if m.bias is not None:
-                    qb = quantize_tensor(m.bias, m.quantize_weight.bias_scale, m.quantize_weight.bias_qmin, m.quantize_weight.bias_qmax, m.quantize_weight.bias_two_power_of_radix)
-                    dqb = dequantize_tensor(m.bias, m.quantize_weight.bias_scale, m.quantize_weight.bias_qmin, m.quantize_weight.bias_qmax, m.quantize_weight.bias_two_power_of_radix)
-                    m.bias.copy_(dqb)
                 
                 scales = m.quantize_weight.scale.flatten().tolist()
-                num_bits = torch.log2(m.quantize_weight.qmax + 1).flatten().tolist()
+                num_bits = (torch.log2(m.quantize_weight.qmax + 1) + 1).flatten().tolist()
                 radixes = torch.log2(m.quantize_weight.two_power_of_radix).flatten().tolist()
-                
-                bias_scales = m.quantize_weight.bias_scale.flatten().tolist()
-                bias_num_bits = torch.log2(m.quantize_weight.bias_qmax + 1).flatten().tolist()
-                bias_radixes = torch.log2(m.quantize_weight.bias_two_power_of_radix).flatten().tolist()
-                
                 qparams[m.name+'.weight'] = {                        
                         'scale':  scales,
                         'radix':  radixes,
                         'bitwidth': num_bits,
                     }
-                qparams[m.name+'.bias'] = {                        
+               
+                if m.bias is not None:
+                    qb = quantize_tensor(m.bias, m.quantize_weight.bias_scale, m.quantize_weight.bias_qmin, m.quantize_weight.bias_qmax, m.quantize_weight.bias_two_power_of_radix)
+                    dqb = dequantize_tensor(m.bias, m.quantize_weight.bias_scale, m.quantize_weight.bias_qmin, m.quantize_weight.bias_qmax, m.quantize_weight.bias_two_power_of_radix)
+                    m.bias.copy_(dqb)
+                    
+                    bias_scales = m.quantize_weight.bias_scale.flatten().tolist()
+                    bias_num_bits = (torch.log2(m.quantize_weight.bias_qmax + 1) + 1).flatten().tolist()
+                    bias_radixes = torch.log2(m.quantize_weight.bias_two_power_of_radix).flatten().tolist()
+                    qparams[m.name+'.bias'] = {                        
                         'scale':  bias_scales,
                         'radix':  bias_radixes,
                         'bitwidth': bias_num_bits,
                     }
+                
         qparams = get_quantized_model_and_params(m, qparams)
         
     qparams["input"] =  {
