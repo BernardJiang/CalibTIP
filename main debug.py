@@ -253,31 +253,34 @@ def preprocess_config(precision_config):
 def get_name_mapping(precision_config):
     knerex2pytorch_map = {}
     pytorch2knerex_map = {}
+    extracted_data = {}
     for key,value in precision_config.items():
         if type(value) is dict:
             flag = False
             for k,v in value.items():
-                if k == "weight_name":
+                if k == "weight_name" or k == "bias_name":
                     flag = True
-                    torchname = value[k][0].replace(".weight_kn","")
+                    torchname = value[k][0].replace(".weight_kn","").replace(".bias_kn","")
                     knerex2pytorch_map[key] = torchname
                     pytorch2knerex_map[torchname] = key
                     # print("key: " + key + ". k = " + k + " . v=" + value[k][0])
+                    extracted_data[key]={}
+                    extracted_data[key]["weight_bitwidth"]=value["weight_bitwidth"]
+                    extracted_data[key]["input_datapath_bitwidth"]=value["input_datapath_bitwidth"]
+                    extracted_data[key]["bias_bitwidth"]=value["bias_bitwidth"]
+                    extracted_data[key]["input_scale"]=value["input_scale"]
+                    extracted_data[key]["output_scale"]=value["output_scale"]
+                    extracted_data[key]["input_datapath_radix"]=value["input_datapath_radix"]
+                    extracted_data[key]["bias_radix"]=value["bias_radix"]
                     break
-                if k == "bias_name":
-                    flag = True
-                    torchname = value[k][0].replace(".bias_kn","")
-                    knerex2pytorch_map[key] = torchname
-                    pytorch2knerex_map[torchname] = key
-                    # print("key: " + key + ". k = " + k + " . v=" + value[k][0])
-                    break                
                         
-    return knerex2pytorch_map, pytorch2knerex_map
+    return knerex2pytorch_map, pytorch2knerex_map, extracted_data
 
 def savejson(model_orig, onnx_export_file, precision_config):
-    qparams = get_quantized_model_and_params(model_orig)
-    knerex2pytorch_map, pytorch2knerex_map = get_name_mapping(precision_config)
-    new_qparams = dict((pytorch2knerex_map[key], value) for (key, value) in qparams.items())
+    new_qparams = get_quantized_model_and_params(model_orig)
+    # knerex2pytorch_map, pytorch2knerex_map, extracted_data = get_name_mapping(precision_config)
+    # qparams2 = dict((pytorch2knerex_map[key], value) for (key, value) in qparams.items())
+    # new_qparams =  dict((key, {**value, **extracted_data[key]}) for (key, value) in qparams2.items())
     filename_json = onnx_export_file + ".json"
     with open(filename_json, "w") as fp:
         json.dump(new_qparams, fp, indent=4)
@@ -316,7 +319,7 @@ def save2onnx(model_orig, img, onnx_export_file, disable_quantization=False):
                             export_params=True,        # store the trained parameter weights inside the model file
                             opset_version=11,          # the ONNX version to export the model to
                             do_constant_folding=False,  # whether to execute constant folding for optimization
-                            input_names = ['images'],   # the model's input names
+                            input_names = ['input'],   # the model's input names
                             output_names = ['classes', 'boxes'] if y is None else ['output'], # the model's output names
                             training=TrainingMode.PRESERVE,
                             keep_initializers_as_inputs=True,
@@ -893,12 +896,12 @@ def main_worker(args):
         ptfilename = args.evaluate+'.mixed-ip-results.'+args.suffix
         torch.save({'state_dict': model.state_dict(), 'config-ip': args.names_sp_layers}, ptfilename)
         input_image = torch.zeros(1,3,224, 224).cuda()
-        save2onnx(model, input_image, ptfilename+'.onnx', False)
-        if args.layers_precision_json_4_IP is not None:
-            print("read json file " + args.layers_precision_json_4_IP)
-            with open(args.layers_precision_json_4_IP, "r") as fp:
-                precision_config = json.load(fp)
-                savejson(model, ptfilename+'.onnx', precision_config)
+        save2onnx(model, input_image, ptfilename+'.onnx', True)
+        # if args.layers_precision_json_4_IP is not None:
+        #     print("read json file " + args.layers_precision_json_4_IP)
+        #     with open(args.layers_precision_json_4_IP, "r") as fp:
+        #         precision_config = json.load(fp)
+        #         savejson(model, ptfilename+'.onnx', precision_config)
 
         logging.info(mixedIP_results)
         acc = mixedIP_results['prec1']
