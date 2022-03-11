@@ -93,24 +93,38 @@ def get_quantized_model_and_params(model, qparams = {}):
                     qb = quantize_tensor(m.bias, m.quantize_weight.bias_scale, m.quantize_weight.bias_qmin, m.quantize_weight.bias_qmax, m.quantize_weight.bias_two_power_of_radix)
                     dqb = dequantize_tensor(m.bias, m.quantize_weight.bias_scale, m.quantize_weight.bias_qmin, m.quantize_weight.bias_qmax, m.quantize_weight.bias_two_power_of_radix)
                     m.bias.copy_(dqb)
-                    
-                radix = 1. #qw.stepsize #re-use stepsize as radix
                 
-                qmax = 2.**(m.quantize_input.num_bits-1)
-                scales = m.quantize_weight.bias_scale.flatten().tolist()
+                scales = m.quantize_weight.scale.flatten().tolist()
                 num_bits = torch.log2(m.quantize_weight.qmax + 1).flatten().tolist()
                 radixes = torch.log2(m.quantize_weight.two_power_of_radix).flatten().tolist()
-                qparams[m.name] = {
-                        # this file seems no longer needed. Just keep it for now.
-                        # 'shape': list(m.weight.shape),
-                        # 'num_bits': m.quantize_weight.num_bits,
-                        # 'num_bits_input': m.quantize_input.num_bits,
-                        
+                
+                bias_scales = m.quantize_weight.bias_scale.flatten().tolist()
+                bias_num_bits = torch.log2(m.quantize_weight.bias_qmax + 1).flatten().tolist()
+                bias_radixes = torch.log2(m.quantize_weight.bias_two_power_of_radix).flatten().tolist()
+                
+                qparams[m.name+'.weight'] = {                        
                         'scale':  scales,
                         'radix':  radixes,
                         'bitwidth': num_bits,
                     }
+                qparams[m.name+'.bias'] = {                        
+                        'scale':  bias_scales,
+                        'radix':  bias_radixes,
+                        'bitwidth': bias_num_bits,
+                    }
         qparams = get_quantized_model_and_params(m, qparams)
+        
+    qparams["input"] =  {
+        "scale": {
+            "all": 1.0
+        },
+        "radix": {
+            "all": 5.0
+        },
+        "bitwidth": {
+        "all": 8.0
+        }
+    }
 
     model.quantized = None
     return qparams
