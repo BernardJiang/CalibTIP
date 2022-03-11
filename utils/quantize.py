@@ -97,32 +97,18 @@ def get_quantized_model_and_params(model, qparams = {}):
                 radix = 1. #qw.stepsize #re-use stepsize as radix
                 
                 qmax = 2.**(m.quantize_input.num_bits-1)
-                # radix_input = torch.floor(torch.log2(qmax/m.quantize_input.running_range)).to(torch.int8)
-                
-                
+                scales = m.quantize_weight.bias_scale.flatten().tolist()
+                num_bits = torch.log2(m.quantize_weight.qmax + 1).flatten().tolist()
+                radixes = torch.log2(m.quantize_weight.two_power_of_radix).flatten().tolist()
                 qparams[m.name] = {
                         # this file seems no longer needed. Just keep it for now.
-                        'shape': list(m.weight.shape),
+                        # 'shape': list(m.weight.shape),
+                        # 'num_bits': m.quantize_weight.num_bits,
+                        # 'num_bits_input': m.quantize_input.num_bits,
                         
-                        'num_bits': m.quantize_weight.num_bits,
-                        # 'range': m.quantize_weight.running_range.flatten().tolist(),
-                        # 'zero_point': m.quantize_weight.running_zero_point.flatten().tolist(),
-                        
-                        'num_bits_input': m.quantize_input.num_bits,
-                        # 'range_input': m.quantize_input.running_range.flatten().tolist(),
-                        # 'zero_point_input': m.quantize_input.running_zero_point.flatten().tolist(),
-                        
-                        'stepsize': { 
-                            'all': 1.0,
-                        },
-                        'scale_input': { 
-                            'all': 1.0,
-                        },
-                        'radix': 1.0, # radix.flatten().tolist(),
-                        # 'radix_input':radix_input.flatten().tolist(),
-                        'bitwidth': {
-                            'all': m.quantize_weight.num_bits,                        
-                        },                        
+                        'scale':  scales,
+                        'radix':  radixes,
+                        'bitwidth': num_bits,
                     }
         qparams = get_quantized_model_and_params(m, qparams)
 
