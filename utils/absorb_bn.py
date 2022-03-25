@@ -70,11 +70,13 @@ def is_absorbing(m):
 def search_absorbe_bn(model, prev=None, remove_bn=True, verbose=False):
     with torch.no_grad():
         for n, m in model.named_children():
+            # print("current node ", n)
             if is_bn(m) and is_absorbing(prev):
-                # print(prev,m)
+                print("bn fusion", prevn, n)
                 absorb_bn(prev, m, remove_bn=remove_bn, verbose=verbose)
             search_absorbe_bn(m, remove_bn=remove_bn, verbose=verbose)
             prev = m
+            prevn = n
 
 
 def absorb_fake_bn(module, bn_module, verbose=False):
