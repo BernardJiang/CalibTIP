@@ -64,12 +64,12 @@ def is_bn(m):
 
 
 def is_absorbing(m):
-    return isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear) or isinstance(m, Conv2dSamePadding)
+    return isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear) # or isinstance(m, Conv2dSamePadding)
 
 
 def search_absorbe_bn(model, prev=None, remove_bn=True, verbose=False):
     with torch.no_grad():
-        for m in model.children():
+        for n, m in model.named_children():
             if is_bn(m) and is_absorbing(prev):
                 # print(prev,m)
                 absorb_bn(prev, m, remove_bn=remove_bn, verbose=verbose)
