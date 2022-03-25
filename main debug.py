@@ -478,8 +478,8 @@ def main_worker(args):
             input_image = torch.randn(1, 3, 224, 224)
             filename = filename_bab + '.onnx'
             save2onnx(model, input_image, filename)
-
-            search_absorbe_bn(model)
+            # TODO: recover function
+            # search_absorbe_bn(model)
             filename_ab = args.absorb_bn+'.absorb_bn' if args.absorb_bn else save_path+'/'+args.model+'.absorb_bn'
             torch.save(model.state_dict(),filename_ab)
             logging.info('Creating absorb_bn state dict {}'.format(filename_ab))
@@ -494,9 +494,16 @@ def main_worker(args):
     if 'inception' in args.model:
         model = model(init_weights=False, **model_config)
     else:
-        model = model(**model_config)
-    logging.info("created model with configuration: %s", model_config)
+        if 'o2pinput' in model_config:
+            logging.info("Use o2p model here")
+            sys.path.append(model_config['o2pinput'])
+            from model import Model as gen_Model
+            model = gen_Model()            
+        else:
+            model = model(**model_config)
     
+    logging.info("created model with configuration: %s", model_config)
+   
     num_parameters = sum([l.nelement() for l in model.parameters()])
     logging.info("number of parameters: %d", num_parameters)
 
@@ -514,7 +521,9 @@ def main_worker(args):
         args.model = checkpoint.get('model', args.model)
         args.model_config = checkpoint.get('config', args.model_config)
         if not model_config['batch_norm']:
-            search_absorbe_fake_bn(model)
+            # TODO: recover function
+            # search_absorbe_fake_bn(model)
+            pass
         # load checkpoint
         if 'state_dict' in checkpoint.keys():
             model.load_state_dict(checkpoint['state_dict'])
@@ -632,8 +641,10 @@ def main_worker(args):
             args.layers_precision_dict = args.layers_precision_dict.replace('\\', '')
             model = search_replace_layer_from_dict(model, ast.literal_eval(args.layers_precision_dict))
         else:
-            model = search_replace_layer(model, args.names_sp_layers, num_bits_activation=args.nbits_act,
-                                         num_bits_weight=args.nbits_weight)
+            pass
+            # TODO: recover function        
+            # model = search_replace_layer(model, args.names_sp_layers, num_bits_activation=args.nbits_act,
+                                    #  num_bits_weight=args.nbits_weight)
         # jsonfile = args.evaluate + '.json'
         # if os.path.exists(jsonfile):
         #     with open(jsonfile, "r") as fp:    
