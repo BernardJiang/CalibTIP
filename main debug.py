@@ -479,7 +479,7 @@ def main_worker(args):
             filename = filename_bab + '.onnx'
             save2onnx(model, input_image, filename)
             # TODO: recover function
-            # search_absorbe_bn(model)
+            search_absorbe_bn(model)
             filename_ab = args.absorb_bn+'.absorb_bn' if args.absorb_bn else save_path+'/'+args.model+'.absorb_bn'
             torch.save(model.state_dict(),filename_ab)
             logging.info('Creating absorb_bn state dict {}'.format(filename_ab))
