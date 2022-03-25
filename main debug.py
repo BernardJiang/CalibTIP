@@ -48,9 +48,6 @@ from pynvml import *
 import re
 import onnxruntime as ort
 
-sys.path.append('/workspace/develop/test/res')
-from model import Model as gen_Model
-
 print(__file__, get_linenumber())
 get_gpu_memory_map()
 check_memory_usage()
@@ -67,6 +64,8 @@ parser.add_argument('--save', metavar='SAVE', default='',
                     help='saved folder')
 parser.add_argument('--onnxinput', metavar='ONNXINPUT', default='',
                     help='onnx input file')
+parser.add_argument('--o2pinput', metavar='ONNX2PYTORCHINPUT', default='',
+                    help='onnx_pytorch input folder')
 parser.add_argument('--datasets-dir', metavar='DATASETS_DIR', default='/home/Datasets',
                     help='datasets dir')
 parser.add_argument('--dataset', metavar='DATASET', default='imagenet',
@@ -328,8 +327,8 @@ def save2onnx(model_orig, img, onnx_export_file, disable_quantization=False):
                             training=TrainingMode.PRESERVE,
                             keep_initializers_as_inputs=True,
                             verbose=False,
-                            dynamic_axes={'input' : {0 : 'batch_size'},    # variable length axes
-                                          'output' : {0 : 'batch_size'}}
+                            # dynamic_axes={'input' : {0 : 'batch_size'},    # variable length axes
+                                        #   'output' : {0 : 'batch_size'}}
         )     # Checks
         onnx_model = onnx.load(onnx_export_file)  # load onnx model
         onnx.checker.check_model(onnx_model)  # check onnx model
@@ -425,7 +424,7 @@ def main_worker(args):
             args_dict = literal_eval(args.model_config)
             for k, v in args_dict.items():
                 model_config[k] = v
-    if (args.onnxinput or args.absorb_bn or args.load_from_vision or args.pretrained) and not args.batch_norn_tuning:
+    if (args.o2pinput or args.onnxinput or args.absorb_bn or args.load_from_vision or args.pretrained) and not args.batch_norn_tuning:
         if args.load_from_vision:
             import torchvision
             exec_lfv_str = 'torchvision.models.' + args.load_from_vision + '(pretrained=True)'
@@ -436,7 +435,7 @@ def main_worker(args):
                 model_pytcv = eval(exec_lfv_str)
                 model = convert_pytcv_model(model,model_pytcv)
         else:
-            if 'onnxinput' in args:
+            if args.onnxinput != '':
                 import onnx
                 from onnx2pytorch import ConvertModel
                 # from onnx2pytorch import convert
@@ -454,7 +453,12 @@ def main_worker(args):
                 # ort_sess = ort.InferenceSession(args.onnxinput, providers=['TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider'])
                 # outputs = ort_sess.run(None, {'input': x.numpy()})
                 print("Bernard hijack this logic!!!")
-                
+            elif args.o2pinput != '':
+                print("Bernard load onnx_pytorch model from ", args.o2pinput)
+                sys.path.append(args.o2pinput)
+                from model import Model as gen_Model
+                model = gen_Model()
+
             else:
                 if not os.path.isfile(args.absorb_bn):
                     parser.error('invalid checkpoint: {}'.format(args.evaluate))
@@ -463,11 +467,9 @@ def main_worker(args):
                 checkpoint = checkpoint['state_dict'] if 'state_dict' in checkpoint.keys() else checkpoint
                 model.load_state_dict(checkpoint,strict=False)
 
-        model2 = gen_Model()
-        num_parameters = sum([l.nelement() for l in model2.parameters()])
-        logging.info("number of parameters in model2: %d", num_parameters)
-    
-        model = model2
+
+        num_parameters = sum([l.nelement() for l in model.parameters()])
+        logging.info("number of parameters in model: %d", num_parameters)
 
         if 'batch_norm' in model_config and not model_config['batch_norm']:
             logging.info('Creating absorb_bn state dict')
@@ -486,7 +488,7 @@ def main_worker(args):
         else:    
             filename_bn = save_path+'/'+args.model+'.with_bn'
             torch.save(model.state_dict(),filename_bn)
-        if (args.onnxinput or args.load_from_vision or args.absorb_bn) and not args.evaluate_init_configuration: 
+        if (args.o2pinput or args.onnxinput or args.load_from_vision or args.absorb_bn) and not args.evaluate_init_configuration: 
             return
 
     if 'inception' in args.model:
