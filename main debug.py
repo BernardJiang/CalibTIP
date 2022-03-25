@@ -46,6 +46,10 @@ from itertools import zip_longest
 from utils.layer_sensativity import search_replace_layer_from_json
 from pynvml import *
 import re
+import onnxruntime as ort
+
+sys.path.append('/workspace/develop/test/res')
+from model import Model as gen_Model
 
 print(__file__, get_linenumber())
 get_gpu_memory_map()
@@ -286,7 +290,7 @@ def savejson(model_orig, onnx_export_file, precision_config):
         json.dump(new_qparams, fp, indent=4)
 
 def save2onnx(model_orig, img, onnx_export_file, disable_quantization=False):
-
+    # return
     try:
         import onnx
         
@@ -323,7 +327,9 @@ def save2onnx(model_orig, img, onnx_export_file, disable_quantization=False):
                             output_names = ['classes', 'boxes'] if y is None else ['output'], # the model's output names
                             training=TrainingMode.PRESERVE,
                             keep_initializers_as_inputs=True,
-                            verbose=False
+                            verbose=False,
+                            dynamic_axes={'input' : {0 : 'batch_size'},    # variable length axes
+                                          'output' : {0 : 'batch_size'}}
         )     # Checks
         onnx_model = onnx.load(onnx_export_file)  # load onnx model
         onnx.checker.check_model(onnx_model)  # check onnx model
@@ -435,12 +441,20 @@ def main_worker(args):
                 from onnx2pytorch import ConvertModel
                 # from onnx2pytorch import convert
                 # Load the ONNX model
-                onnx_model = onnx.load(args.onnxinput)
-                model = ConvertModel(onnx_model)
+                # onnx_model = onnx.load(args.onnxinput)
+                # model = ConvertModel(onnx_model)
                 # Check that the model is well formed
-                # onnx.checker.check_model(model)
+                # onnx.checker.check_model(onnx_model)
                 # Print a human readable representation of the graph
-                # print(onnx.helper.printable_graph(model.graph))
+                # print(onnx.helper.printable_graph(onnx_model))
+                
+                # x, y = test_data[0][0], test_data[0][1]
+                # x = torch.zeros((10, 3, 224, 224))
+                
+                # ort_sess = ort.InferenceSession(args.onnxinput, providers=['TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider'])
+                # outputs = ort_sess.run(None, {'input': x.numpy()})
+                print("Bernard hijack this logic!!!")
+                
             else:
                 if not os.path.isfile(args.absorb_bn):
                     parser.error('invalid checkpoint: {}'.format(args.evaluate))
@@ -448,6 +462,12 @@ def main_worker(args):
                 checkpoint = torch.load(args.absorb_bn,map_location=lambda storage, loc: storage)
                 checkpoint = checkpoint['state_dict'] if 'state_dict' in checkpoint.keys() else checkpoint
                 model.load_state_dict(checkpoint,strict=False)
+
+        model2 = gen_Model()
+        num_parameters = sum([l.nelement() for l in model2.parameters()])
+        logging.info("number of parameters in model2: %d", num_parameters)
+    
+        model = model2
 
         if 'batch_norm' in model_config and not model_config['batch_norm']:
             logging.info('Creating absorb_bn state dict')
@@ -477,6 +497,7 @@ def main_worker(args):
     
     num_parameters = sum([l.nelement() for l in model.parameters()])
     logging.info("number of parameters: %d", num_parameters)
+
 
     print(__file__, get_linenumber())
     get_gpu_memory_map()
