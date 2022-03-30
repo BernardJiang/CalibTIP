@@ -479,7 +479,7 @@ def main_worker(args):
             filename = filename_bab + '.onnx'
             save2onnx(model, input_image, filename)
             # TODO: recover function
-            search_absorbe_bn(model)
+            search_absorbe_bn(model, remove_bn=False) #This is not correct setting.
             filename_ab = args.absorb_bn+'.absorb_bn' if args.absorb_bn else save_path+'/'+args.model+'.absorb_bn'
             torch.save(model.state_dict(),filename_ab)
             logging.info('Creating absorb_bn state dict {}'.format(filename_ab))
@@ -522,8 +522,8 @@ def main_worker(args):
         args.model_config = checkpoint.get('config', args.model_config)
         if not model_config['batch_norm']:
             # TODO: recover function
-            # search_absorbe_fake_bn(model)
-            pass
+            search_absorbe_fake_bn(model)
+            # pass
         # load checkpoint
         if 'state_dict' in checkpoint.keys():
             model.load_state_dict(checkpoint['state_dict'])
@@ -531,7 +531,11 @@ def main_worker(args):
         else:
             model.load_state_dict(checkpoint,strict=False)
             logging.info("loaded checkpoint '%s'",args.evaluate)
-          
+        
+        # Hard code for now.
+        search_absorbe_bn(model)  
+        
+        
     print(__file__, get_linenumber())
     get_gpu_memory_map()
     check_memory_usage()
