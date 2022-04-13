@@ -6,4 +6,6 @@ tqdm
 pulp
 onnx
 onnx2pytorch
+pynvml
+
 
