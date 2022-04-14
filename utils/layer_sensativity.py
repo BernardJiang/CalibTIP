@@ -67,6 +67,10 @@ def search_replace_layer_from_json(model, onnx_model, layers_precision_json, nam
             inshape = (-1, 1, 1)
             weightoutshape = (-1, 1, 1, 1)
             weightinshape = (1, -1, 1, 1)
+            if isinstance(m, nn.Conv2d):
+                if m.groups != 1: 
+                    weightinshape = (-1, 1, 1, 1)
+                
             if isinstance(m, nn.Linear):
                 inshape = (-1)
                 weightoutshape = (-1, 1)
