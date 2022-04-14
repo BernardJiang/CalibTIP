@@ -636,16 +636,17 @@ class QConv2d(nn.Conv2d):
         self.num_bits_grad = num_bits_grad
         self.measure = measure
         self.equ_scale = nn.Parameter(torch.ones(out_channels, 1, 1, 1))
+        in_channels_groups = int(in_channels / groups)
         if measure:
             self.quantize_input = QuantMeasure(
                 self.num_bits, shape_measure=(out_channels, in_channels, 1, 1), flatten_dims=(1, -1), measure=measure, cal_qparams=cal_qparams)
             self.quantize_weight = QuantMeasure(
-                self.num_bits, shape_measure=(out_channels if perC else 1, in_channels, 1, 1), flatten_dims=(1,-1) if perC else (0,-1), measure=measure, reduce_dim=None if perC else 0, weight_flag=True)
+                self.num_bits, shape_measure=(out_channels if perC else 1, in_channels_groups, 1, 1), flatten_dims=(1,-1) if perC else (0,-1), measure=measure, reduce_dim=None if perC else 0, weight_flag=True)
         else:
             self.quantize_input = QuantThUpdate(
                 self.num_bits, shape_measure=(out_channels, in_channels, 1, 1), flatten_dims=(1, -1), measure=measure)
             self.quantize_weight = QuantThUpdate(
-                self.num_bits, shape_measure=(out_channels if perC else 1, in_channels, 1, 1), flatten_dims=(1,-1) if perC else (0,-1), measure=measure, reduce_dim=None if perC else 0, weight_flag=True)
+                self.num_bits, shape_measure=(out_channels if perC else 1, in_channels_groups, 1, 1), flatten_dims=(1,-1) if perC else (0,-1), measure=measure, reduce_dim=None if perC else 0, weight_flag=True)
         self.biprecision = biprecision
         self.cal_params = cal_qparams
         self.quantize = QUANTIZE
