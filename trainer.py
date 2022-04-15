@@ -256,6 +256,7 @@ class Trainer(object):
 
         end = time.time()
         for i, (inputs, target) in (enumerate(data_loader)):
+            # print("Bernard: forward time ", i, " size ", len(inputs))
             if training and duplicates > 1 and self.adapt_grad_norm is not None \
                     and i % self.adapt_grad_norm == 0:
                 grad_mean = 0

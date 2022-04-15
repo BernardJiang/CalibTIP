@@ -289,6 +289,8 @@ def quantize_with_grad(input, num_bits=None, qparams=None, flatten_dims=_DEFAULT
         output = input.clone()
     if qparams is None:
         return output
+    # if input.shape == (32, 1, 3, 3) or input.shape == (16, 32, 1, 1):
+        # return output
     inshape = (-1, 1,1,1)
     outshape = (1, -1, 1,1)
     if len(output.shape) == 2:
