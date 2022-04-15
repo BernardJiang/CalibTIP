@@ -287,6 +287,8 @@ def get_args():
     parser.add_argument('--eval_on_train', action='store_true', default=False,
                         help='evaluate on calibration data')
     parser.add_argument('--layers_precision_json_4_IP', type=str, default=None, help='json file from knerex to use')
+    parser.add_argument('--results-dir', metavar='RESULTS_DIR', default='/workspace/develop/CalibTIP/results',
+                    help='results dir')
 
     args = parser.parse_args()
     return args
@@ -305,9 +307,9 @@ datasets_dir = args.datasets_dir
 model = args.model
 model_vis = args.model_vis
 if args.do_not_use_adaquant:
-    workdirs = [os.path.join('results', model_vis + '_w{}a{}'.format(w1, a1)) for w1,a1 in grouper(2, precisions)]
+    workdirs = [os.path.join(args.results_dir, model_vis + '_w{}a{}'.format(w1, a1)) for w1,a1 in grouper(2, precisions)]
 else:
-    workdirs = [os.path.join('results', model_vis + '_w{}a{}.adaquant'.format(w1, a1)) for w1,a1 in grouper(2, precisions)]
+    workdirs = [os.path.join(args.results_dir', model_vis + '_w{}a{}.adaquant'.format(w1, a1)) for w1,a1 in grouper(2, precisions)]
 eval_dir = os.path.join(workdirs[0], model + '.absorb_bn')
 
 perC=True
