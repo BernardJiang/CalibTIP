@@ -286,7 +286,7 @@ def savejson(model_orig, onnx_export_file, precision_config):
         json.dump(new_qparams, fp, indent=4)
 
 def save2onnx(model_orig, img, onnx_export_file, disable_quantization=False):
-
+    return
     try:
         import onnx
         
@@ -835,9 +835,13 @@ def main_worker(args):
         torch.save(per_layer_results,args.evaluate+'.per_layer_accuracy.A'+str(args.nbits_act)+'.W'+str(args.nbits_weight))
         
         #HACK!
-        per_layer_results['conv1']['Parameters Size [Elements]'] = 1
-        per_layer_results['conv1']['MACs'] = 1
-        #HACK! 
+        if 'conv1' in per_layer_results: # for resnet50
+            per_layer_results['conv1']['Parameters Size [Elements]'] = 1
+            per_layer_results['conv1']['MACs'] = 1
+        elif "features.0.0" in per_layer_results: #for mobilenet v2
+            per_layer_results["features.0.0"]['Parameters Size [Elements]'] = 1
+            per_layer_results["features.0.0"]['MACs'] = 1    
+        #HACK!     
         
         all_8_dict = {'base precision': 'w8a8', 'replaced precision': 'w8a8', 'replaced layer': '-', 'accuracy': calib_all_8_results['prec1'] , 'loss': calib_all_8_results['loss'], 'Parameters Size [Elements]':  '-', 'MACs': '-'}
         columns = [key for key in all_8_dict]
@@ -996,30 +1000,26 @@ def main_worker(args):
         # print('Please Choose one of the following ....', model_config['measure'])
         if model_config['measure']:
             results = trainer.validate(train_data.get_loader(),rec=args.rec)
-            # results = trainer.validate(val_data.get_loader())
-            # print(results)
+            logging.info("Train:")
+            logging.info(results)
+
+            filename = args.evaluate+'.measure'
+            if 'perC' in args.model_config: filename += '_perC'
+            torch.save(model.state_dict(),filename)
+            input_image = torch.zeros(1,3,224, 224).cuda()
+            save2onnx(model, input_image, filename+'.onnx', True)  #True must be the last command because it modifies the model.
+
         else: 
             if args.evaluate_init_configuration:   
                 results = trainer.validate(val_data.get_loader())
+                logging.info("Val:")
+                logging.info(results)
                 saveacc(args, results, 'base')
            
         if args.extract_bias_mean:
             file_name  = 'bias_mean_measure' if model_config['measure'] else  'bias_mean_quant'
             torch.save(trainer.bias_mean,file_name)
-        if model_config['measure']:
-            filename = args.evaluate+'.measure'
-            if 'perC' in args.model_config: filename += '_perC'
-            torch.save(model.state_dict(),filename)
-            logging.info("Train:")
-            logging.info(results)
             
-            input_image = torch.zeros(1,3,224, 224).cuda()
-            save2onnx(model, input_image, filename+'.onnx', True)  #True must be the last command because it modifies the model.
-        
-        else:
-            if args.evaluate_init_configuration:
-                logging.info("Val:")
-                logging.info(results)
     return acc, loss
 if __name__ == '__main__':
     main()
