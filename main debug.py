@@ -752,7 +752,7 @@ def main_worker(args):
             print(__file__, get_linenumber())
             get_gpu_memory_map()
             check_memory_usage()
-            print(" ----------------------------------- End of training layer \n\n", layer.name)
+            print(" ----------------------------------- End of training layer ", layer.name, "\n\n")
 
         mse_csv = args.evaluate + '.mse.csv'
         mse_df.to_csv(mse_csv)
