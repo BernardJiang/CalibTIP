@@ -309,7 +309,7 @@ model_vis = args.model_vis
 if args.do_not_use_adaquant:
     workdirs = [os.path.join(args.results_dir, model_vis + '_w{}a{}'.format(w1, a1)) for w1,a1 in grouper(2, precisions)]
 else:
-    workdirs = [os.path.join(args.results_dir', model_vis + '_w{}a{}.adaquant'.format(w1, a1)) for w1,a1 in grouper(2, precisions)]
+    workdirs = [os.path.join(args.results_dir, model_vis + '_w{}a{}.adaquant'.format(w1, a1)) for w1,a1 in grouper(2, precisions)]
 eval_dir = os.path.join(workdirs[0], model + '.absorb_bn')
 
 perC=True
