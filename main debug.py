@@ -560,7 +560,9 @@ def main_worker(args):
                     count += 1
 
         # Store input/output for all quantizable layers
-        trainer.validate(train_data.get_loader())
+        train_results = trainer.validate(train_data.get_loader())
+        logging.info("Train:")
+        logging.info(train_results)        
         print("Input/outputs cached")
 
         for handler in handlers:
@@ -571,11 +573,23 @@ def main_worker(args):
         input_image = torch.zeros(1,3,224, 224).cuda()
         save2onnx(model, input_image, filename+'.onnx')
 
+        print("Bernard calculate float point model accuracy before enabling quantization!")
+        val_results = trainer.validate(val_data.get_loader())
+        logging.info("Val:")
+        logging.info(val_results)
+        
         for m in model.modules():
             if isinstance(m, QConv2d) or isinstance(m, QLinear):
                 m.quantize = True
 
-        mse_df = pd.DataFrame(index=np.arange(len(cached_input_output)), columns=['name', 'bit', 'shape', 'mse_before', 'mse_after'])
+        print("Bernard calculate fixed point model accuracy before training!")
+        val_results = trainer.validate(val_data.get_loader())
+        logging.info("Val:")
+        logging.info(val_results)
+        
+        
+
+        mse_df = pd.DataFrame(index=np.arange(len(cached_input_output)), columns=['name', 'bit', 'shape', 'mse_before', 'mse_after', 'in_shape', 'out_shape'])
         print_freq = 100
         for i, layer in enumerate(cached_input_output):
             if i>0 and args.seq_adaquant:
@@ -615,6 +629,7 @@ def main_worker(args):
         train_data = None
         cached_input_output = None
         val_results = trainer.validate(val_data.get_loader())
+        logging.info("Val:")
         logging.info(val_results)
 
         adaquant_type = 'adaquant_seq' if args.seq_adaquant else 'adaquant_parallel'
