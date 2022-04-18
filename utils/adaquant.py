@@ -6,7 +6,7 @@ from tqdm import tqdm
 import scipy.optimize as opt
 import math
 from .log import get_linenumber, get_gpu_memory_map, check_memory_usage
-
+import copy
 
 def optimize_qparams(layer, cached_inps, cached_outs, test_inp, test_out, batch_size=100):
     print("\nOptimize quantization params")
@@ -42,11 +42,16 @@ def optimize_qparams(layer, cached_inps, cached_outs, test_inp, test_out, batch_
 
 
 def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=1e-2, iters=100, progress=True, batch_size=64, relu=False):
-    print("\nRun adaquant")
+    # print("\nRun adaquant")
     
-    get_gpu_memory_map()
-    check_memory_usage()
-    
+    # get_gpu_memory_map()
+    # check_memory_usage()
+
+    with torch.no_grad():
+        oldweights = copy.deepcopy(layer.weight)
+        if hasattr(layer, 'bias') and layer.bias is not None: 
+            oldbias = copy.deepcopy(layer.bias)    
+            
     if relu:
         mse_before = F.mse_loss(F.relu_(layer(test_inp)), F.relu_(test_out))
     else:
@@ -108,6 +113,14 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
         mse_after = F.mse_loss(F.relu_(layer(test_inp)), F.relu_(test_out))
     else:
         mse_after = F.mse_loss(layer(test_inp), test_out)
+
+    if mse_before.item() < mse_after.item():        
+        print("Bernard revert adaquant for this layer!")
+        with torch.no_grad():
+            layer.weight.copy_(oldweights)
+            if hasattr(layer, 'bias') and layer.bias is not None: 
+                layer.bias.copy_(oldbias)
+        
     return mse_before.item(), mse_after.item()
 
 
@@ -116,7 +129,7 @@ def optimize_layer(layer, in_out, optimize_weights=False, batch_size=100, model_
     # if layer.name == 'features.17.conv.0.0' or layer.name == 'features.17.conv.1.0':
     #     dump("mobilenet_v2", layer, in_out)
     # return 0, 0, 0, 0, 0, 0
-
+    
     cached_inps = torch.cat([x[0] for x in in_out]).to(layer.weight.device)
     cached_outs = torch.cat([x[1] for x in in_out]).to(layer.weight.device)
 
@@ -142,13 +155,14 @@ def optimize_layer(layer, in_out, optimize_weights=False, batch_size=100, model_
         # print(__file__, get_linenumber())
         # get_gpu_memory_map()
         # check_memory_usage()
+        relu_flag = relu_condition(layer.name)
         
-        if relu_condition(layer.name):
+        if relu_flag:
             mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=1000, batch_size=batch_size, lr1=1e-5, lr2=1e-4, relu=True) 
         else:
             mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=1000, batch_size=batch_size, lr1=1e-5, lr2=1e-4)
         mse_before_opt = mse_before
-        print("\nMSE before adaquant: {:e}".format(mse_before))
+        print("\nMSE before adaquant: {:e}  RELU {}".format(mse_before, relu_flag))
         print("MSE after  adaquant: {:e}".format(mse_after))
         torch.cuda.empty_cache()
     else:
