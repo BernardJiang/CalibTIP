@@ -47,10 +47,10 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     # get_gpu_memory_map()
     # check_memory_usage()
 
-    with torch.no_grad():
-        oldweights = copy.deepcopy(layer.weight)
-        if hasattr(layer, 'bias') and layer.bias is not None: 
-            oldbias = copy.deepcopy(layer.bias)    
+    # with torch.no_grad():
+    #     oldweights = copy.deepcopy(layer.weight)
+    #     if hasattr(layer, 'bias') and layer.bias is not None: 
+    #         oldbias = copy.deepcopy(layer.bias)    
             
     if relu:
         mse_before = F.mse_loss(F.relu_(layer(test_inp)), F.relu_(test_out))
@@ -62,8 +62,8 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     # Have to verify on other bit-width and other models
     lr_qpin = 1e-1#lr_factor * (test_inp.max() - test_inp.min()).item()  # 1e-1
     lr_qpw = 1e-3#lr_factor * (layer.weight.max() - layer.weight.min()).item()  # 1e-3
-    lr_w = 1e-5#lr_factor * layer.weight.std().item()  # 1e-5
-    lr_b = 1e-3#lr_factor * layer.bias.std().item()  # 1e-3
+    lr_w = 5e-7#lr_factor * layer.weight.std().item()  # 1e-5
+    lr_b = 1e-6#lr_factor * layer.bias.std().item()  # 1e-3
 
     opt_w = torch.optim.Adam([layer.weight], lr=lr_w)
     if hasattr(layer, 'bias') and layer.bias is not None: opt_bias = torch.optim.Adam([layer.bias], lr=lr_b)
@@ -114,12 +114,12 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     else:
         mse_after = F.mse_loss(layer(test_inp), test_out)
 
-    if mse_before.item() < mse_after.item():        
-        print("Bernard revert adaquant for this layer!")
-        with torch.no_grad():
-            layer.weight.copy_(oldweights)
-            if hasattr(layer, 'bias') and layer.bias is not None: 
-                layer.bias.copy_(oldbias)
+    # if mse_before.item() < mse_after.item():        
+    #     print("Bernard revert adaquant for this layer!")
+    #     with torch.no_grad():
+    #         layer.weight.copy_(oldweights)
+    #         if hasattr(layer, 'bias') and layer.bias is not None: 
+    #             layer.bias.copy_(oldbias)
         
     return mse_before.item(), mse_after.item()
 
