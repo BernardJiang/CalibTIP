@@ -137,10 +137,6 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
 
 def optimize_layer(layer, in_out, optimize_weights=False, batch_size=100, model_name=None, writer=None):
 
-    # if layer.name == 'features.17.conv.0.0' or layer.name == 'features.17.conv.1.0':
-    #     dump("mobilenet_v2", layer, in_out)
-    # return 0, 0, 0, 0, 0, 0
-    
     cached_inps = torch.cat([x[0] for x in in_out]).to(layer.weight.device)
     cached_outs = torch.cat([x[1] for x in in_out]).to(layer.weight.device)
 
@@ -161,7 +157,7 @@ def optimize_layer(layer, in_out, optimize_weights=False, batch_size=100, model_
         elif 'inception_v3' == model_name:
             relu_condition = lambda layer_name: 'conv' in layer_name
         elif 'mobilenet_v2' == model_name:
-            relu_condition = lambda layer_name: layer_name.endswith('0.0') or layer_name.endswith('0.1') or layer_name.endswith('18.0')
+            relu_condition = lambda layer_name: layer_name.endswith('0.0') or layer_name.endswith('1.0') or layer_name.endswith('18.0')
 
         # print(__file__, get_linenumber())
         # get_gpu_memory_map()
