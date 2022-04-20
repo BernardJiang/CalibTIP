@@ -7,6 +7,7 @@ import scipy.optimize as opt
 import math
 from .log import get_linenumber, get_gpu_memory_map, check_memory_usage
 import copy
+from torch.utils.tensorboard import SummaryWriter
 
 def optimize_qparams(layer, cached_inps, cached_outs, test_inp, test_out, batch_size=100):
     print("\nOptimize quantization params")
@@ -41,8 +42,11 @@ def optimize_qparams(layer, cached_inps, cached_outs, test_inp, test_out, batch_
     return mse_before, mse_after
 
 
-def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=1e-2, iters=100, progress=True, batch_size=64, relu=False):
+def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=1e-2, iters=100, progress=True, batch_size=64, relu=False, writer=None):
     # print("\nRun adaquant")
+
+    # Writer will output to ./runs/ directory by default
+    # writer = SummaryWriter()
     
     # get_gpu_memory_map()
     # check_memory_usage()
@@ -108,6 +112,9 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
             # else:
             #     total_loss = np.mean(losses[-10:])
             # print("mse out: {}, pc mean loss: {}, total: {}".format(mse_out.item(), mean_loss.item(), total_loss))
+        if writer is not None:
+            if j % 100 == 0 :
+                writer.add_scalar(layer.name, loss.item(), j)
 
     if relu:
         mse_after = F.mse_loss(F.relu_(layer(test_inp)), F.relu_(test_out))
@@ -120,11 +127,15 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     #         layer.weight.copy_(oldweights)
     #         if hasattr(layer, 'bias') and layer.bias is not None: 
     #             layer.bias.copy_(oldbias)
-        
+    
+    if writer is not None:
+        writer.add_scalar(layer.name, mse_after.item(), iters-1)
+
+    
     return mse_before.item(), mse_after.item()
 
 
-def optimize_layer(layer, in_out, optimize_weights=False, batch_size=100, model_name=None):
+def optimize_layer(layer, in_out, optimize_weights=False, batch_size=100, model_name=None, writer=None):
 
     # if layer.name == 'features.17.conv.0.0' or layer.name == 'features.17.conv.1.0':
     #     dump("mobilenet_v2", layer, in_out)
@@ -158,9 +169,9 @@ def optimize_layer(layer, in_out, optimize_weights=False, batch_size=100, model_
         relu_flag = relu_condition(layer.name)
         
         if relu_flag:
-            mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=1000, batch_size=batch_size, lr1=1e-5, lr2=1e-4, relu=True) 
+            mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=1000, batch_size=batch_size, lr1=1e-5, lr2=1e-4, relu=True, writer=writer) 
         else:
-            mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=1000, batch_size=batch_size, lr1=1e-5, lr2=1e-4)
+            mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=1000, batch_size=batch_size, lr1=1e-5, lr2=1e-4, writer=writer)
         mse_before_opt = mse_before
         print("\nMSE before adaquant: {:e}  RELU {}".format(mse_before, relu_flag))
         print("MSE after  adaquant: {:e}".format(mse_after))

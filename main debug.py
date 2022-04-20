@@ -46,6 +46,9 @@ from itertools import zip_longest
 from utils.layer_sensativity import search_replace_layer_from_json
 from pynvml import *
 import re
+from torch.utils.tensorboard import SummaryWriter
+
+
 
 print(__file__, get_linenumber())
 get_gpu_memory_map()
@@ -649,6 +652,7 @@ def main_worker(args):
         # '.quantize_input1.running_zero_point', '.quantize_input1.running_range',
         #  '.quantize_input2.running_zero_point', '.quantize_input2.running_range']        
     if args.adaquant:
+        writer = SummaryWriter()
         def Qhook(name,module, input, output):
             if module not in cached_qinput:
                 cached_qinput[module] = []
@@ -734,7 +738,7 @@ def main_worker(args):
        
             print("\nOptimize {}:{} for w{}a{} bit of shape {}".format(i, layer.name, layer.num_bits_weight, layer.num_bits, layer.weight.shape))
             mse_before, mse_after, snr_before, snr_after, kurt_in, kurt_w = \
-                optimize_layer(layer, cached_input_output[layer], args.optimize_weights, batch_size=args.batch_size, model_name=args.model)
+                optimize_layer(layer, cached_input_output[layer], args.optimize_weights, batch_size=args.batch_size, model_name=args.model, writer=writer)
             # print("\nMSE before optimization: {:e}".format(mse_before))
             # print("MSE after  optimization: {:e}".format(mse_after))
             mse_df.loc[i, 'name'] = layer.name
@@ -771,6 +775,8 @@ def main_worker(args):
         
         input_image = torch.zeros(1,3,224, 224).cuda()
         save2onnx(model, input_image, filename+'.onnx', True)  #True must be the last command because it modifies the model.
+        
+        writer.close()            
 
     elif args.per_layer:
         # Store input/output for all quantizable layers
