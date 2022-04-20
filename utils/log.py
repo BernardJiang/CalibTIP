@@ -281,6 +281,7 @@ def get_gpu_memory_map():
 
 
 def check_memory_usage():
+    return
     filename = "snapshot.{}.{}".format(time.strftime("%Y%m%d-%H%M%S"), uuid.uuid4())
     f = open(filename, "a")
     total_cpu_size = 0
