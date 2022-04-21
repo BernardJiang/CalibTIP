@@ -716,6 +716,8 @@ def main_worker(args):
 
         mse_df = pd.DataFrame(index=np.arange(len(cached_input_output)), columns=['name', 'bit', 'shape', 'mse_before', 'mse_after', 'in_shape', 'out_shape'])
         print_freq = 100
+        better_layer_count = 0
+        total_layer_count = 0
         for i, layer in enumerate(cached_input_output):
             if i>0 and args.seq_adaquant:
                 count = 0
@@ -756,7 +758,10 @@ def main_worker(args):
             # print(__file__, get_linenumber())
             # get_gpu_memory_map()
             # check_memory_usage()
-            print(" ----------------------------------- End of training layer ", layer.name, "\n\n")
+            total_layer_count += 1
+            if mse_after < mse_before:
+                better_layer_count +=1
+            print(" ----------------------------------- End of training layer ", layer.name, "better layers=", better_layer_count, ". total layers=", total_layer_count, "\n")
 
         mse_csv = args.evaluate + '.mse.csv'
         mse_df.to_csv(mse_csv)
