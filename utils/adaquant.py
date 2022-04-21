@@ -66,11 +66,11 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     # Have to verify on other bit-width and other models
     lr_qpin = 1e-1#lr_factor * (test_inp.max() - test_inp.min()).item()  # 1e-1
     lr_qpw = 1e-3#lr_factor * (layer.weight.max() - layer.weight.min()).item()  # 1e-3
-    lr_w = 5e-7#lr_factor * layer.weight.std().item()  # 1e-5
+    lr_w = 1e-6#lr_factor * layer.weight.std().item()  # 1e-5
     lr_b = 1e-6#lr_factor * layer.bias.std().item()  # 1e-3
 
-    opt_w = torch.optim.Adam([layer.weight], lr=lr_w)
-    if hasattr(layer, 'bias') and layer.bias is not None: opt_bias = torch.optim.Adam([layer.bias], lr=lr_b)
+    opt_w = torch.optim.AdamW([layer.weight], lr=lr_w)
+    if hasattr(layer, 'bias') and layer.bias is not None: opt_bias = torch.optim.AdamW([layer.bias], lr=lr_b)
     # opt_qparams_in = torch.optim.Adam([layer.quantize_input.running_range,
     #                                    layer.quantize_input.running_zero_point], lr=lr_qpin)
     # opt_qparams_w = torch.optim.Adam([layer.quantize_weight.running_range,
@@ -164,10 +164,8 @@ def optimize_layer(layer, in_out, optimize_weights=False, batch_size=100, model_
         # check_memory_usage()
         relu_flag = relu_condition(layer.name)
         
-        if relu_flag:
-            mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=1000, batch_size=batch_size, lr1=1e-5, lr2=1e-4, relu=True, writer=writer) 
-        else:
-            mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=1000, batch_size=batch_size, lr1=1e-5, lr2=1e-4, writer=writer)
+
+        mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=2000, batch_size=batch_size, lr1=1e-5, lr2=1e-4, relu=relu_flag, writer=writer) 
         mse_before_opt = mse_before
         print("\nMSE before adaquant: {:e}  RELU {}".format(mse_before, relu_flag))
         print("MSE after  adaquant: {:e}".format(mse_after))
