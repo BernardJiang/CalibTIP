@@ -79,7 +79,7 @@ class Lamb(Optimizer):
 
         super(Lamb, self).__init__(params, defaults)
 
-[docs]    def step(self, closure: OptLossClosure = None) -> OptFloat:
+    def step(self, closure: OptLossClosure = None) -> OptFloat:
         r"""Performs a single optimization step.
 
         Arguments:
