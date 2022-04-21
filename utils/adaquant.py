@@ -8,6 +8,7 @@ import math
 from .log import get_linenumber, get_gpu_memory_map, check_memory_usage
 import copy
 from torch.utils.tensorboard import SummaryWriter
+# from .lamb import Lamb 
 
 def optimize_qparams(layer, cached_inps, cached_outs, test_inp, test_out, batch_size=100):
     print("\nOptimize quantization params")
@@ -69,8 +70,11 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     lr_w = 1e-6#lr_factor * layer.weight.std().item()  # 1e-5
     lr_b = 1e-6#lr_factor * layer.bias.std().item()  # 1e-3
 
+    # opt_w = Lamb([layer.weight], lr=lr_w)
+    # if hasattr(layer, 'bias') and layer.bias is not None: opt_bias = Lamb([layer.bias], lr=lr_b)
     opt_w = torch.optim.AdamW([layer.weight], lr=lr_w)
     if hasattr(layer, 'bias') and layer.bias is not None: opt_bias = torch.optim.AdamW([layer.bias], lr=lr_b)
+    
     # opt_qparams_in = torch.optim.Adam([layer.quantize_input.running_range,
     #                                    layer.quantize_input.running_zero_point], lr=lr_qpin)
     # opt_qparams_w = torch.optim.Adam([layer.quantize_weight.running_range,
@@ -114,7 +118,7 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
             # print("mse out: {}, pc mean loss: {}, total: {}".format(mse_out.item(), mean_loss.item(), total_loss))
         if writer is not None:
             if j % 100 == 0 :
-                writer.add_scalar(layer.name, loss.item(), j)
+                writer.add_scalar("layer/{}".format(layer.name), loss.item(), j)
 
     if relu:
         mse_after = F.mse_loss(F.relu_(layer(test_inp)), F.relu_(test_out))
@@ -165,7 +169,7 @@ def optimize_layer(layer, in_out, optimize_weights=False, batch_size=100, model_
         relu_flag = relu_condition(layer.name)
         
 
-        mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=2000, batch_size=batch_size, lr1=1e-5, lr2=1e-4, relu=relu_flag, writer=writer) 
+        mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=200, batch_size=batch_size, lr1=1e-5, lr2=1e-4, relu=relu_flag, writer=writer) 
         mse_before_opt = mse_before
         print("\nMSE before adaquant: {:e}  RELU {}".format(mse_before, relu_flag))
         print("MSE after  adaquant: {:e}".format(mse_after))
