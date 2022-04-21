@@ -8,7 +8,9 @@ import math
 from .log import get_linenumber, get_gpu_memory_map, check_memory_usage
 import copy
 from torch.utils.tensorboard import SummaryWriter
-# from .lamb import Lamb 
+import sys
+sys.path.append('/workspace/develop/pytorch-lamb/pytorch_lamb')
+from pytorch_lamb import Lamb, log_lamb_rs
 
 def optimize_qparams(layer, cached_inps, cached_outs, test_inp, test_out, batch_size=100):
     print("\nOptimize quantization params")
