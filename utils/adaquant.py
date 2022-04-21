@@ -117,7 +117,7 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
             #     total_loss = np.mean(losses[-10:])
             # print("mse out: {}, pc mean loss: {}, total: {}".format(mse_out.item(), mean_loss.item(), total_loss))
         if writer is not None:
-            if j % 100 == 0 :
+            if j % 10 == 0 :
                 writer.add_scalar("layer/{}".format(layer.name), loss.item(), j)
 
     if relu:
@@ -133,7 +133,7 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     #             layer.bias.copy_(oldbias)
     
     if writer is not None:
-        writer.add_scalar(layer.name, mse_after.item(), iters-1)
+         writer.add_scalar("layer/{}".format(layer.name), mse_after.item(), iters-1)
 
     
     return mse_before.item(), mse_after.item()
