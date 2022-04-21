@@ -69,12 +69,23 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     # Have to verify on other bit-width and other models
     lr_qpin = 1e-1#lr_factor * (test_inp.max() - test_inp.min()).item()  # 1e-1
     lr_qpw = 1e-3#lr_factor * (layer.weight.max() - layer.weight.min()).item()  # 1e-3
-    lr_w = 1e-6 # 0.0025 # 1e-6 #lr_factor * layer.weight.std().item()  # 1e-5
-    lr_b = 1e-6 # 0.0025 # 1e-6#lr_factor * layer.bias.std().item()  # 1e-3
+    lr_w = 1e-5 # mse_before.cpu().detach().numpy() # 1e-5 # 0.0025 # 1e-6 #lr_factor * layer.weight.std().item()  # 1e-5
+    lr_b = lr_w # mse_before.cpu().numpy() # 1e-5 # 0.0025 # 1e-6#lr_factor * layer.bias.std().item()  # 1e-3
     weight_decay = 0.01
 
     opt_w = Lamb([layer.weight], lr=lr_w, weight_decay=weight_decay, betas=(.9, .999), adam=True)
-    if hasattr(layer, 'bias') and layer.bias is not None: opt_bias = Lamb([layer.bias], lr=lr_b, weight_decay=weight_decay, betas=(.9, .999), adam=True)
+
+    scheduler_w = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_w,
+                                                         min_lr=1e-8,
+                                                         verbose=False,
+                                                         patience=10)
+    
+    if hasattr(layer, 'bias') and layer.bias is not None: 
+        opt_bias = Lamb([layer.bias], lr=lr_b, weight_decay=weight_decay, betas=(.9, .999), adam=True)
+        scheduler_bias = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_bias,
+                                                         min_lr=1e-8,
+                                                         verbose=False,
+                                                         patience=10)
     # opt_w = torch.optim.AdamW([layer.weight], lr=lr_w)
     # if hasattr(layer, 'bias') and layer.bias is not None: opt_bias = torch.optim.AdamW([layer.bias], lr=lr_b)
     
@@ -82,6 +93,8 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     #                                    layer.quantize_input.running_zero_point], lr=lr_qpin)
     # opt_qparams_w = torch.optim.Adam([layer.quantize_weight.running_range,
     #                                   layer.quantize_weight.running_zero_point], lr=lr_qpw)
+    if writer is not None:
+        writer.add_scalar("layer/{}".format(layer.name), mse_before.item(), 0)
 
     losses = []
     for j in (tqdm(range(iters)) if progress else range(iters)):
@@ -100,6 +113,10 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
         else:    
             loss = F.mse_loss(qout, train_out)
 
+        if writer is not None:
+            if j % 10 == 0 :
+                writer.add_scalar("layer/{}".format(layer.name), loss.item(), j)
+
         losses.append(loss.item())
         opt_w.zero_grad()
         if hasattr(layer, 'bias') and layer.bias is not None: opt_bias.zero_grad()
@@ -107,7 +124,10 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
         # opt_qparams_w.zero_grad()
         loss.backward()
         opt_w.step()
-        if hasattr(layer, 'bias') and layer.bias is not None: opt_bias.step()
+        scheduler_w.step(loss.item())
+        if hasattr(layer, 'bias') and layer.bias is not None: 
+            opt_bias.step()
+            scheduler_bias.step(loss.item())
         # opt_qparams_in.step()
         # opt_qparams_w.step()
         
@@ -119,9 +139,6 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
             # else:
             #     total_loss = np.mean(losses[-10:])
             # print("mse out: {}, pc mean loss: {}, total: {}".format(mse_out.item(), mean_loss.item(), total_loss))
-        if writer is not None:
-            if j % 10 == 0 :
-                writer.add_scalar("layer/{}".format(layer.name), loss.item(), j)
 
     if relu:
         mse_after = F.mse_loss(F.relu_(layer(test_inp)), F.relu_(test_out))
