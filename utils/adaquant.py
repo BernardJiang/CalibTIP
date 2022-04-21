@@ -69,13 +69,14 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     # Have to verify on other bit-width and other models
     lr_qpin = 1e-1#lr_factor * (test_inp.max() - test_inp.min()).item()  # 1e-1
     lr_qpw = 1e-3#lr_factor * (layer.weight.max() - layer.weight.min()).item()  # 1e-3
-    lr_w = 1e-6#lr_factor * layer.weight.std().item()  # 1e-5
-    lr_b = 1e-6#lr_factor * layer.bias.std().item()  # 1e-3
+    lr_w = 0.0025 # 1e-6 #lr_factor * layer.weight.std().item()  # 1e-5
+    lr_b = 0.0025 # 1e-6#lr_factor * layer.bias.std().item()  # 1e-3
+    weight_decay = 0.01
 
-    # opt_w = Lamb([layer.weight], lr=lr_w)
-    # if hasattr(layer, 'bias') and layer.bias is not None: opt_bias = Lamb([layer.bias], lr=lr_b)
-    opt_w = torch.optim.AdamW([layer.weight], lr=lr_w)
-    if hasattr(layer, 'bias') and layer.bias is not None: opt_bias = torch.optim.AdamW([layer.bias], lr=lr_b)
+    opt_w = Lamb([layer.weight], lr=lr_w, weight_decay=weight_decay, betas=(.9, .999), adam=True)
+    if hasattr(layer, 'bias') and layer.bias is not None: opt_bias = Lamb([layer.bias], lr=lr_b, weight_decay=weight_decay, betas=(.9, .999), adam=True)
+    # opt_w = torch.optim.AdamW([layer.weight], lr=lr_w)
+    # if hasattr(layer, 'bias') and layer.bias is not None: opt_bias = torch.optim.AdamW([layer.bias], lr=lr_b)
     
     # opt_qparams_in = torch.optim.Adam([layer.quantize_input.running_range,
     #                                    layer.quantize_input.running_zero_point], lr=lr_qpin)
