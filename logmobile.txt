@@ -1,0 +1,858 @@
+step 1: 
+step 2: 
+Layer features.1.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.1.conv.1, precision switch from w8a8 to w4a8.
+Layer features.2.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.2.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.2.conv.2, precision switch from w8a8 to w4a8.
+Layer features.3.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.3.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.3.conv.2, precision switch from w8a8 to w4a8.
+Layer features.4.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.4.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.4.conv.2, precision switch from w8a8 to w4a8.
+Layer features.5.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.5.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.5.conv.2, precision switch from w8a8 to w4a8.
+Layer features.6.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.6.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.6.conv.2, precision switch from w8a8 to w4a8.
+Layer features.7.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.7.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.7.conv.2, precision switch from w8a8 to w4a8.
+Layer features.8.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.8.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.8.conv.2, precision switch from w8a8 to w4a8.
+Layer features.9.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.9.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.9.conv.2, precision switch from w8a8 to w4a8.
+Layer features.10.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.10.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.10.conv.2, precision switch from w8a8 to w4a8.
+Layer features.11.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.11.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.11.conv.2, precision switch from w8a8 to w4a8.
+Layer features.12.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.12.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.12.conv.2, precision switch from w8a8 to w4a8.
+Layer features.13.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.13.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.13.conv.2, precision switch from w8a8 to w4a8.
+Layer features.14.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.14.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.14.conv.2, precision switch from w8a8 to w4a8.
+Layer features.15.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.15.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.15.conv.2, precision switch from w8a8 to w4a8.
+Layer features.16.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.16.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.16.conv.2, precision switch from w8a8 to w4a8.
+Layer features.17.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.17.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.17.conv.2, precision switch from w8a8 to w4a8.
+read json file /workspace/develop/CalibTIP/results/mobilenet_v2_w4a8.adaquant/mobilenetv2_adaquant.piano.kdp530.scaled.onnx.json
+Json : Layer features.0.0, precision switch from w8a8 to w8a8.
+Json : Layer features.1.conv.0.0, precision switch from w8a8 to w8a8.
+Json : Layer features.1.conv.1, precision switch from w4a8 to w4a8.
+Json : Layer features.2.conv.0.0, precision switch from w4a8 to w4a8.
+Json : Layer features.2.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.2.conv.2, precision switch from w4a8 to w4a8.
+Json : Layer features.3.conv.0.0, precision switch from w4a8 to w4a8.
+Json : Layer features.3.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.3.conv.2, precision switch from w4a8 to w4a8.
+Json : Layer features.4.conv.0.0, precision switch from w4a8 to w4a8.
+Json : Layer features.4.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.4.conv.2, precision switch from w4a8 to w4a8.
+Json : Layer features.5.conv.0.0, precision switch from w4a8 to w4a8.
+Json : Layer features.5.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.5.conv.2, precision switch from w4a8 to w4a8.
+Json : Layer features.6.conv.0.0, precision switch from w4a8 to w4a8.
+Json : Layer features.6.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.6.conv.2, precision switch from w4a8 to w4a8.
+Json : Layer features.7.conv.0.0, precision switch from w4a8 to w4a8.
+Json : Layer features.7.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.7.conv.2, precision switch from w4a8 to w4a8.
+Json : Layer features.8.conv.0.0, precision switch from w4a8 to w4a8.
+Json : Layer features.8.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.8.conv.2, precision switch from w4a8 to w4a8.
+Json : Layer features.9.conv.0.0, precision switch from w4a8 to w4a8.
+Json : Layer features.9.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.9.conv.2, precision switch from w4a8 to w4a8.
+Json : Layer features.10.conv.0.0, precision switch from w4a8 to w4a8.
+Json : Layer features.10.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.10.conv.2, precision switch from w4a8 to w4a8.
+Json : Layer features.11.conv.0.0, precision switch from w4a8 to w4a8.
+Json : Layer features.11.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.11.conv.2, precision switch from w4a8 to w4a8.
+Json : Layer features.12.conv.0.0, precision switch from w4a8 to w4a8.
+Json : Layer features.12.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.12.conv.2, precision switch from w4a8 to w4a8.
+Json : Layer features.13.conv.0.0, precision switch from w4a8 to w4a8.
+Json : Layer features.13.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.13.conv.2, precision switch from w4a8 to w4a8.
+Json : Layer features.14.conv.0.0, precision switch from w4a8 to w4a8.
+Json : Layer features.14.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.14.conv.2, precision switch from w4a8 to w4a8.
+Json : Layer features.15.conv.0.0, precision switch from w4a8 to w4a8.
+Json : Layer features.15.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.15.conv.2, precision switch from w4a8 to w4a8.
+Json : Layer features.16.conv.0.0, precision switch from w4a8 to w4a8.
+Json : Layer features.16.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.16.conv.2, precision switch from w4a8 to w4a8.
+Json : Layer features.17.conv.0.0, precision switch from w4a8 to w4a8.
+Json : Layer features.17.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.17.conv.2, precision switch from w4a8 to w4a8.
+Json : Layer features.18.0, precision switch from w4a8 to w4a8.
+Json : Layer classifier.1, precision switch from w4a8 to w4a8.
+step 3: 
+Layer features.1.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.1.conv.1, precision switch from w8a8 to w4a8.
+Layer features.2.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.2.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.2.conv.2, precision switch from w8a8 to w4a8.
+Layer features.3.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.3.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.3.conv.2, precision switch from w8a8 to w4a8.
+Layer features.4.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.4.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.4.conv.2, precision switch from w8a8 to w4a8.
+Layer features.5.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.5.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.5.conv.2, precision switch from w8a8 to w4a8.
+Layer features.6.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.6.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.6.conv.2, precision switch from w8a8 to w4a8.
+Layer features.7.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.7.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.7.conv.2, precision switch from w8a8 to w4a8.
+Layer features.8.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.8.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.8.conv.2, precision switch from w8a8 to w4a8.
+Layer features.9.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.9.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.9.conv.2, precision switch from w8a8 to w4a8.
+Layer features.10.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.10.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.10.conv.2, precision switch from w8a8 to w4a8.
+Layer features.11.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.11.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.11.conv.2, precision switch from w8a8 to w4a8.
+Layer features.12.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.12.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.12.conv.2, precision switch from w8a8 to w4a8.
+Layer features.13.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.13.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.13.conv.2, precision switch from w8a8 to w4a8.
+Layer features.14.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.14.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.14.conv.2, precision switch from w8a8 to w4a8.
+Layer features.15.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.15.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.15.conv.2, precision switch from w8a8 to w4a8.
+Layer features.16.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.16.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.16.conv.2, precision switch from w8a8 to w4a8.
+Layer features.17.conv.0.0, precision switch from w8a8 to w4a8.
+Layer features.17.conv.1.0, precision switch from w8a8 to w4a8.
+Layer features.17.conv.2, precision switch from w8a8 to w4a8.
+Input/outputs cached
+
+Starting ONNX export with onnx 1.11.0...
+****onnx file**** /workspace/develop/CalibTIP/results/mobilenet_v2_w4a8.adaquant/mobilenet_v2.absorb_bn.measure_perC.before_adaquant.onnx
+ONNX export success, saved as /workspace/develop/CalibTIP/results/mobilenet_v2_w4a8.adaquant/mobilenet_v2.absorb_bn.measure_perC.before_adaquant.onnx
+Bernard calculate float point model accuracy before enabling quantization!
+Bernard calculate fixed point model accuracy before training!
+
+Optimize 0:features.0.0 for w8a8 bit of shape torch.Size([32, 3, 3, 3])
+
+MSE before adaquant: 1.631438e-05  RELU True
+MSE after  adaquant: 9.067885e-06
+
+Optimize 1:features.1.conv.0.0 for w4a8 bit of shape torch.Size([32, 1, 3, 3])
+
+MSE before adaquant: 9.679454e-04  RELU True
+MSE after  adaquant: 9.323930e-04
+
+Optimize 2:features.1.conv.1 for w4a8 bit of shape torch.Size([16, 32, 1, 1])
+
+MSE before adaquant: 6.590051e-02  RELU False
+MSE after  adaquant: 5.417944e-02
+
+Optimize 3:features.2.conv.0.0 for w4a8 bit of shape torch.Size([96, 16, 1, 1])
+
+MSE before adaquant: 7.784941e-04  RELU True
+MSE after  adaquant: 7.651607e-04
+
+Optimize 4:features.2.conv.1.0 for w4a8 bit of shape torch.Size([96, 1, 3, 3])
+
+MSE before adaquant: 6.893366e-05  RELU True
+MSE after  adaquant: 6.781361e-05
+
+Optimize 5:features.2.conv.2 for w4a8 bit of shape torch.Size([24, 96, 1, 1])
+
+MSE before adaquant: 1.414952e-01  RELU False
+MSE after  adaquant: 1.403979e-01
+
+Optimize 6:features.3.conv.0.0 for w4a8 bit of shape torch.Size([144, 24, 1, 1])
+
+MSE before adaquant: 5.073068e-04  RELU True
+MSE after  adaquant: 4.798082e-04
+
+Optimize 7:features.3.conv.1.0 for w4a8 bit of shape torch.Size([144, 1, 3, 3])
+
+MSE before adaquant: 4.414521e-05  RELU True
+MSE after  adaquant: 4.255468e-05
+
+Optimize 8:features.3.conv.2 for w4a8 bit of shape torch.Size([24, 144, 1, 1])
+
+MSE before adaquant: 6.501238e-02  RELU False
+MSE after  adaquant: 6.234021e-02
+
+Optimize 9:features.4.conv.0.0 for w4a8 bit of shape torch.Size([144, 24, 1, 1])
+
+MSE before adaquant: 6.985258e-04  RELU True
+MSE after  adaquant: 6.859186e-04
+
+Optimize 10:features.4.conv.1.0 for w4a8 bit of shape torch.Size([144, 1, 3, 3])
+
+MSE before adaquant: 1.621056e-05  RELU True
+MSE after  adaquant: 1.571167e-05
+
+Optimize 11:features.4.conv.2 for w4a8 bit of shape torch.Size([32, 144, 1, 1])
+
+MSE before adaquant: 6.929731e-02  RELU False
+MSE after  adaquant: 5.934164e-02
+
+Optimize 12:features.5.conv.0.0 for w4a8 bit of shape torch.Size([192, 32, 1, 1])
+
+MSE before adaquant: 2.213122e-04  RELU True
+MSE after  adaquant: 2.039022e-04
+
+Optimize 13:features.5.conv.1.0 for w4a8 bit of shape torch.Size([192, 1, 3, 3])
+
+MSE before adaquant: 2.547041e-05  RELU True
+MSE after  adaquant: 2.462422e-05
+
+Optimize 14:features.5.conv.2 for w4a8 bit of shape torch.Size([32, 192, 1, 1])
+
+MSE before adaquant: 1.639086e-02  RELU False
+MSE after  adaquant: 1.514782e-02
+
+Optimize 15:features.6.conv.0.0 for w4a8 bit of shape torch.Size([192, 32, 1, 1])
+
+MSE before adaquant: 2.343561e-04  RELU True
+MSE after  adaquant: 2.256653e-04
+
+Optimize 16:features.6.conv.1.0 for w4a8 bit of shape torch.Size([192, 1, 3, 3])
+
+MSE before adaquant: 1.161341e-05  RELU True
+MSE after  adaquant: 1.092494e-05
+
+Optimize 17:features.6.conv.2 for w4a8 bit of shape torch.Size([32, 192, 1, 1])
+
+MSE before adaquant: 2.409743e-02  RELU False
+MSE after  adaquant: 2.281283e-02
+
+Optimize 18:features.7.conv.0.0 for w4a8 bit of shape torch.Size([192, 32, 1, 1])
+
+MSE before adaquant: 4.284426e-04  RELU True
+MSE after  adaquant: 4.161328e-04
+
+Optimize 19:features.7.conv.1.0 for w4a8 bit of shape torch.Size([192, 1, 3, 3])
+
+MSE before adaquant: 1.291702e-05  RELU True
+MSE after  adaquant: 1.256304e-05
+
+Optimize 20:features.7.conv.2 for w4a8 bit of shape torch.Size([64, 192, 1, 1])
+
+MSE before adaquant: 9.624262e-02  RELU False
+MSE after  adaquant: 8.774337e-02
+
+Optimize 21:features.8.conv.0.0 for w4a8 bit of shape torch.Size([384, 64, 1, 1])
+
+MSE before adaquant: 2.039345e-04  RELU True
+MSE after  adaquant: 1.836960e-04
+
+Optimize 22:features.8.conv.1.0 for w4a8 bit of shape torch.Size([384, 1, 3, 3])
+
+MSE before adaquant: 2.631421e-05  RELU True
+MSE after  adaquant: 2.526512e-05
+
+Optimize 23:features.8.conv.2 for w4a8 bit of shape torch.Size([64, 384, 1, 1])
+
+MSE before adaquant: 1.299192e-02  RELU False
+MSE after  adaquant: 1.147202e-02
+
+Optimize 24:features.9.conv.0.0 for w4a8 bit of shape torch.Size([384, 64, 1, 1])
+
+MSE before adaquant: 1.695483e-04  RELU True
+MSE after  adaquant: 1.575265e-04
+
+Optimize 25:features.9.conv.1.0 for w4a8 bit of shape torch.Size([384, 1, 3, 3])
+
+MSE before adaquant: 7.113239e-06  RELU True
+MSE after  adaquant: 6.704387e-06
+
+Optimize 26:features.9.conv.2 for w4a8 bit of shape torch.Size([64, 384, 1, 1])
+
+MSE before adaquant: 1.343362e-02  RELU False
+MSE after  adaquant: 1.190377e-02
+
+Optimize 27:features.10.conv.0.0 for w4a8 bit of shape torch.Size([384, 64, 1, 1])
+
+MSE before adaquant: 1.461533e-04  RELU True
+MSE after  adaquant: 1.388551e-04
+
+Optimize 28:features.10.conv.1.0 for w4a8 bit of shape torch.Size([384, 1, 3, 3])
+
+MSE before adaquant: 5.219263e-06  RELU True
+MSE after  adaquant: 4.920717e-06
+
+Optimize 29:features.10.conv.2 for w4a8 bit of shape torch.Size([64, 384, 1, 1])
+
+MSE before adaquant: 3.167820e-02  RELU False
+MSE after  adaquant: 3.032945e-02
+
+Optimize 30:features.11.conv.0.0 for w4a8 bit of shape torch.Size([384, 64, 1, 1])
+
+MSE before adaquant: 2.827547e-04  RELU True
+MSE after  adaquant: 2.718706e-04
+
+Optimize 31:features.11.conv.1.0 for w4a8 bit of shape torch.Size([384, 1, 3, 3])
+
+MSE before adaquant: 1.551995e-05  RELU True
+MSE after  adaquant: 1.491753e-05
+
+Optimize 32:features.11.conv.2 for w4a8 bit of shape torch.Size([96, 384, 1, 1])
+
+MSE before adaquant: 2.694248e-02  RELU False
+MSE after  adaquant: 2.154849e-02
+
+Optimize 33:features.12.conv.0.0 for w4a8 bit of shape torch.Size([576, 96, 1, 1])
+
+MSE before adaquant: 2.056406e-04  RELU True
+MSE after  adaquant: 1.945772e-04
+
+Optimize 34:features.12.conv.1.0 for w4a8 bit of shape torch.Size([576, 1, 3, 3])
+
+MSE before adaquant: 5.173386e-05  RELU True
+MSE after  adaquant: 5.152080e-05
+
+Optimize 35:features.12.conv.2 for w4a8 bit of shape torch.Size([96, 576, 1, 1])
+
+MSE before adaquant: 3.159124e-02  RELU False
+MSE after  adaquant: 2.831229e-02
+
+Optimize 36:features.13.conv.0.0 for w4a8 bit of shape torch.Size([576, 96, 1, 1])
+
+MSE before adaquant: 1.798089e-04  RELU True
+MSE after  adaquant: 1.709992e-04
+
+Optimize 37:features.13.conv.1.0 for w4a8 bit of shape torch.Size([576, 1, 3, 3])
+
+MSE before adaquant: 3.590705e-05  RELU True
+MSE after  adaquant: 3.579419e-05
+
+Optimize 38:features.13.conv.2 for w4a8 bit of shape torch.Size([96, 576, 1, 1])
+
+MSE before adaquant: 6.014717e-02  RELU False
+MSE after  adaquant: 5.464821e-02
+
+Optimize 39:features.14.conv.0.0 for w4a8 bit of shape torch.Size([576, 96, 1, 1])
+
+MSE before adaquant: 3.196083e-04  RELU True
+MSE after  adaquant: 2.941460e-04
+
+Optimize 40:features.14.conv.1.0 for w4a8 bit of shape torch.Size([576, 1, 3, 3])
+
+MSE before adaquant: 1.829988e-03  RELU True
+MSE after  adaquant: 1.825036e-03
+
+Optimize 41:features.14.conv.2 for w4a8 bit of shape torch.Size([160, 576, 1, 1])
+
+MSE before adaquant: 5.009354e-02  RELU False
+MSE after  adaquant: 4.254866e-02
+
+Optimize 42:features.15.conv.0.0 for w4a8 bit of shape torch.Size([960, 160, 1, 1])
+
+MSE before adaquant: 7.033951e-04  RELU True
+MSE after  adaquant: 6.667931e-04
+
+Optimize 43:features.15.conv.1.0 for w4a8 bit of shape torch.Size([960, 1, 3, 3])
+
+MSE before adaquant: 6.299798e-04  RELU True
+MSE after  adaquant: 6.294802e-04
+
+Optimize 44:features.15.conv.2 for w4a8 bit of shape torch.Size([160, 960, 1, 1])
+
+MSE before adaquant: 2.747089e-02  RELU False
+MSE after  adaquant: 2.421397e-02
+
+Optimize 45:features.16.conv.0.0 for w4a8 bit of shape torch.Size([960, 160, 1, 1])
+
+MSE before adaquant: 3.479937e-03  RELU True
+MSE after  adaquant: 3.254714e-03
+
+Optimize 46:features.16.conv.1.0 for w4a8 bit of shape torch.Size([960, 1, 3, 3])
+
+MSE before adaquant: 3.954784e-03  RELU True
+MSE after  adaquant: 3.952043e-03
+
+Optimize 47:features.16.conv.2 for w4a8 bit of shape torch.Size([160, 960, 1, 1])
+
+MSE before adaquant: 8.258894e-02  RELU False
+MSE after  adaquant: 7.654559e-02
+
+Optimize 48:features.17.conv.0.0 for w4a8 bit of shape torch.Size([960, 160, 1, 1])
+
+MSE before adaquant: 2.304056e-04  RELU True
+MSE after  adaquant: 2.070977e-04
+
+Optimize 49:features.17.conv.1.0 for w4a8 bit of shape torch.Size([960, 1, 3, 3])
+
+MSE before adaquant: 1.921782e-05  RELU True
+MSE after  adaquant: 1.920983e-05
+
+Optimize 50:features.17.conv.2 for w4a8 bit of shape torch.Size([320, 960, 1, 1])
+
+MSE before adaquant: 8.320118e-02  RELU False
+MSE after  adaquant: 6.959683e-02
+
+Optimize 51:features.18.0 for w8a8 bit of shape torch.Size([1280, 320, 1, 1])
+
+MSE before adaquant: 5.163131e-02  RELU True
+MSE after  adaquant: 5.147389e-02
+
+Optimize 52:classifier.1 for w8a8 bit of shape torch.Size([1000, 1280])
+
+MSE before adaquant: 9.821323e-02  RELU False
+MSE after  adaquant: 5.442847e-02
+step 1: 
+step 2: 
+Layer features.1.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.1.conv.1, precision switch from w8a8 to w8a8.
+Layer features.2.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.2.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.2.conv.2, precision switch from w8a8 to w8a8.
+Layer features.3.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.3.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.3.conv.2, precision switch from w8a8 to w8a8.
+Layer features.4.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.4.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.4.conv.2, precision switch from w8a8 to w8a8.
+Layer features.5.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.5.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.5.conv.2, precision switch from w8a8 to w8a8.
+Layer features.6.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.6.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.6.conv.2, precision switch from w8a8 to w8a8.
+Layer features.7.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.7.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.7.conv.2, precision switch from w8a8 to w8a8.
+Layer features.8.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.8.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.8.conv.2, precision switch from w8a8 to w8a8.
+Layer features.9.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.9.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.9.conv.2, precision switch from w8a8 to w8a8.
+Layer features.10.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.10.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.10.conv.2, precision switch from w8a8 to w8a8.
+Layer features.11.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.11.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.11.conv.2, precision switch from w8a8 to w8a8.
+Layer features.12.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.12.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.12.conv.2, precision switch from w8a8 to w8a8.
+Layer features.13.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.13.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.13.conv.2, precision switch from w8a8 to w8a8.
+Layer features.14.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.14.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.14.conv.2, precision switch from w8a8 to w8a8.
+Layer features.15.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.15.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.15.conv.2, precision switch from w8a8 to w8a8.
+Layer features.16.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.16.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.16.conv.2, precision switch from w8a8 to w8a8.
+Layer features.17.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.17.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.17.conv.2, precision switch from w8a8 to w8a8.
+read json file /workspace/develop/CalibTIP/results/mobilenet_v2_w8a8.adaquant/mobilenetv2_adaquant.piano.kdp530.scaled.onnx.json
+Json : Layer features.0.0, precision switch from w8a8 to w8a8.
+Json : Layer features.1.conv.0.0, precision switch from w8a8 to w8a8.
+Json : Layer features.1.conv.1, precision switch from w8a8 to w8a8.
+Json : Layer features.2.conv.0.0, precision switch from w8a8 to w8a8.
+Json : Layer features.2.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.2.conv.2, precision switch from w8a8 to w8a8.
+Json : Layer features.3.conv.0.0, precision switch from w8a8 to w8a8.
+Json : Layer features.3.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.3.conv.2, precision switch from w8a8 to w8a8.
+Json : Layer features.4.conv.0.0, precision switch from w8a8 to w8a8.
+Json : Layer features.4.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.4.conv.2, precision switch from w8a8 to w8a8.
+Json : Layer features.5.conv.0.0, precision switch from w8a8 to w8a8.
+Json : Layer features.5.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.5.conv.2, precision switch from w8a8 to w8a8.
+Json : Layer features.6.conv.0.0, precision switch from w8a8 to w8a8.
+Json : Layer features.6.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.6.conv.2, precision switch from w8a8 to w8a8.
+Json : Layer features.7.conv.0.0, precision switch from w8a8 to w8a8.
+Json : Layer features.7.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.7.conv.2, precision switch from w8a8 to w8a8.
+Json : Layer features.8.conv.0.0, precision switch from w8a8 to w8a8.
+Json : Layer features.8.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.8.conv.2, precision switch from w8a8 to w8a8.
+Json : Layer features.9.conv.0.0, precision switch from w8a8 to w8a8.
+Json : Layer features.9.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.9.conv.2, precision switch from w8a8 to w8a8.
+Json : Layer features.10.conv.0.0, precision switch from w8a8 to w8a8.
+Json : Layer features.10.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.10.conv.2, precision switch from w8a8 to w8a8.
+Json : Layer features.11.conv.0.0, precision switch from w8a8 to w8a8.
+Json : Layer features.11.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.11.conv.2, precision switch from w8a8 to w8a8.
+Json : Layer features.12.conv.0.0, precision switch from w8a8 to w8a8.
+Json : Layer features.12.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.12.conv.2, precision switch from w8a8 to w8a8.
+Json : Layer features.13.conv.0.0, precision switch from w8a8 to w8a8.
+Json : Layer features.13.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.13.conv.2, precision switch from w8a8 to w8a8.
+Json : Layer features.14.conv.0.0, precision switch from w8a8 to w8a8.
+Json : Layer features.14.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.14.conv.2, precision switch from w8a8 to w8a8.
+Json : Layer features.15.conv.0.0, precision switch from w8a8 to w8a8.
+Json : Layer features.15.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.15.conv.2, precision switch from w8a8 to w8a8.
+Json : Layer features.16.conv.0.0, precision switch from w8a8 to w8a8.
+Json : Layer features.16.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.16.conv.2, precision switch from w8a8 to w8a8.
+Json : Layer features.17.conv.0.0, precision switch from w8a8 to w8a8.
+Json : Layer features.17.conv.1.0, precision switch from w8a8 to w8a8.
+Json : Layer features.17.conv.2, precision switch from w8a8 to w8a8.
+Json : Layer features.18.0, precision switch from w8a8 to w8a8.
+Json : Layer classifier.1, precision switch from w8a8 to w8a8.
+step 3: 
+Layer features.1.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.1.conv.1, precision switch from w8a8 to w8a8.
+Layer features.2.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.2.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.2.conv.2, precision switch from w8a8 to w8a8.
+Layer features.3.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.3.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.3.conv.2, precision switch from w8a8 to w8a8.
+Layer features.4.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.4.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.4.conv.2, precision switch from w8a8 to w8a8.
+Layer features.5.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.5.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.5.conv.2, precision switch from w8a8 to w8a8.
+Layer features.6.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.6.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.6.conv.2, precision switch from w8a8 to w8a8.
+Layer features.7.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.7.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.7.conv.2, precision switch from w8a8 to w8a8.
+Layer features.8.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.8.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.8.conv.2, precision switch from w8a8 to w8a8.
+Layer features.9.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.9.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.9.conv.2, precision switch from w8a8 to w8a8.
+Layer features.10.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.10.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.10.conv.2, precision switch from w8a8 to w8a8.
+Layer features.11.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.11.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.11.conv.2, precision switch from w8a8 to w8a8.
+Layer features.12.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.12.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.12.conv.2, precision switch from w8a8 to w8a8.
+Layer features.13.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.13.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.13.conv.2, precision switch from w8a8 to w8a8.
+Layer features.14.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.14.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.14.conv.2, precision switch from w8a8 to w8a8.
+Layer features.15.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.15.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.15.conv.2, precision switch from w8a8 to w8a8.
+Layer features.16.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.16.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.16.conv.2, precision switch from w8a8 to w8a8.
+Layer features.17.conv.0.0, precision switch from w8a8 to w8a8.
+Layer features.17.conv.1.0, precision switch from w8a8 to w8a8.
+Layer features.17.conv.2, precision switch from w8a8 to w8a8.
+Input/outputs cached
+
+Starting ONNX export with onnx 1.11.0...
+****onnx file**** /workspace/develop/CalibTIP/results/mobilenet_v2_w8a8.adaquant/mobilenet_v2.absorb_bn.measure_perC.before_adaquant.onnx
+ONNX export success, saved as /workspace/develop/CalibTIP/results/mobilenet_v2_w8a8.adaquant/mobilenet_v2.absorb_bn.measure_perC.before_adaquant.onnx
+Bernard calculate float point model accuracy before enabling quantization!
+Bernard calculate fixed point model accuracy before training!
+
+Optimize 0:features.0.0 for w8a8 bit of shape torch.Size([32, 3, 3, 3])
+
+MSE before adaquant: 1.631438e-05  RELU True
+MSE after  adaquant: 9.067885e-06
+
+Optimize 1:features.1.conv.0.0 for w8a8 bit of shape torch.Size([32, 1, 3, 3])
+
+MSE before adaquant: 9.679454e-04  RELU True
+MSE after  adaquant: 9.323930e-04
+
+Optimize 2:features.1.conv.1 for w8a8 bit of shape torch.Size([16, 32, 1, 1])
+
+MSE before adaquant: 5.355026e-04  RELU False
+MSE after  adaquant: 4.265516e-04
+
+Optimize 3:features.2.conv.0.0 for w8a8 bit of shape torch.Size([96, 16, 1, 1])
+
+MSE before adaquant: 3.073155e-05  RELU True
+MSE after  adaquant: 3.062208e-05
+
+Optimize 4:features.2.conv.1.0 for w8a8 bit of shape torch.Size([96, 1, 3, 3])
+
+MSE before adaquant: 6.893366e-05  RELU True
+MSE after  adaquant: 6.781361e-05
+
+Optimize 5:features.2.conv.2 for w8a8 bit of shape torch.Size([24, 96, 1, 1])
+
+MSE before adaquant: 7.126646e-04  RELU False
+MSE after  adaquant: 4.169353e-04
+
+Optimize 6:features.3.conv.0.0 for w8a8 bit of shape torch.Size([144, 24, 1, 1])
+
+MSE before adaquant: 2.167572e-05  RELU True
+MSE after  adaquant: 2.078344e-05
+
+Optimize 7:features.3.conv.1.0 for w8a8 bit of shape torch.Size([144, 1, 3, 3])
+
+MSE before adaquant: 4.414521e-05  RELU True
+MSE after  adaquant: 4.255468e-05
+
+Optimize 8:features.3.conv.2 for w8a8 bit of shape torch.Size([24, 144, 1, 1])
+
+MSE before adaquant: 4.009319e-04  RELU False
+MSE after  adaquant: 2.917638e-04
+
+Optimize 9:features.4.conv.0.0 for w8a8 bit of shape torch.Size([144, 24, 1, 1])
+
+MSE before adaquant: 9.707940e-06  RELU True
+MSE after  adaquant: 9.544278e-06
+
+Optimize 10:features.4.conv.1.0 for w8a8 bit of shape torch.Size([144, 1, 3, 3])
+
+MSE before adaquant: 1.621056e-05  RELU True
+MSE after  adaquant: 1.571167e-05
+
+Optimize 11:features.4.conv.2 for w8a8 bit of shape torch.Size([32, 144, 1, 1])
+
+MSE before adaquant: 3.525951e-04  RELU False
+MSE after  adaquant: 2.228935e-04
+
+Optimize 12:features.5.conv.0.0 for w8a8 bit of shape torch.Size([192, 32, 1, 1])
+
+MSE before adaquant: 2.718243e-06  RELU True
+MSE after  adaquant: 2.588657e-06
+
+Optimize 13:features.5.conv.1.0 for w8a8 bit of shape torch.Size([192, 1, 3, 3])
+
+MSE before adaquant: 2.547041e-05  RELU True
+MSE after  adaquant: 2.462422e-05
+
+Optimize 14:features.5.conv.2 for w8a8 bit of shape torch.Size([32, 192, 1, 1])
+
+MSE before adaquant: 9.286217e-05  RELU False
+MSE after  adaquant: 7.581380e-05
+
+Optimize 15:features.6.conv.0.0 for w8a8 bit of shape torch.Size([192, 32, 1, 1])
+
+MSE before adaquant: 2.630224e-06  RELU True
+MSE after  adaquant: 2.594344e-06
+
+Optimize 16:features.6.conv.1.0 for w8a8 bit of shape torch.Size([192, 1, 3, 3])
+
+MSE before adaquant: 1.161341e-05  RELU True
+MSE after  adaquant: 1.092494e-05
+
+Optimize 17:features.6.conv.2 for w8a8 bit of shape torch.Size([32, 192, 1, 1])
+
+MSE before adaquant: 1.278119e-04  RELU False
+MSE after  adaquant: 8.686149e-05
+
+Optimize 18:features.7.conv.0.0 for w8a8 bit of shape torch.Size([192, 32, 1, 1])
+
+MSE before adaquant: 5.136427e-06  RELU True
+MSE after  adaquant: 5.107725e-06
+
+Optimize 19:features.7.conv.1.0 for w8a8 bit of shape torch.Size([192, 1, 3, 3])
+
+MSE before adaquant: 1.291702e-05  RELU True
+MSE after  adaquant: 1.256304e-05
+
+Optimize 20:features.7.conv.2 for w8a8 bit of shape torch.Size([64, 192, 1, 1])
+
+MSE before adaquant: 4.535690e-04  RELU False
+MSE after  adaquant: 2.488595e-04
+
+Optimize 21:features.8.conv.0.0 for w8a8 bit of shape torch.Size([384, 64, 1, 1])
+
+MSE before adaquant: 1.681869e-06  RELU True
+MSE after  adaquant: 1.545366e-06
+
+Optimize 22:features.8.conv.1.0 for w8a8 bit of shape torch.Size([384, 1, 3, 3])
+
+MSE before adaquant: 2.631421e-05  RELU True
+MSE after  adaquant: 2.526512e-05
+
+Optimize 23:features.8.conv.2 for w8a8 bit of shape torch.Size([64, 384, 1, 1])
+
+MSE before adaquant: 1.762293e-04  RELU False
+MSE after  adaquant: 1.364421e-04
+
+Optimize 24:features.9.conv.0.0 for w8a8 bit of shape torch.Size([384, 64, 1, 1])
+
+MSE before adaquant: 1.441551e-06  RELU True
+MSE after  adaquant: 1.366212e-06
+
+Optimize 25:features.9.conv.1.0 for w8a8 bit of shape torch.Size([384, 1, 3, 3])
+
+MSE before adaquant: 7.113239e-06  RELU True
+MSE after  adaquant: 6.704387e-06
+
+Optimize 26:features.9.conv.2 for w8a8 bit of shape torch.Size([64, 384, 1, 1])
+
+MSE before adaquant: 7.207196e-05  RELU False
+MSE after  adaquant: 4.567258e-05
+
+Optimize 27:features.10.conv.0.0 for w8a8 bit of shape torch.Size([384, 64, 1, 1])
+
+MSE before adaquant: 1.373905e-06  RELU True
+MSE after  adaquant: 1.333810e-06
+
+Optimize 28:features.10.conv.1.0 for w8a8 bit of shape torch.Size([384, 1, 3, 3])
+
+MSE before adaquant: 5.219263e-06  RELU True
+MSE after  adaquant: 4.920717e-06
+
+Optimize 29:features.10.conv.2 for w8a8 bit of shape torch.Size([64, 384, 1, 1])
+
+MSE before adaquant: 2.705741e-04  RELU False
+MSE after  adaquant: 2.144553e-04
+
+Optimize 30:features.11.conv.0.0 for w8a8 bit of shape torch.Size([384, 64, 1, 1])
+
+MSE before adaquant: 5.157078e-06  RELU True
+MSE after  adaquant: 4.720691e-06
+
+Optimize 31:features.11.conv.1.0 for w8a8 bit of shape torch.Size([384, 1, 3, 3])
+
+MSE before adaquant: 1.551995e-05  RELU True
+MSE after  adaquant: 1.491753e-05
+
+Optimize 32:features.11.conv.2 for w8a8 bit of shape torch.Size([96, 384, 1, 1])
+
+MSE before adaquant: 1.345507e-04  RELU False
+MSE after  adaquant: 6.782945e-05
+
+Optimize 33:features.12.conv.0.0 for w8a8 bit of shape torch.Size([576, 96, 1, 1])
+
+MSE before adaquant: 2.586419e-06  RELU True
+MSE after  adaquant: 2.501605e-06
+
+Optimize 34:features.12.conv.1.0 for w8a8 bit of shape torch.Size([576, 1, 3, 3])
+
+MSE before adaquant: 5.173386e-05  RELU True
+MSE after  adaquant: 5.152080e-05
+
+Optimize 35:features.12.conv.2 for w8a8 bit of shape torch.Size([96, 576, 1, 1])
+
+MSE before adaquant: 9.686148e-04  RELU False
+MSE after  adaquant: 8.683241e-04
+
+Optimize 36:features.13.conv.0.0 for w8a8 bit of shape torch.Size([576, 96, 1, 1])
+
+MSE before adaquant: 1.864799e-06  RELU True
+MSE after  adaquant: 1.805197e-06
+
+Optimize 37:features.13.conv.1.0 for w8a8 bit of shape torch.Size([576, 1, 3, 3])
+
+MSE before adaquant: 3.590705e-05  RELU True
+MSE after  adaquant: 3.579419e-05
+
+Optimize 38:features.13.conv.2 for w8a8 bit of shape torch.Size([96, 576, 1, 1])
+
+MSE before adaquant: 2.882206e-03  RELU False
+MSE after  adaquant: 2.694446e-03
+
+Optimize 39:features.14.conv.0.0 for w8a8 bit of shape torch.Size([576, 96, 1, 1])
+
+MSE before adaquant: 7.707263e-05  RELU True
+MSE after  adaquant: 6.554423e-05
+
+Optimize 40:features.14.conv.1.0 for w8a8 bit of shape torch.Size([576, 1, 3, 3])
+
+MSE before adaquant: 1.829988e-03  RELU True
+MSE after  adaquant: 1.825036e-03
+
+Optimize 41:features.14.conv.2 for w8a8 bit of shape torch.Size([160, 576, 1, 1])
+
+MSE before adaquant: 1.344881e-02  RELU False
+MSE after  adaquant: 1.149276e-02
+
+Optimize 42:features.15.conv.0.0 for w8a8 bit of shape torch.Size([960, 160, 1, 1])
+
+MSE before adaquant: 5.035985e-04  RELU True
+MSE after  adaquant: 4.706963e-04
+
+Optimize 43:features.15.conv.1.0 for w8a8 bit of shape torch.Size([960, 1, 3, 3])
+
+MSE before adaquant: 6.299798e-04  RELU True
+MSE after  adaquant: 6.294802e-04
+
+Optimize 44:features.15.conv.2 for w8a8 bit of shape torch.Size([160, 960, 1, 1])
+
+MSE before adaquant: 1.233723e-02  RELU False
+MSE after  adaquant: 1.180355e-02
+
+Optimize 45:features.16.conv.0.0 for w8a8 bit of shape torch.Size([960, 160, 1, 1])
+
+MSE before adaquant: 3.265250e-03  RELU True
+MSE after  adaquant: 3.061712e-03
+
+Optimize 46:features.16.conv.1.0 for w8a8 bit of shape torch.Size([960, 1, 3, 3])
+
+MSE before adaquant: 3.954784e-03  RELU True
+MSE after  adaquant: 3.952043e-03
+
+Optimize 47:features.16.conv.2 for w8a8 bit of shape torch.Size([160, 960, 1, 1])
+
+MSE before adaquant: 6.238968e-02  RELU False
+MSE after  adaquant: 6.020811e-02
+
+Optimize 48:features.17.conv.0.0 for w8a8 bit of shape torch.Size([960, 160, 1, 1])
+
+MSE before adaquant: 1.428782e-04  RELU True
+MSE after  adaquant: 1.221835e-04
+
+Optimize 49:features.17.conv.1.0 for w8a8 bit of shape torch.Size([960, 1, 3, 3])
+
+MSE before adaquant: 1.921782e-05  RELU True
+MSE after  adaquant: 1.920983e-05
+
+Optimize 50:features.17.conv.2 for w8a8 bit of shape torch.Size([320, 960, 1, 1])
+
+MSE before adaquant: 1.209809e-03  RELU False
+MSE after  adaquant: 9.906783e-04
+
+Optimize 51:features.18.0 for w8a8 bit of shape torch.Size([1280, 320, 1, 1])
+
+MSE before adaquant: 4.632941e-04  RELU True
+MSE after  adaquant: 4.612328e-04
+
+Optimize 52:classifier.1 for w8a8 bit of shape torch.Size([1000, 1280])
+
+MSE before adaquant: 9.485815e-04  RELU False
+MSE after  adaquant: 7.340607e-04
