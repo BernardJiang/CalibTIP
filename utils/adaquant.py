@@ -69,7 +69,7 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     # Have to verify on other bit-width and other models
     lr_qpin = 1e-1#lr_factor * (test_inp.max() - test_inp.min()).item()  # 1e-1
     lr_qpw = 1e-3#lr_factor * (layer.weight.max() - layer.weight.min()).item()  # 1e-3
-    lr_w = 1e-5 # mse_before.cpu().detach().numpy() # 1e-5 # 0.0025 # 1e-6 #lr_factor * layer.weight.std().item()  # 1e-5
+    lr_w = 1e-6 # mse_before.cpu().detach().numpy() # 1e-5 # 0.0025 # 1e-6 #lr_factor * layer.weight.std().item()  # 1e-5
     lr_b = lr_w # mse_before.cpu().numpy() # 1e-5 # 0.0025 # 1e-6#lr_factor * layer.bias.std().item()  # 1e-3
     weight_decay = 0.01
 
@@ -124,10 +124,10 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
         # opt_qparams_w.zero_grad()
         loss.backward()
         opt_w.step()
-        scheduler_w.step(loss.item())
+        # scheduler_w.step(loss.item())
         if hasattr(layer, 'bias') and layer.bias is not None: 
             opt_bias.step()
-            scheduler_bias.step(loss.item())
+            # scheduler_bias.step(loss.item())
         # opt_qparams_in.step()
         # opt_qparams_w.step()
         
@@ -189,7 +189,7 @@ def optimize_layer(layer, in_out, optimize_weights=False, batch_size=100, model_
         relu_flag = relu_condition(layer.name)
         
 
-        mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=200, batch_size=batch_size, lr1=1e-5, lr2=1e-4, relu=relu_flag, writer=writer) 
+        mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=100, batch_size=batch_size, lr1=1e-5, lr2=1e-4, relu=relu_flag, writer=writer) 
         mse_before_opt = mse_before
         print("\nMSE before adaquant: {:e}  RELU {}".format(mse_before, relu_flag))
         print("MSE after  adaquant: {:e}".format(mse_after))
