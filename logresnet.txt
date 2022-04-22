@@ -1,0 +1,1208 @@
+step 1: 
+step 2: 
+Layer conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer1.0.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer1.0.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer1.0.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer1.0.downsample.0, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer1.1.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer1.1.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer1.1.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer1.2.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer1.2.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer1.2.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer2.0.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer2.0.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer2.0.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer2.0.downsample.0, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer2.1.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer2.1.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer2.1.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer2.2.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer2.2.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer2.2.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer2.3.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer2.3.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer2.3.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.0.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.0.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.0.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.0.downsample.0, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.1.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.1.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.1.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.2.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.2.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.2.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.3.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.3.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.3.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.4.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.4.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.4.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.5.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.5.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.5.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer4.0.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer4.0.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer4.0.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer4.0.downsample.0, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer4.1.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer4.1.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer4.1.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer4.2.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer4.2.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer4.2.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer fc, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+step 3: 
+Layer conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer1.0.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer1.0.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer1.0.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer1.0.downsample.0, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer1.1.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer1.1.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer1.1.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer1.2.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer1.2.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer1.2.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer2.0.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer2.0.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer2.0.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer2.0.downsample.0, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer2.1.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer2.1.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer2.1.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer2.2.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer2.2.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer2.2.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer2.3.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer2.3.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer2.3.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.0.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.0.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.0.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.0.downsample.0, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.1.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.1.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.1.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.2.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.2.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.2.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.3.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.3.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.3.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.4.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.4.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.4.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.5.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.5.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer3.5.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer4.0.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer4.0.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer4.0.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer4.0.downsample.0, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer4.1.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer4.1.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer4.1.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer4.2.conv1, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer4.2.conv2, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer layer4.2.conv3, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Layer fc, precision switch from 8-bit to 4-bit weight, 4-bit activation.
+Input/outputs cached
+
+Starting ONNX export with onnx 1.11.0...
+****onnx file**** /workspace/develop/CalibTIP/results/resnet50_w4a4.adaquant/resnet.absorb_bn.measure_perC.before_adaquant.onnx
+ONNX export success, saved as /workspace/develop/CalibTIP/results/resnet50_w4a4.adaquant/resnet.absorb_bn.measure_perC.before_adaquant.onnx
+Bernard calculate float point model accuracy before enabling quantization!
+Bernard calculate fixed point model accuracy before training!
+
+Optimize 0:conv1 for 4 bit of shape torch.Size([64, 3, 7, 7])
+
+Run adaquant
+
+MSE before adaquant: 8.276641e-03  RELU True
+MSE after  adaquant: 3.417790e-03
+ End of training layer  conv1 better/total layers= 1 / 1 
+
+
+Optimize 1:layer1.0.conv1 for 4 bit of shape torch.Size([64, 64, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 5.306935e-03  RELU True
+MSE after  adaquant: 1.134255e-03
+ End of training layer  layer1.0.conv1 better/total layers= 2 / 2 
+
+
+Optimize 2:layer1.0.conv2 for 4 bit of shape torch.Size([64, 64, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 2.036281e-03  RELU True
+MSE after  adaquant: 5.748814e-04
+ End of training layer  layer1.0.conv2 better/total layers= 3 / 3 
+
+
+Optimize 3:layer1.0.conv3 for 4 bit of shape torch.Size([256, 64, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 2.464651e-03  RELU False
+MSE after  adaquant: 6.792038e-04
+ End of training layer  layer1.0.conv3 better/total layers= 4 / 4 
+
+
+Optimize 4:layer1.0.downsample.0 for 4 bit of shape torch.Size([256, 64, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 1.442060e-02  RELU False
+MSE after  adaquant: 4.078801e-03
+ End of training layer  layer1.0.downsample.0 better/total layers= 5 / 5 
+
+
+Optimize 5:layer1.1.conv1 for 4 bit of shape torch.Size([64, 256, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 1.618307e-03  RELU True
+MSE after  adaquant: 3.278222e-04
+ End of training layer  layer1.1.conv1 better/total layers= 6 / 6 
+
+
+Optimize 6:layer1.1.conv2 for 4 bit of shape torch.Size([64, 64, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 1.946234e-03  RELU True
+MSE after  adaquant: 6.481673e-04
+ End of training layer  layer1.1.conv2 better/total layers= 7 / 7 
+
+
+Optimize 7:layer1.1.conv3 for 4 bit of shape torch.Size([256, 64, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 2.252229e-03  RELU False
+MSE after  adaquant: 5.065754e-04
+ End of training layer  layer1.1.conv3 better/total layers= 8 / 8 
+
+
+Optimize 8:layer1.2.conv1 for 4 bit of shape torch.Size([64, 256, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 2.194971e-03  RELU True
+MSE after  adaquant: 3.626710e-04
+ End of training layer  layer1.2.conv1 better/total layers= 9 / 9 
+
+
+Optimize 9:layer1.2.conv2 for 4 bit of shape torch.Size([64, 64, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 1.514711e-03  RELU True
+MSE after  adaquant: 4.858009e-04
+ End of training layer  layer1.2.conv2 better/total layers= 10 / 10 
+
+
+Optimize 10:layer1.2.conv3 for 4 bit of shape torch.Size([256, 64, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 3.536346e-03  RELU False
+MSE after  adaquant: 6.831549e-04
+ End of training layer  layer1.2.conv3 better/total layers= 11 / 11 
+
+
+Optimize 11:layer2.0.conv1 for 4 bit of shape torch.Size([128, 256, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 2.588952e-03  RELU True
+MSE after  adaquant: 4.835963e-04
+ End of training layer  layer2.0.conv1 better/total layers= 12 / 12 
+
+
+Optimize 12:layer2.0.conv2 for 4 bit of shape torch.Size([128, 128, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 1.921824e-03  RELU True
+MSE after  adaquant: 3.216032e-04
+ End of training layer  layer2.0.conv2 better/total layers= 13 / 13 
+
+
+Optimize 13:layer2.0.conv3 for 4 bit of shape torch.Size([512, 128, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 2.779772e-03  RELU False
+MSE after  adaquant: 9.208566e-04
+ End of training layer  layer2.0.conv3 better/total layers= 14 / 14 
+
+
+Optimize 14:layer2.0.downsample.0 for 4 bit of shape torch.Size([512, 256, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 4.150645e-03  RELU False
+MSE after  adaquant: 8.229939e-04
+ End of training layer  layer2.0.downsample.0 better/total layers= 15 / 15 
+
+
+Optimize 15:layer2.1.conv1 for 4 bit of shape torch.Size([128, 512, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 2.957238e-04  RELU True
+MSE after  adaquant: 8.500273e-05
+ End of training layer  layer2.1.conv1 better/total layers= 16 / 16 
+
+
+Optimize 16:layer2.1.conv2 for 4 bit of shape torch.Size([128, 128, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 1.694410e-03  RELU True
+MSE after  adaquant: 3.516669e-04
+ End of training layer  layer2.1.conv2 better/total layers= 17 / 17 
+
+
+Optimize 17:layer2.1.conv3 for 4 bit of shape torch.Size([512, 128, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 1.649698e-03  RELU False
+MSE after  adaquant: 5.467146e-04
+ End of training layer  layer2.1.conv3 better/total layers= 18 / 18 
+
+
+Optimize 18:layer2.2.conv1 for 4 bit of shape torch.Size([128, 512, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 2.069872e-03  RELU True
+MSE after  adaquant: 3.455291e-04
+ End of training layer  layer2.2.conv1 better/total layers= 19 / 19 
+
+
+Optimize 19:layer2.2.conv2 for 4 bit of shape torch.Size([128, 128, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 1.070261e-03  RELU True
+MSE after  adaquant: 3.585124e-04
+ End of training layer  layer2.2.conv2 better/total layers= 20 / 20 
+
+
+Optimize 20:layer2.2.conv3 for 4 bit of shape torch.Size([512, 128, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 1.375225e-03  RELU False
+MSE after  adaquant: 4.881278e-04
+ End of training layer  layer2.2.conv3 better/total layers= 21 / 21 
+
+
+Optimize 21:layer2.3.conv1 for 4 bit of shape torch.Size([128, 512, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 1.768085e-03  RELU True
+MSE after  adaquant: 3.045926e-04
+ End of training layer  layer2.3.conv1 better/total layers= 22 / 22 
+
+
+Optimize 22:layer2.3.conv2 for 4 bit of shape torch.Size([128, 128, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 1.038588e-03  RELU True
+MSE after  adaquant: 2.862567e-04
+ End of training layer  layer2.3.conv2 better/total layers= 23 / 23 
+
+
+Optimize 23:layer2.3.conv3 for 4 bit of shape torch.Size([512, 128, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 1.466298e-03  RELU False
+MSE after  adaquant: 5.183530e-04
+ End of training layer  layer2.3.conv3 better/total layers= 24 / 24 
+
+
+Optimize 24:layer3.0.conv1 for 4 bit of shape torch.Size([256, 512, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 3.110513e-03  RELU True
+MSE after  adaquant: 6.379440e-04
+ End of training layer  layer3.0.conv1 better/total layers= 25 / 25 
+
+
+Optimize 25:layer3.0.conv2 for 4 bit of shape torch.Size([256, 256, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 1.612958e-03  RELU True
+MSE after  adaquant: 3.818653e-04
+ End of training layer  layer3.0.conv2 better/total layers= 26 / 26 
+
+
+Optimize 26:layer3.0.conv3 for 4 bit of shape torch.Size([1024, 256, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 2.787886e-03  RELU False
+MSE after  adaquant: 8.729909e-04
+ End of training layer  layer3.0.conv3 better/total layers= 27 / 27 
+
+
+Optimize 27:layer3.0.downsample.0 for 4 bit of shape torch.Size([1024, 512, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 3.158355e-03  RELU False
+MSE after  adaquant: 4.987184e-04
+ End of training layer  layer3.0.downsample.0 better/total layers= 28 / 28 
+
+
+Optimize 28:layer3.1.conv1 for 4 bit of shape torch.Size([256, 1024, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 8.186371e-04  RELU True
+MSE after  adaquant: 2.263155e-04
+ End of training layer  layer3.1.conv1 better/total layers= 29 / 29 
+
+
+Optimize 29:layer3.1.conv2 for 4 bit of shape torch.Size([256, 256, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 9.785932e-04  RELU True
+MSE after  adaquant: 2.468801e-04
+ End of training layer  layer3.1.conv2 better/total layers= 30 / 30 
+
+
+Optimize 30:layer3.1.conv3 for 4 bit of shape torch.Size([1024, 256, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 1.393274e-03  RELU False
+MSE after  adaquant: 5.646195e-04
+ End of training layer  layer3.1.conv3 better/total layers= 31 / 31 
+
+
+Optimize 31:layer3.2.conv1 for 4 bit of shape torch.Size([256, 1024, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 1.177561e-03  RELU True
+MSE after  adaquant: 2.445448e-04
+ End of training layer  layer3.2.conv1 better/total layers= 32 / 32 
+
+
+Optimize 32:layer3.2.conv2 for 4 bit of shape torch.Size([256, 256, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 5.482309e-04  RELU True
+MSE after  adaquant: 1.679502e-04
+ End of training layer  layer3.2.conv2 better/total layers= 33 / 33 
+
+
+Optimize 33:layer3.2.conv3 for 4 bit of shape torch.Size([1024, 256, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 8.534525e-04  RELU False
+MSE after  adaquant: 3.610471e-04
+ End of training layer  layer3.2.conv3 better/total layers= 34 / 34 
+
+
+Optimize 34:layer3.3.conv1 for 4 bit of shape torch.Size([256, 1024, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 1.162651e-03  RELU True
+MSE after  adaquant: 2.703064e-04
+ End of training layer  layer3.3.conv1 better/total layers= 35 / 35 
+
+
+Optimize 35:layer3.3.conv2 for 4 bit of shape torch.Size([256, 256, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 7.105502e-04  RELU True
+MSE after  adaquant: 2.111818e-04
+ End of training layer  layer3.3.conv2 better/total layers= 36 / 36 
+
+
+Optimize 36:layer3.3.conv3 for 4 bit of shape torch.Size([1024, 256, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 1.069637e-03  RELU False
+MSE after  adaquant: 4.116347e-04
+ End of training layer  layer3.3.conv3 better/total layers= 37 / 37 
+
+
+Optimize 37:layer3.4.conv1 for 4 bit of shape torch.Size([256, 1024, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 1.434582e-03  RELU True
+MSE after  adaquant: 3.429926e-04
+ End of training layer  layer3.4.conv1 better/total layers= 38 / 38 
+
+
+Optimize 38:layer3.4.conv2 for 4 bit of shape torch.Size([256, 256, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 7.322707e-04  RELU True
+MSE after  adaquant: 2.180929e-04
+ End of training layer  layer3.4.conv2 better/total layers= 39 / 39 
+
+
+Optimize 39:layer3.4.conv3 for 4 bit of shape torch.Size([1024, 256, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 1.226557e-03  RELU False
+MSE after  adaquant: 5.427529e-04
+ End of training layer  layer3.4.conv3 better/total layers= 40 / 40 
+
+
+Optimize 40:layer3.5.conv1 for 4 bit of shape torch.Size([256, 1024, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 1.581741e-03  RELU True
+MSE after  adaquant: 5.139101e-04
+ End of training layer  layer3.5.conv1 better/total layers= 41 / 41 
+
+
+Optimize 41:layer3.5.conv2 for 4 bit of shape torch.Size([256, 256, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 1.012084e-03  RELU True
+MSE after  adaquant: 3.207460e-04
+ End of training layer  layer3.5.conv2 better/total layers= 42 / 42 
+
+
+Optimize 42:layer3.5.conv3 for 4 bit of shape torch.Size([1024, 256, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 2.187423e-03  RELU False
+MSE after  adaquant: 8.281707e-04
+ End of training layer  layer3.5.conv3 better/total layers= 43 / 43 
+
+
+Optimize 43:layer4.0.conv1 for 4 bit of shape torch.Size([512, 1024, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 1.477842e-03  RELU True
+MSE after  adaquant: 3.996557e-04
+ End of training layer  layer4.0.conv1 better/total layers= 44 / 44 
+
+
+Optimize 44:layer4.0.conv2 for 4 bit of shape torch.Size([512, 512, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 1.024861e-03  RELU True
+MSE after  adaquant: 3.247839e-04
+ End of training layer  layer4.0.conv2 better/total layers= 45 / 45 
+
+
+Optimize 45:layer4.0.conv3 for 4 bit of shape torch.Size([2048, 512, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 2.236513e-02  RELU False
+MSE after  adaquant: 8.120581e-03
+ End of training layer  layer4.0.conv3 better/total layers= 46 / 46 
+
+
+Optimize 46:layer4.0.downsample.0 for 4 bit of shape torch.Size([2048, 1024, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 1.563637e-02  RELU False
+MSE after  adaquant: 4.874367e-03
+ End of training layer  layer4.0.downsample.0 better/total layers= 47 / 47 
+
+
+Optimize 47:layer4.1.conv1 for 4 bit of shape torch.Size([512, 2048, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 1.220659e-03  RELU True
+MSE after  adaquant: 2.067923e-04
+ End of training layer  layer4.1.conv1 better/total layers= 48 / 48 
+
+
+Optimize 48:layer4.1.conv2 for 4 bit of shape torch.Size([512, 512, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 6.004641e-04  RELU True
+MSE after  adaquant: 2.177876e-04
+ End of training layer  layer4.1.conv2 better/total layers= 49 / 49 
+
+
+Optimize 49:layer4.1.conv3 for 4 bit of shape torch.Size([2048, 512, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 1.477952e-02  RELU False
+MSE after  adaquant: 7.607382e-03
+ End of training layer  layer4.1.conv3 better/total layers= 50 / 50 
+
+
+Optimize 50:layer4.2.conv1 for 4 bit of shape torch.Size([512, 2048, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 1.494191e-03  RELU True
+MSE after  adaquant: 3.377444e-04
+ End of training layer  layer4.2.conv1 better/total layers= 51 / 51 
+
+
+Optimize 51:layer4.2.conv2 for 4 bit of shape torch.Size([512, 512, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 5.637499e-04  RELU True
+MSE after  adaquant: 2.036667e-04
+ End of training layer  layer4.2.conv2 better/total layers= 52 / 52 
+
+
+Optimize 52:layer4.2.conv3 for 4 bit of shape torch.Size([2048, 512, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 6.693062e-02  RELU False
+MSE after  adaquant: 3.445562e-02
+ End of training layer  layer4.2.conv3 better/total layers= 53 / 53 
+
+
+Optimize 53:fc for 4 bit of shape torch.Size([1000, 2048])
+
+Run adaquant
+
+MSE before adaquant: 6.566879e-01  RELU False
+MSE after  adaquant: 1.524949e-01
+ End of training layer  fc better/total layers= 54 / 54 
+
+step 1: 
+step 2: 
+Layer conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer1.0.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer1.0.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer1.0.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer1.0.downsample.0, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer1.1.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer1.1.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer1.1.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer1.2.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer1.2.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer1.2.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer2.0.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer2.0.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer2.0.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer2.0.downsample.0, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer2.1.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer2.1.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer2.1.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer2.2.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer2.2.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer2.2.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer2.3.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer2.3.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer2.3.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.0.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.0.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.0.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.0.downsample.0, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.1.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.1.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.1.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.2.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.2.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.2.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.3.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.3.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.3.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.4.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.4.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.4.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.5.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.5.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.5.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer4.0.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer4.0.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer4.0.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer4.0.downsample.0, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer4.1.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer4.1.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer4.1.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer4.2.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer4.2.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer4.2.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer fc, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+step 3: 
+Layer conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer1.0.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer1.0.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer1.0.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer1.0.downsample.0, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer1.1.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer1.1.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer1.1.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer1.2.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer1.2.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer1.2.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer2.0.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer2.0.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer2.0.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer2.0.downsample.0, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer2.1.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer2.1.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer2.1.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer2.2.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer2.2.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer2.2.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer2.3.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer2.3.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer2.3.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.0.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.0.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.0.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.0.downsample.0, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.1.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.1.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.1.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.2.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.2.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.2.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.3.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.3.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.3.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.4.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.4.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.4.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.5.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.5.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer3.5.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer4.0.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer4.0.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer4.0.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer4.0.downsample.0, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer4.1.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer4.1.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer4.1.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer4.2.conv1, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer4.2.conv2, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer layer4.2.conv3, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Layer fc, precision switch from 8-bit to 8-bit weight, 8-bit activation.
+Input/outputs cached
+
+Starting ONNX export with onnx 1.11.0...
+****onnx file**** /workspace/develop/CalibTIP/results/resnet50_w8a8.adaquant/resnet.absorb_bn.measure_perC.before_adaquant.onnx
+ONNX export success, saved as /workspace/develop/CalibTIP/results/resnet50_w8a8.adaquant/resnet.absorb_bn.measure_perC.before_adaquant.onnx
+Bernard calculate float point model accuracy before enabling quantization!
+Bernard calculate fixed point model accuracy before training!
+
+Optimize 0:conv1 for 8 bit of shape torch.Size([64, 3, 7, 7])
+
+Run adaquant
+
+MSE before adaquant: 3.778507e-05  RELU True
+MSE after  adaquant: 1.466913e-05
+ End of training layer  conv1 better/total layers= 1 / 1 
+
+
+Optimize 1:layer1.0.conv1 for 8 bit of shape torch.Size([64, 64, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 1.554653e-05  RELU True
+MSE after  adaquant: 1.297160e-05
+ End of training layer  layer1.0.conv1 better/total layers= 2 / 2 
+
+
+Optimize 2:layer1.0.conv2 for 8 bit of shape torch.Size([64, 64, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 5.724312e-06  RELU True
+MSE after  adaquant: 4.782260e-06
+ End of training layer  layer1.0.conv2 better/total layers= 3 / 3 
+
+
+Optimize 3:layer1.0.conv3 for 8 bit of shape torch.Size([256, 64, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 6.846988e-06  RELU False
+MSE after  adaquant: 5.690171e-06
+ End of training layer  layer1.0.conv3 better/total layers= 4 / 4 
+
+
+Optimize 4:layer1.0.downsample.0 for 8 bit of shape torch.Size([256, 64, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 4.649420e-05  RELU False
+MSE after  adaquant: 3.847696e-05
+ End of training layer  layer1.0.downsample.0 better/total layers= 5 / 5 
+
+
+Optimize 5:layer1.1.conv1 for 8 bit of shape torch.Size([64, 256, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 4.146496e-06  RELU True
+MSE after  adaquant: 3.804666e-06
+ End of training layer  layer1.1.conv1 better/total layers= 6 / 6 
+
+
+Optimize 6:layer1.1.conv2 for 8 bit of shape torch.Size([64, 64, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 6.076180e-06  RELU True
+MSE after  adaquant: 4.930319e-06
+ End of training layer  layer1.1.conv2 better/total layers= 7 / 7 
+
+
+Optimize 7:layer1.1.conv3 for 8 bit of shape torch.Size([256, 64, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 8.442552e-06  RELU False
+MSE after  adaquant: 8.208653e-06
+ End of training layer  layer1.1.conv3 better/total layers= 8 / 8 
+
+
+Optimize 8:layer1.2.conv1 for 8 bit of shape torch.Size([64, 256, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 6.816436e-06  RELU True
+MSE after  adaquant: 4.875431e-06
+ End of training layer  layer1.2.conv1 better/total layers= 9 / 9 
+
+
+Optimize 9:layer1.2.conv2 for 8 bit of shape torch.Size([64, 64, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 4.848857e-06  RELU True
+MSE after  adaquant: 4.442752e-06
+ End of training layer  layer1.2.conv2 better/total layers= 10 / 10 
+
+
+Optimize 10:layer1.2.conv3 for 8 bit of shape torch.Size([256, 64, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 1.421053e-05  RELU False
+MSE after  adaquant: 1.378699e-05
+ End of training layer  layer1.2.conv3 better/total layers= 11 / 11 
+
+
+Optimize 11:layer2.0.conv1 for 8 bit of shape torch.Size([128, 256, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 8.378931e-06  RELU True
+MSE after  adaquant: 6.701225e-06
+ End of training layer  layer2.0.conv1 better/total layers= 12 / 12 
+
+
+Optimize 12:layer2.0.conv2 for 8 bit of shape torch.Size([128, 128, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 5.005684e-06  RELU True
+MSE after  adaquant: 3.947165e-06
+ End of training layer  layer2.0.conv2 better/total layers= 13 / 13 
+
+
+Optimize 13:layer2.0.conv3 for 8 bit of shape torch.Size([512, 128, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 8.334581e-06  RELU False
+MSE after  adaquant: 7.174189e-06
+ End of training layer  layer2.0.conv3 better/total layers= 14 / 14 
+
+
+Optimize 14:layer2.0.downsample.0 for 8 bit of shape torch.Size([512, 256, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 1.499100e-05  RELU False
+MSE after  adaquant: 7.473781e-06
+ End of training layer  layer2.0.downsample.0 better/total layers= 15 / 15 
+
+
+Optimize 15:layer2.1.conv1 for 8 bit of shape torch.Size([128, 512, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 8.538467e-07  RELU True
+MSE after  adaquant: 8.102266e-07
+ End of training layer  layer2.1.conv1 better/total layers= 16 / 16 
+
+
+Optimize 16:layer2.1.conv2 for 8 bit of shape torch.Size([128, 128, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 5.377127e-06  RELU True
+MSE after  adaquant: 1.885679e-06
+ End of training layer  layer2.1.conv2 better/total layers= 17 / 17 
+
+
+Optimize 17:layer2.1.conv3 for 8 bit of shape torch.Size([512, 128, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 5.818570e-06  RELU False
+MSE after  adaquant: 5.352362e-06
+ End of training layer  layer2.1.conv3 better/total layers= 18 / 18 
+
+
+Optimize 18:layer2.2.conv1 for 8 bit of shape torch.Size([128, 512, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 5.787843e-06  RELU True
+MSE after  adaquant: 5.070681e-06
+ End of training layer  layer2.2.conv1 better/total layers= 19 / 19 
+
+
+Optimize 19:layer2.2.conv2 for 8 bit of shape torch.Size([128, 128, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 3.630461e-06  RELU True
+MSE after  adaquant: 3.070364e-06
+ End of training layer  layer2.2.conv2 better/total layers= 20 / 20 
+
+
+Optimize 20:layer2.2.conv3 for 8 bit of shape torch.Size([512, 128, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 4.233090e-06  RELU False
+MSE after  adaquant: 3.697961e-06
+ End of training layer  layer2.2.conv3 better/total layers= 21 / 21 
+
+
+Optimize 21:layer2.3.conv1 for 8 bit of shape torch.Size([128, 512, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 5.235750e-06  RELU True
+MSE after  adaquant: 4.507204e-06
+ End of training layer  layer2.3.conv1 better/total layers= 22 / 22 
+
+
+Optimize 22:layer2.3.conv2 for 8 bit of shape torch.Size([128, 128, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 3.231303e-06  RELU True
+MSE after  adaquant: 3.091221e-06
+ End of training layer  layer2.3.conv2 better/total layers= 23 / 23 
+
+
+Optimize 23:layer2.3.conv3 for 8 bit of shape torch.Size([512, 128, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 5.623361e-06  RELU False
+MSE after  adaquant: 6.416110e-06
+ End of training layer  layer2.3.conv3 better/total layers= 23 / 24 
+
+
+Optimize 24:layer3.0.conv1 for 8 bit of shape torch.Size([256, 512, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 9.820534e-06  RELU True
+MSE after  adaquant: 9.315838e-06
+ End of training layer  layer3.0.conv1 better/total layers= 24 / 25 
+
+
+Optimize 25:layer3.0.conv2 for 8 bit of shape torch.Size([256, 256, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 4.779551e-06  RELU True
+MSE after  adaquant: 4.301453e-06
+ End of training layer  layer3.0.conv2 better/total layers= 25 / 26 
+
+
+Optimize 26:layer3.0.conv3 for 8 bit of shape torch.Size([1024, 256, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 8.880390e-06  RELU False
+MSE after  adaquant: 7.840507e-06
+ End of training layer  layer3.0.conv3 better/total layers= 26 / 27 
+
+
+Optimize 27:layer3.0.downsample.0 for 8 bit of shape torch.Size([1024, 512, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 9.873300e-06  RELU False
+MSE after  adaquant: 5.727965e-06
+ End of training layer  layer3.0.downsample.0 better/total layers= 27 / 28 
+
+
+Optimize 28:layer3.1.conv1 for 8 bit of shape torch.Size([256, 1024, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 2.482193e-06  RELU True
+MSE after  adaquant: 2.252098e-06
+ End of training layer  layer3.1.conv1 better/total layers= 28 / 29 
+
+
+Optimize 29:layer3.1.conv2 for 8 bit of shape torch.Size([256, 256, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 6.039103e-06  RELU True
+MSE after  adaquant: 3.867672e-06
+ End of training layer  layer3.1.conv2 better/total layers= 29 / 30 
+
+
+Optimize 30:layer3.1.conv3 for 8 bit of shape torch.Size([1024, 256, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 7.316778e-06  RELU False
+MSE after  adaquant: 5.741200e-06
+ End of training layer  layer3.1.conv3 better/total layers= 30 / 31 
+
+
+Optimize 31:layer3.2.conv1 for 8 bit of shape torch.Size([256, 1024, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 6.485436e-06  RELU True
+MSE after  adaquant: 4.732588e-06
+ End of training layer  layer3.2.conv1 better/total layers= 31 / 32 
+
+
+Optimize 32:layer3.2.conv2 for 8 bit of shape torch.Size([256, 256, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 1.750430e-06  RELU True
+MSE after  adaquant: 1.579325e-06
+ End of training layer  layer3.2.conv2 better/total layers= 32 / 33 
+
+
+Optimize 33:layer3.2.conv3 for 8 bit of shape torch.Size([1024, 256, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 2.923273e-06  RELU False
+MSE after  adaquant: 2.780701e-06
+ End of training layer  layer3.2.conv3 better/total layers= 33 / 34 
+
+
+Optimize 34:layer3.3.conv1 for 8 bit of shape torch.Size([256, 1024, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 5.035311e-06  RELU True
+MSE after  adaquant: 4.685294e-06
+ End of training layer  layer3.3.conv1 better/total layers= 34 / 35 
+
+
+Optimize 35:layer3.3.conv2 for 8 bit of shape torch.Size([256, 256, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 3.129335e-06  RELU True
+MSE after  adaquant: 2.804290e-06
+ End of training layer  layer3.3.conv2 better/total layers= 35 / 36 
+
+
+Optimize 36:layer3.3.conv3 for 8 bit of shape torch.Size([1024, 256, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 3.605735e-06  RELU False
+MSE after  adaquant: 3.437397e-06
+ End of training layer  layer3.3.conv3 better/total layers= 36 / 37 
+
+
+Optimize 37:layer3.4.conv1 for 8 bit of shape torch.Size([256, 1024, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 1.822564e-05  RELU True
+MSE after  adaquant: 8.417669e-06
+ End of training layer  layer3.4.conv1 better/total layers= 37 / 38 
+
+
+Optimize 38:layer3.4.conv2 for 8 bit of shape torch.Size([256, 256, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 4.222090e-06  RELU True
+MSE after  adaquant: 3.175255e-06
+ End of training layer  layer3.4.conv2 better/total layers= 38 / 39 
+
+
+Optimize 39:layer3.4.conv3 for 8 bit of shape torch.Size([1024, 256, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 6.510233e-06  RELU False
+MSE after  adaquant: 5.488810e-06
+ End of training layer  layer3.4.conv3 better/total layers= 39 / 40 
+
+
+Optimize 40:layer3.5.conv1 for 8 bit of shape torch.Size([256, 1024, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 3.298544e-05  RELU True
+MSE after  adaquant: 9.763859e-06
+ End of training layer  layer3.5.conv1 better/total layers= 40 / 41 
+
+
+Optimize 41:layer3.5.conv2 for 8 bit of shape torch.Size([256, 256, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 7.516818e-06  RELU True
+MSE after  adaquant: 3.934297e-06
+ End of training layer  layer3.5.conv2 better/total layers= 41 / 42 
+
+
+Optimize 42:layer3.5.conv3 for 8 bit of shape torch.Size([1024, 256, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 3.344404e-05  RELU False
+MSE after  adaquant: 1.340166e-05
+ End of training layer  layer3.5.conv3 better/total layers= 42 / 43 
+
+
+Optimize 43:layer4.0.conv1 for 8 bit of shape torch.Size([512, 1024, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 5.346841e-06  RELU True
+MSE after  adaquant: 4.675917e-06
+ End of training layer  layer4.0.conv1 better/total layers= 43 / 44 
+
+
+Optimize 44:layer4.0.conv2 for 8 bit of shape torch.Size([512, 512, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 4.536518e-06  RELU True
+MSE after  adaquant: 4.270327e-06
+ End of training layer  layer4.0.conv2 better/total layers= 44 / 45 
+
+
+Optimize 45:layer4.0.conv3 for 8 bit of shape torch.Size([2048, 512, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 1.846505e-04  RELU False
+MSE after  adaquant: 1.114736e-04
+ End of training layer  layer4.0.conv3 better/total layers= 45 / 46 
+
+
+Optimize 46:layer4.0.downsample.0 for 8 bit of shape torch.Size([2048, 1024, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 6.294772e-05  RELU False
+MSE after  adaquant: 5.567490e-05
+ End of training layer  layer4.0.downsample.0 better/total layers= 46 / 47 
+
+
+Optimize 47:layer4.1.conv1 for 8 bit of shape torch.Size([512, 2048, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 3.808085e-06  RELU True
+MSE after  adaquant: 3.157820e-06
+ End of training layer  layer4.1.conv1 better/total layers= 47 / 48 
+
+
+Optimize 48:layer4.1.conv2 for 8 bit of shape torch.Size([512, 512, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 4.870654e-06  RELU True
+MSE after  adaquant: 2.614796e-06
+ End of training layer  layer4.1.conv2 better/total layers= 48 / 49 
+
+
+Optimize 49:layer4.1.conv3 for 8 bit of shape torch.Size([2048, 512, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 8.741506e-05  RELU False
+MSE after  adaquant: 6.898681e-05
+ End of training layer  layer4.1.conv3 better/total layers= 49 / 50 
+
+
+Optimize 50:layer4.2.conv1 for 8 bit of shape torch.Size([512, 2048, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 5.335297e-06  RELU True
+MSE after  adaquant: 4.988485e-06
+ End of training layer  layer4.2.conv1 better/total layers= 50 / 51 
+
+
+Optimize 51:layer4.2.conv2 for 8 bit of shape torch.Size([512, 512, 3, 3])
+
+Run adaquant
+
+MSE before adaquant: 2.588363e-06  RELU True
+MSE after  adaquant: 2.536961e-06
+ End of training layer  layer4.2.conv2 better/total layers= 51 / 52 
+
+
+Optimize 52:layer4.2.conv3 for 8 bit of shape torch.Size([2048, 512, 1, 1])
+
+Run adaquant
+
+MSE before adaquant: 2.671955e-04  RELU False
+MSE after  adaquant: 2.360212e-04
+ End of training layer  layer4.2.conv3 better/total layers= 52 / 53 
+
+
+Optimize 53:fc for 8 bit of shape torch.Size([1000, 2048])
+
+Run adaquant
+
+MSE before adaquant: 6.155797e-03  RELU False
+MSE after  adaquant: 1.721703e-03
+ End of training layer  fc better/total layers= 53 / 54 
+
