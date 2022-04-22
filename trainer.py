@@ -304,21 +304,21 @@ class Trainer(object):
             meters['step'].update(time.time() - end)
             end = time.time()
 
-            if i % self.print_freq == 0:
-                report = str('{phase} - Epoch: [{0}][{1}/{2}]\t'
-                             'Time {meters[step].val:.3f} ({meters[step].avg:.3f})\t'
-                             'Data {meters[data].val:.3f} ({meters[data].avg:.3f})\t'
-                             'Loss {meters[loss].val:.7f} ({meters[loss].avg:.7f})\t'
-                             'Prec@1 {meters[prec1].val:.6f} ({meters[prec1].avg:.6f})\t'
-                             'Prec@5 {meters[prec5].val:.6f} ({meters[prec5].avg:.6f})\t'
-                             .format(
-                                 self.epoch, i, len(data_loader),
-                                 phase='TRAINING' if training else 'EVALUATING',
-                                 meters=meters))
-                if 'grad' in meters.keys():
-                    report += 'Grad {meters[grad].val:.3f} ({meters[grad].avg:.3f})'\
-                        .format(meters=meters)
-                logging.info(report)
+            # if i % self.print_freq == 0:
+            #     report = str('{phase} - Epoch: [{0}][{1}/{2}]\t'
+            #                  'Time {meters[step].val:.3f} ({meters[step].avg:.3f})\t'
+            #                  'Data {meters[data].val:.3f} ({meters[data].avg:.3f})\t'
+            #                  'Loss {meters[loss].val:.7f} ({meters[loss].avg:.7f})\t'
+            #                  'Prec@1 {meters[prec1].val:.6f} ({meters[prec1].avg:.6f})\t'
+            #                  'Prec@5 {meters[prec5].val:.6f} ({meters[prec5].avg:.6f})\t'
+            #                  .format(
+            #                      self.epoch, i, len(data_loader),
+            #                      phase='TRAINING' if training else 'EVALUATING',
+            #                      meters=meters))
+            #     if 'grad' in meters.keys():
+            #         report += 'Grad {meters[grad].val:.3f} ({meters[grad].avg:.3f})'\
+            #             .format(meters=meters)
+            #     logging.info(report)
             if num_steps is not None and i >= num_steps or (self.update_only_th and training and i>2):
                 break
         if self.pruner is not None:
