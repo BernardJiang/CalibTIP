@@ -12,7 +12,7 @@ import torch.utils.data
 import models
 import torch.distributed as dist
 from data import DataRegime
-from utils.log import setup_logging, ResultsLog, save_checkpoint
+from utils.log import setup_logging, ResultsLog, save_checkpoint, get_linenumber, get_gpu_memory_map, check_memory_usage
 from utils.optim import OptimRegime
 from utils.cross_entropy import CrossEntropyLoss
 from utils.misc import torch_dtypes
@@ -42,7 +42,17 @@ from torch.onnx import ONNX_ARCHIVE_MODEL_PROTO_NAME, ExportTypes, OperatorExpor
 import copy
 from models.modules.quantize import QConv2d, QLinear
 import json
+from itertools import zip_longest
+from utils.layer_sensativity import search_replace_layer_from_json
+from pynvml import *
+import re
+from torch.utils.tensorboard import SummaryWriter
 
+
+
+print(__file__, get_linenumber())
+get_gpu_memory_map()
+check_memory_usage()
 
 model_names = sorted(name for name in models.__dict__
                      if name.islower() and not name.startswith("__")
@@ -50,7 +60,7 @@ model_names = sorted(name for name in models.__dict__
 
 parser = argparse.ArgumentParser(description='PyTorch ConvNet Training')
 
-parser.add_argument('--results-dir', metavar='RESULTS_DIR', default='./results',
+parser.add_argument('--results-dir', metavar='RESULTS_DIR', default='/workspace/develop/CalibTIP/results',
                     help='results dir')
 parser.add_argument('--save', metavar='SAVE', default='',
                     help='saved folder')
@@ -202,6 +212,11 @@ parser.add_argument('--cmp', type=str, help='compression_ratio')
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
+def grouper(n, iterable, fillvalue=None):
+    "grouper(3, 'ABCDEFG', 'x') --> ABC DEF Gxx"
+    args = [iter(iterable)] * n
+    return zip_longest(fillvalue=fillvalue, *args)
+
 def saveacc(args, val_results, acctype):
     if args.res_log is not None:
         if not os.path.exists(args.res_log):
@@ -221,7 +236,7 @@ def saveacc(args, val_results, acctype):
 
 
 def save2onnx(model_orig, img, onnx_export_file, disable_quantization=False):
-
+    return
     try:
         import onnx
         
@@ -254,7 +269,7 @@ def save2onnx(model_orig, img, onnx_export_file, disable_quantization=False):
                             export_params=True,        # store the trained parameter weights inside the model file
                             opset_version=11,          # the ONNX version to export the model to
                             do_constant_folding=False,  # whether to execute constant folding for optimization
-                            input_names = ['images'],   # the model's input names
+                            input_names = ['input'],   # the model's input names
                             output_names = ['classes', 'boxes'] if y is None else ['output'], # the model's output names
                             training=TrainingMode.PRESERVE,
                             keep_initializers_as_inputs=True,
@@ -296,7 +311,11 @@ def main_worker(args):
     save_path = os.path.join(args.results_dir, args.save)
 
     args.distributed = args.local_rank >= 0 or args.world_size > 1
-
+    
+    print(__file__, get_linenumber())
+    get_gpu_memory_map()
+    check_memory_usage()
+    
     if args.distributed:
         dist.init_process_group(backend=args.dist_backend, init_method=args.dist_init,
                                 world_size=args.world_size, rank=args.local_rank)
@@ -334,7 +353,11 @@ def main_worker(args):
     model = models.__dict__[args.model]
     dataset_type = 'imagenet' if args.dataset =='imagenet_calib' else args.dataset
     model_config = {'dataset': dataset_type}
-
+    
+    print(__file__, get_linenumber())
+    get_gpu_memory_map()
+    check_memory_usage()
+    
     if args.model_config != '':
         if isinstance(args.model_config, dict):
             for k, v in args.model_config.items():
@@ -405,6 +428,10 @@ def main_worker(args):
     num_parameters = sum([l.nelement() for l in model.parameters()])
     logging.info("number of parameters: %d", num_parameters)
 
+    print(__file__, get_linenumber())
+    get_gpu_memory_map()
+    check_memory_usage()
+
     # optionally resume from a checkpoint
     if args.evaluate:
         if not os.path.isfile(args.evaluate):
@@ -423,7 +450,10 @@ def main_worker(args):
             model.load_state_dict(checkpoint,strict=False)
             logging.info("loaded checkpoint '%s'",args.evaluate)
           
-
+    print(__file__, get_linenumber())
+    get_gpu_memory_map()
+    check_memory_usage()
+    
     if args.resume:
         checkpoint_file = args.resume
         if os.path.isdir(checkpoint_file):
@@ -452,6 +482,11 @@ def main_worker(args):
        criterion = nn.KLDivLoss(reduction='mean') 
     criterion.to(args.device, dtype)
     model.to(args.device, dtype)
+
+    print("Load the model")
+    print(get_linenumber())
+    get_gpu_memory_map()
+    check_memory_usage()
 
     # Batch-norm should always be done in float
     if 'half' in args.dtype:
@@ -513,10 +548,10 @@ def main_worker(args):
                           defaults={'datasets_path': args.datasets_dir, 'name': dataset_type, 'split': 'val', 'augment': False,
                                     'input_size': args.input_size, 'batch_size': args.eval_batch_size, 'shuffle': True,
                                     'num_workers': args.workers, 'pin_memory': True, 'drop_last': False})
-
-    # print("Bernard!")
-    # results = trainer.validate(train_data.get_loader(),rec=args.rec)
-    # logging.info(results)
+    print("Load the data")
+    print(__file__, get_linenumber())
+    get_gpu_memory_map()
+    check_memory_usage()
 
     if args.evaluate or args.resume:
         from utils.layer_sensativity import search_replace_layer , extract_save_quant_state_dict, search_replace_layer_from_dict
@@ -527,11 +562,16 @@ def main_worker(args):
             model = search_replace_layer(model, args.names_sp_layers, num_bits_activation=args.nbits_act,
                                          num_bits_weight=args.nbits_weight)
 
+    print("Before adaquant")    
+    print(get_linenumber())
+    get_gpu_memory_map()
+    check_memory_usage()
     cached_input_output = {}
     quant_keys = ['.weight', '.bias', '.equ_scale', '.quantize_input.running_zero_point', '.quantize_input.running_range',
          '.quantize_weight.running_zero_point', '.quantize_weight.running_range','.quantize_input1.running_zero_point', '.quantize_input1.running_range',
          '.quantize_input2.running_zero_point', '.quantize_input2.running_range']        
     if args.adaquant:
+        writer = SummaryWriter()
         def Qhook(name,module, input, output):
             if module not in cached_qinput:
                 cached_qinput[module] = []
@@ -587,10 +627,16 @@ def main_worker(args):
         logging.info("Val:")
         logging.info(val_results)
         
+        print("Before adaquant training")
+        print(__file__, get_linenumber())
+        get_gpu_memory_map()
+        check_memory_usage()
         
 
-        mse_df = pd.DataFrame(index=np.arange(len(cached_input_output)), columns=['name', 'bit', 'shape', 'mse_before', 'mse_after', 'in_shape', 'out_shape'])
+        mse_df = pd.DataFrame(index=np.arange(len(cached_input_output)), columns=['name', 'bit', 'shape', 'mse_before', 'mse_after'])
         print_freq = 100
+        better_layer_count = 0
+        total_layer_count = 0
         for i, layer in enumerate(cached_input_output):
             if i>0 and args.seq_adaquant:
                 count = 0
@@ -607,9 +653,9 @@ def main_worker(args):
                 handler.remove()            
             print("\nOptimize {}:{} for {} bit of shape {}".format(i, layer.name, layer.num_bits, layer.weight.shape))
             mse_before, mse_after, snr_before, snr_after, kurt_in, kurt_w = \
-                optimize_layer(layer, cached_input_output[layer], args.optimize_weights, batch_size=args.batch_size, model_name=args.model)
-            print("\nMSE before optimization: {}".format(mse_before))
-            print("MSE after optimization:  {}".format(mse_after))
+                optimize_layer(layer, cached_input_output[layer], args.optimize_weights, batch_size=args.batch_size, model_name=args.model, writer=writer)
+            # print("\nMSE before optimization: {:e}".format(mse_before))
+            # print("MSE after  optimization: {:e}".format(mse_after))
             mse_df.loc[i, 'name'] = layer.name
             mse_df.loc[i, 'bit'] = layer.num_bits
             mse_df.loc[i, 'shape'] = str(layer.weight.shape)
@@ -619,6 +665,13 @@ def main_worker(args):
             mse_df.loc[i, 'snr_after'] = snr_after
             mse_df.loc[i, 'kurt_in'] = kurt_in
             mse_df.loc[i, 'kurt_w'] = kurt_w
+            # print(__file__, get_linenumber())
+            # get_gpu_memory_map()
+            # check_memory_usage()
+            total_layer_count += 1
+            if mse_after < mse_before:
+                better_layer_count +=1
+            print(" End of training layer ", layer.name, "better/total layers=", better_layer_count, "/", total_layer_count, "\n")
 
         mse_csv = args.evaluate + '.mse.csv'
         mse_df.to_csv(mse_csv)
@@ -637,13 +690,34 @@ def main_worker(args):
         
         input_image = torch.zeros(1,3,224, 224).cuda()
         save2onnx(model, input_image, filename+'.onnx', True)  #True must be the last command because it modifies the model.
+        
+        writer.close()            
 
     elif args.per_layer:
         # Store input/output for all quantizable layers
         calib_all_8_results = trainer.validate(train_data.get_loader())
-        print('########## All 8bit results ###########', calib_all_8_results)
+        print('Train: ########### All 8bit results ###########')
+        logging.info(calib_all_8_results)
         int8_opt_model_state_dict = torch.load(args.int8_opt_model_path)
         int4_opt_model_state_dict = torch.load(args.int4_opt_model_path)
+        # calib_all_8_results = trainer.validate(train_data.get_loader())
+        # print('Train: ########### All 8bit results ###########')
+        # logging.info(calib_all_8_results)
+
+        # model.load_state_dict(int4_opt_model_state_dict,strict=False)
+        # calib_all_8_results = trainer.validate(train_data.get_loader())
+        # print('Train: ########### All 4bit results ###########', calib_all_8_results)
+
+        # model.load_state_dict(int8_opt_model_state_dict,strict=False)
+        # calib_all_8_results = trainer.validate(train_data.get_loader())
+        # print('Train: ########### All 8bit results ###########', calib_all_8_results)
+
+        # model.load_state_dict(int4_opt_model_state_dict,strict=False)
+        # calib_all_8_results = trainer.validate(train_data.get_loader())
+        # print('Train: ########### All 4bit results ###########', calib_all_8_results)
+
+        mse_csv = re.sub('.adaquant$', '.mse.csv', args.evaluate)
+        mse_df = pd.read_csv(mse_csv)
         
         per_layer_results={}
         args.names_sp_layers =  [key[:-7] for key in model.state_dict().keys() if 'weight' in key and 'running' not in key and 'quantize' not in key and ('conv' in key or 'downsample.0' in key or 'fc' in key)]
@@ -657,6 +731,7 @@ def main_worker(args):
             model = search_replace_layer(model, [layer], num_bits_activation=8, num_bits_weight=8)
             print('finished %d out of %d'%(layer_idx,len(args.names_sp_layers)))
             logging.info(layer)
+            logging.info("Train:")
             logging.info(calib_results)
             per_layer_results[layer] = {'base precision': 8, 'replaced precision': args.nbits_act, 'replaced layer': layer, 'accuracy': calib_results['prec1'] , 'loss': calib_results['loss'], 'Parameters Size [Elements]':  model.state_dict()[layer+'.weight'].numel() , 'MACs': '-'}
         
@@ -710,9 +785,15 @@ def main_worker(args):
                 logging.info(fp_names)
         if args.eval_on_train:
             mixedIP_results = trainer.validate(train_data.get_loader())
+            logging.info("Train:")
         else:
             mixedIP_results = trainer.validate(val_data.get_loader())
-        torch.save({'state_dict': model.state_dict(), 'config-ip': args.names_sp_layers},args.evaluate+'.mixed-ip-results.'+args.suffix)
+            logging.info("Val:")
+        ptfilename = args.evaluate+'.mixed-ip-results.'+args.suffix
+        torch.save({'state_dict': model.state_dict(), 'config-ip': args.names_sp_layers}, ptfilename)
+        input_image = torch.zeros(1,3,224, 224).cuda()
+        save2onnx(model, input_image, ptfilename+'.onnx', True)
+
         logging.info(mixedIP_results)
         acc = mixedIP_results['prec1']
         loss = mixedIP_results['loss']
@@ -727,6 +808,7 @@ def main_worker(args):
                                          num_bits_weight=args.nbits_weight)
 
         val_results = trainer.validate(val_data.get_loader())
+        logging.info("Val:")
         logging.info(val_results)
     
         saveacc(args, val_results, 'before_bn_tuning')
@@ -760,6 +842,7 @@ def main_worker(args):
         torch.save(model.state_dict(), filename)
 
         val_results = trainer.validate(val_data.get_loader())
+        logging.info("Val:")
         logging.info(val_results)
     
         saveacc(args, val_results, 'bn_tuning')
@@ -769,6 +852,7 @@ def main_worker(args):
 
     elif args.bias_tuning:
         val_results = trainer.validate(val_data.get_loader())
+        logging.info("Val:")
         logging.info(val_results)
 
         saveacc(args, val_results, 'before_bias_tuning')
@@ -788,6 +872,7 @@ def main_worker(args):
                 logging.info(train_results)
 
         val_results = trainer.validate(val_data.get_loader())
+        logging.info("Val:")
         logging.info(val_results)
         saveacc(args, val_results, 'bias_tuning')
 
@@ -802,28 +887,26 @@ def main_worker(args):
         # print('Please Choose one of the following ....', model_config['measure'])
         if model_config['measure']:
             results = trainer.validate(train_data.get_loader(),rec=args.rec)
-            # results = trainer.validate(val_data.get_loader())
-            # print(results)
+            logging.info("Train:")
+            logging.info(results)
+
+            filename = args.evaluate+'.measure'
+            if 'perC' in args.model_config: filename += '_perC'
+            torch.save(model.state_dict(),filename)
+            input_image = torch.zeros(1,3,224, 224).cuda()
+            save2onnx(model, input_image, filename+'.onnx', True)  #True must be the last command because it modifies the model.
+
         else: 
             if args.evaluate_init_configuration:   
                 results = trainer.validate(val_data.get_loader())
+                logging.info("Val:")
+                logging.info(results)
                 saveacc(args, results, 'base')
            
         if args.extract_bias_mean:
             file_name  = 'bias_mean_measure' if model_config['measure'] else  'bias_mean_quant'
             torch.save(trainer.bias_mean,file_name)
-        if model_config['measure']:
-            filename = args.evaluate+'.measure'
-            if 'perC' in args.model_config: filename += '_perC'
-            torch.save(model.state_dict(),filename)
-            logging.info(results)
             
-            input_image = torch.zeros(1,3,224, 224).cuda()
-            save2onnx(model, input_image, filename+'.onnx', True)  #True must be the last command because it modifies the model.
-        
-        else:
-            if args.evaluate_init_configuration:
-                logging.info(results)
     return acc, loss
 if __name__ == '__main__':
     main()

@@ -131,12 +131,12 @@ def optimize_layer(layer, in_out, optimize_weights=False, batch_size=100, model_
             relu_condition = lambda layer_name: layer_name.endswith('0.0') or layer_name.endswith('0.1') or layer_name.endswith('18.0')
 
         if relu_condition(layer.name):
-            mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=1000, lr1=1e-5, lr2=1e-4, relu=True) # batch_size=batch_size,
+            mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=100, lr1=1e-5, lr2=1e-4, relu=True) # batch_size=batch_size,
         else:
-            mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=1000, lr1=1e-5, lr2=1e-4) #, batch_size=batch_size
+            mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=100, lr1=1e-5, lr2=1e-4) #, batch_size=batch_size
         mse_before_opt = mse_before
-        print("MSE before adaquant: {}".format(mse_before))
-        print("MSE after adaquant: {}".format(mse_after))
+        print("\nMSE before adaquant: {:e}  RELU {}".format(mse_before, relu_flag))
+        print("MSE after  adaquant: {:e}".format(mse_after))
         torch.cuda.empty_cache()
     else:
         mse_before, mse_after = optimize_qparams(layer, cached_inps, cached_outs, test_inp, test_out)
