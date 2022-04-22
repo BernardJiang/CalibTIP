@@ -733,7 +733,7 @@ def main_worker(args):
                 cached_input_output[layer][0] = (cached_qinput[layer][0],cached_input_output[layer][0][1])
                 handler.remove()    
             
-            print(" ########################## Before training layer ", layer.name)
+            # print(" ########################## Before training layer ", layer.name)
             # print(__file__, get_linenumber())
             # get_gpu_memory_map()
             # check_memory_usage()
@@ -761,7 +761,7 @@ def main_worker(args):
             total_layer_count += 1
             if mse_after < mse_before:
                 better_layer_count +=1
-            print(" ----------------------------------- End of training layer ", layer.name, "better layers=", better_layer_count, ". total layers=", total_layer_count, "\n")
+            print(" End of training layer ", layer.name, "better/total layers=", better_layer_count, "/", total_layer_count, "\n")
 
         mse_csv = args.evaluate + '.mse.csv'
         mse_df.to_csv(mse_csv)
