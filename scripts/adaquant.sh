@@ -18,23 +18,19 @@ fi
 # download and absorb_bn resnet50 and
 echo "step 1: " 
 # python main.py --model $model --onnxinput /workspace/develop/CalibTIP/modelonnx/resnet18v1.onnx  --save $workdir -b 128   --model-config "{'batch_norm': False}"
-python main.py --model $model   --save $workdir -b 128  -lfv $model_vis --model-config "{'batch_norm': False}"
+echo python main.py --model $model   --save $workdir -b 128  -lfv $model_vis --model-config "{'batch_norm': False}"
              
 # measure range and zero point on calibset
 echo "step 2: " 
-python main.py --model $model  --nbits_weight $nbits_weight --nbits_act $nbits_act --num-sp-layers $num_sp_layers --evaluate $resdir/$workdir/$model.absorb_bn --model-config "{'batch_norm': False,'measure': True, 'perC': $perC}" -b 128 --rec --dataset imagenet_calib --datasets-dir $datasets_dir -lpj $resdir/$workdir/$6
+echo python main.py --model $model  --nbits_weight $nbits_weight --nbits_act $nbits_act --num-sp-layers $num_sp_layers --evaluate $resdir/$workdir/$model.absorb_bn --model-config "{'batch_norm': False,'measure': True, 'perC': $perC}" -b 128 --rec --dataset imagenet_calib --datasets-dir $datasets_dir -lpj $resdir/$workdir/$6
 
-
+# if $5 is True, then do adauqnat.
 if [ "$5" = True ]; then
 echo "step 3: " 
 # Run adaquant to minimize MSE of the output with respect to range, zero point and small perturations in parameters
-# --seq_adaquant
-    if [ -n "$7" ]; then 
-        # echo "six is $6" -lpj results/$workdir/resnet_adaquant.piano.kdp530.scaled.onnx.json
-        python main.py --optimize-weights  --nbits_weight $nbits_weight --nbits_act $nbits_act  --num-sp-layers $num_sp_layers  --model $model -b 32 --evaluate $resdir/$workdir/$model.absorb_bn.measure$perC_suffix --model-config "{'batch_norm': False,'measure': False, 'perC': $perC}" --dataset imagenet_calib --datasets-dir $datasets_dir --adaquant --res_log $resdir/$workdir/$model.absorb_bn.measure$perC_suffix.adaquant.csv "$7" 
-    else
-        # echo "six not $6"  -lpj results/$workdir/resnet_adaquant.piano.kdp530.scaled.onnx.json
-        python main.py --optimize-weights  --nbits_weight $nbits_weight --nbits_act $nbits_act  --num-sp-layers $num_sp_layers  --model $model -b 32 --evaluate $resdir/$workdir/$model.absorb_bn.measure$perC_suffix --model-config "{'batch_norm': False,'measure': False, 'perC': $perC}" --dataset imagenet_calib --datasets-dir $datasets_dir --adaquant --res_log $resdir/$workdir/$model.absorb_bn.measure$perC_suffix.adaquant.csv
-    fi
+  export seq_adaquant_flag=''
+  if [ -n "$7" ]; then 
+    seq_adaquant_flag='--seq_adaquant'
+  fi
+  python main.py --optimize-weights  --nbits_weight $nbits_weight --nbits_act $nbits_act  --num-sp-layers $num_sp_layers  --model $model -b 32 --evaluate $resdir/$workdir/$model.absorb_bn.measure$perC_suffix --model-config "{'batch_norm': False,'measure': False, 'perC': $perC}" --dataset imagenet_calib --datasets-dir $datasets_dir --adaquant --res_log $resdir/$workdir/$model.absorb_bn.measure$perC_suffix.adaquant.csv $seq_adaquant_flag
 fi
-
