@@ -2,7 +2,7 @@
 # ln -sf ../results.backup/results.20211221.parallel results
 sh scripts/adaquant.sh mobilenet_v2 mobilenet_v2 4 8 True mobilenetv2_adaquant.piano.kdp530.scaled.onnx.json
 sh scripts/adaquant.sh mobilenet_v2 mobilenet_v2 8 8 True mobilenetv2_adaquant.piano.kdp530.scaled.onnx.json
-# sh scripts/integer-programing.sh mobilenet_v2 mobilenet_v2 4 8 8 8 50 loss True
+sh scripts/integer-programing.sh mobilenet_v2 mobilenet_v2 4 8 8 8 50 loss True
 
 # # Uncomment to run first configuration only
 # #for cfg_idx in 0
