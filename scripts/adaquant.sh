@@ -18,11 +18,11 @@ fi
 # download and absorb_bn resnet50 and
 echo "step 1: " 
 # python main.py --model $model --onnxinput /workspace/develop/CalibTIP/modelonnx/resnet18v1.onnx  --save $workdir -b 128   --model-config "{'batch_norm': False}"
-echo python main.py --model $model   --save $workdir -b 128  -lfv $model_vis --model-config "{'batch_norm': False}"
+python main.py --model $model   --save $workdir -b 128  -lfv $model_vis --model-config "{'batch_norm': False}"
              
 # measure range and zero point on calibset
 echo "step 2: " 
-echo python main.py --model $model  --nbits_weight $nbits_weight --nbits_act $nbits_act --num-sp-layers $num_sp_layers --evaluate $resdir/$workdir/$model.absorb_bn --model-config "{'batch_norm': False,'measure': True, 'perC': $perC}" -b 128 --rec --dataset imagenet_calib --datasets-dir $datasets_dir -lpj $resdir/$workdir/$6
+python main.py --model $model  --nbits_weight $nbits_weight --nbits_act $nbits_act --num-sp-layers $num_sp_layers --evaluate $resdir/$workdir/$model.absorb_bn --model-config "{'batch_norm': False,'measure': True, 'perC': $perC}" -b 128 --rec --dataset imagenet_calib --datasets-dir $datasets_dir -lpj $resdir/$workdir/$6
 
 # if $5 is True, then do adauqnat.
 if [ "$5" = True ]; then
