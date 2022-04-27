@@ -229,7 +229,7 @@ def saveacc(args, val_results, acctype):
 
 
 def save2onnx(model_orig, img, onnx_export_file, disable_quantization=False):
-	return
+	# return
     try:
         import onnx
         
