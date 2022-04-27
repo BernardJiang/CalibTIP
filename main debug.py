@@ -679,6 +679,9 @@ def main_worker(args):
         filename = args.evaluate + '.adaquant'
         torch.save(model.state_dict(), filename)
 
+        input_image = torch.zeros(1,3,224, 224).cuda()
+        save2onnx(model, input_image, filename+'.onnx', True)
+
         train_data = None
         cached_input_output = None
         val_results = trainer.validate(val_data.get_loader())
@@ -848,7 +851,7 @@ def main_worker(args):
         saveacc(args, val_results, 'bn_tuning')
 
         input_image = torch.zeros(1,3,224, 224).cuda()
-        save2onnx(model, input_image, filename+'.onnx', True)  #True must be the last command because it modifies the model.
+        save2onnx(model, input_image, filename+'.onnx', True)
 
     elif args.bias_tuning:
         val_results = trainer.validate(val_data.get_loader())
@@ -880,7 +883,7 @@ def main_worker(args):
         print("Save model to: {}".format(filename))
         torch.save(model.state_dict(), filename)
         input_image = torch.zeros(1,3,224, 224).cuda()
-        save2onnx(model, input_image, filename+'.onnx', True)  #True must be the last command because it modifies the model.
+        save2onnx(model, input_image, filename+'.onnx', True)
 
     else:
         # model_config['measure'] = True

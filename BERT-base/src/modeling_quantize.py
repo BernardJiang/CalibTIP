@@ -133,34 +133,23 @@ class UniformQuantize(InplaceFunction):
             qparams = calculate_qparams(
                 input, num_bits=num_bits, flatten_dims=flatten_dims, reduce_dim=reduce_dim)
 
-        # zero_point = qparams.zero_point
-        # num_bits = qparams.num_bits
-        # qmin = -(2.**(num_bits - 1)) if signed else 0.
-        # qmax = qmin + 2.**num_bits - 1.
-        # running_range=qparams.range.clamp(min=1e-6,max=1e5)
-        # scale = running_range / (qmax - qmin)
-        
-        # running_zero_point_round = Round().apply(qmin-zero_point/scale,False)
-        # zero_point = (qmin-running_zero_point_round.clamp(qmin,qmax))*scale    
-        # output.add_(qmin * scale - zero_point).div_(scale)
-
-
-        qmin = -(2.**(num_bits-1) - 1.)
-        qmax = 2.**(num_bits-1) - 1.
+        zero_point = qparams.zero_point
+        num_bits = qparams.num_bits
+        qmin = -(2.**(num_bits - 1)) if signed else 0.
+        qmax = qmin + 2.**num_bits - 1.
         running_range=qparams.range.clamp(min=1e-6,max=1e5)
-        scale = running_range / qmax
-        output.div_(scale)
-
-
+        scale = running_range / (qmax - qmin)
+        running_zero_point_round = Round().apply(qmin-zero_point/scale,False)
+        zero_point = (qmin-running_zero_point_round.clamp(qmin,qmax))*scale    
+        output.add_(qmin * scale - zero_point).div_(scale)
         if stochastic:
             noise = output.new(output.shape).uniform_(-0.5, 0.5)
             output.add_(noise)
         # quantize
         output.clamp_(qmin, qmax).round_()
         if dequantize:
-            # output.mul_(scale).add_(
-            #     zero_point - qmin * scale)  # dequantize
-            output.mul_(scale)  # dequantize
+            output.mul_(scale).add_(
+                zero_point - qmin * scale)  # dequantize
         return output
 
     @staticmethod
@@ -250,31 +239,22 @@ def quantize_with_grad(input, num_bits=None, qparams=None, flatten_dims=_DEFAULT
             input, num_bits=num_bits, flatten_dims=flatten_dims, reduce_dim=reduce_dim)
     zero_point = qparams.zero_point
     num_bits = qparams.num_bits
-    
-    # qmin = -(2.**(num_bits - 1)) if signed else 0.
-    # qmax = qmin + 2.**num_bits - 1.
-    # # ZP quantization for HW compliance
-    # running_range=qparams.range.clamp(min=1e-6,max=1e5)
-    # scale = running_range / (qmax - qmin)
-    # running_zero_point_round = Round().apply(qmin-zero_point/scale,False)
-    # zero_point = (qmin-running_zero_point_round.clamp(qmin,qmax))*scale
-    # output.add_(qmin * scale - zero_point).div_(scale)
-
-    qmin = -(2.**(num_bits-1) - 1.)
-    qmax = 2.**(num_bits-1) - 1.
+    qmin = -(2.**(num_bits - 1)) if signed else 0.
+    qmax = qmin + 2.**num_bits - 1.
+    # ZP quantization for HW compliance
     running_range=qparams.range.clamp(min=1e-6,max=1e5)
-    scale = running_range / qmax 
-    output.div_(scale)
-    
+    scale = running_range / (qmax - qmin)
+    running_zero_point_round = Round().apply(qmin-zero_point/scale,False)
+    zero_point = (qmin-running_zero_point_round.clamp(qmin,qmax))*scale
+    output.add_(qmin * scale - zero_point).div_(scale)
     if stochastic:
         noise = output.new(output.shape).uniform_(-0.5, 0.5)
         output.add_(noise)
     # quantize
     output = Round().apply(output.clamp_(qmin, qmax),inplace)
     if dequantize:
-            # output.mul_(scale).add_(
-            #     zero_point - qmin * scale)  # dequantize
-            output.mul_(scale)  # dequantize
+        output.mul_(scale).add_(
+            zero_point - qmin * scale)  # dequantize
     return output
 
 def dequantize(input, num_bits=None, qparams=None,signed=False, inplace=False):
@@ -285,17 +265,11 @@ def dequantize(input, num_bits=None, qparams=None,signed=False, inplace=False):
         output = input.clone()
     zero_point = qparams.zero_point
     num_bits = qparams.num_bits
-    # qmin = -(2.**(num_bits - 1)) if signed else 0.
-    # qmax = qmin + 2.**num_bits - 1.
-    # scale = qparams.range / (qmax - qmin)        
-    # output.mul_(scale).add_(
-    #     zero_point - qmin * scale)  # dequantize
-
-    qmin = -(2.**(num_bits-1) - 1.)
-    qmax = 2.**(num_bits-1) - 1.
-    scale = qparams.range / qmax 
-    output.mul_(scale)
-    
+    qmin = -(2.**(num_bits - 1)) if signed else 0.
+    qmax = qmin + 2.**num_bits - 1.
+    scale = qparams.range / (qmax - qmin)        
+    output.mul_(scale).add_(
+        zero_point - qmin * scale)  # dequantize
     return output
 
 def quantize(x, num_bits=None, qparams=None, flatten_dims=_DEFAULT_FLATTEN, reduce_dim=0, dequantize=True, signed=False, stochastic=False, inplace=False):
@@ -347,8 +321,8 @@ class QuantMeasure(nn.Module):
                     self.num_measured += 1
                 else:
                     momentum = self.momentum
-                # self.running_zero_point.mul_(momentum).add_(
-                #     qparams.zero_point * (1 - momentum))
+                self.running_zero_point.mul_(momentum).add_(
+                    qparams.zero_point * (1 - momentum))
                 self.running_range.mul_(momentum).add_(
                     qparams.range * (1 - momentum))
         else:
