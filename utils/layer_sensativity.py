@@ -61,7 +61,7 @@ def search_replace_layer(model,all_names,num_bits_activation,num_bits_weight,nam
                 m.quantize_weight.register_parameter('qmax',  nn.Parameter(weight_qmax))
                 m.quantize_weight.register_parameter('two_power_of_radix',  nn.Parameter(weight_two_power_of_radix))
      
-                m.quantize_weight.register_parameter('bias_scale', nn.Parameter(bias_scale))
+                m.quantize_weight.register_parameter('running_scale', nn.Parameter(bias_scale))
                 m.quantize_weight.register_parameter('bias_qmin',  nn.Parameter(bias_qmin))
                 m.quantize_weight.register_parameter('bias_qmax',  nn.Parameter(bias_qmax))
                 m.quantize_weight.register_parameter('bias_two_power_of_radix',  nn.Parameter(bias_two_power_of_radix))
@@ -137,7 +137,7 @@ def search_replace_layer_from_json(model, onnx_model, layers_precision_json, nam
             bias_qmax = torch.tensor(2.**(bbits-1) - 1.).to(dev)
             bias_two_power_of_radix = torch.tensor(2.** np.array(new_prec["bias_radix"])).to(dev)
             
-            m.quantize_input.register_parameter('scale', nn.Parameter(data_scale))
+            m.quantize_input.register_parameter('running_scale', nn.Parameter(data_scale))
             m.quantize_input.register_parameter('qmin',  nn.Parameter(data_qmin))
             m.quantize_input.register_parameter('qmax',  nn.Parameter(data_qmax))
             m.quantize_input.register_parameter('two_power_of_radix',  nn.Parameter(data_two_power_of_radix))
@@ -147,7 +147,7 @@ def search_replace_layer_from_json(model, onnx_model, layers_precision_json, nam
             m.quantize_weight.register_parameter('qmax',  nn.Parameter(weight_qmax))
             m.quantize_weight.register_parameter('two_power_of_radix',  nn.Parameter(weight_two_power_of_radix))
 
-            m.quantize_weight.register_parameter('bias_scale', nn.Parameter(bias_scale))
+            m.quantize_weight.register_parameter('running_scale', nn.Parameter(bias_scale))
             m.quantize_weight.register_parameter('bias_qmin',  nn.Parameter(bias_qmin))
             m.quantize_weight.register_parameter('bias_qmax',  nn.Parameter(bias_qmax))
             m.quantize_weight.register_parameter('bias_two_power_of_radix',  nn.Parameter(bias_two_power_of_radix))

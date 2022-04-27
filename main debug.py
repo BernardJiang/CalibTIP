@@ -644,9 +644,9 @@ def main_worker(args):
 
     cached_input_output = {}
     quant_keys = ['.weight', '.bias', '.equ_scale',
-         '.quantize_input.scale', '.quantize_input.qmin', '.quantize_input.qmax', '.quantize_input.two_power_of_radix',
+         '.quantize_input.running_scale', '.quantize_input.qmin', '.quantize_input.qmax', '.quantize_input.two_power_of_radix',
          '.quantize_weight.scale', '.quantize_weight.qmin', '.quantize_weight.qmax', '.quantize_weight.two_power_of_radix',
-         '.quantize_weight.bias_scale', '.quantize_weight.bias_qmin', '.quantize_weight.bias_qmax', '.quantize_weight.bias_two_power_of_radix']
+         '.quantize_weight.running_scale', '.quantize_weight.bias_qmin', '.quantize_weight.bias_qmax', '.quantize_weight.bias_two_power_of_radix']
         # , '.quantize_input.running_zero_point', '.quantize_input.running_range',
         #  '.quantize_weight.running_zero_point', '.quantize_weight.running_range',
         # '.quantize_input1.running_zero_point', '.quantize_input1.running_range',

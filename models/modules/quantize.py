@@ -407,12 +407,12 @@ class QuantMeasure(nn.Module):
             y[1] = 1
             x = tuple(y) 
             self.register_parameter('two_power_of_radix',  nn.Parameter(torch.ones(x)))
-            self.register_parameter('bias_scale', nn.Parameter(torch.ones((shape_measure[0]))))
+            self.register_parameter('running_scale', nn.Parameter(torch.ones((shape_measure[0]))))
             self.register_parameter('bias_qmin',  nn.Parameter(torch.tensor(1.0)))
             self.register_parameter('bias_qmax',  nn.Parameter(torch.tensor(1.0)))
             self.register_parameter('bias_two_power_of_radix',  nn.Parameter(torch.ones(shape_measure[0])))
         else:
-            self.register_parameter('scale', nn.Parameter(torch.ones(*shape_measure[1:])))
+            self.register_parameter('running_scale', nn.Parameter(torch.ones(*shape_measure[1:])))
             self.register_parameter('qmin',  nn.Parameter(torch.tensor(1.0)))
             self.register_parameter('qmax',  nn.Parameter(torch.tensor(1.0)))
             self.register_parameter('two_power_of_radix',  nn.Parameter(torch.ones(*shape_measure[1:])))
@@ -477,12 +477,12 @@ class QuantThUpdate(nn.Module):
             y[1] = 1
             x = tuple(y) 
             self.register_parameter('two_power_of_radix',  nn.Parameter(torch.ones(x)))
-            self.register_parameter('bias_scale', nn.Parameter(torch.ones((shape_measure[0]))))
+            self.register_parameter('running_scale', nn.Parameter(torch.ones((shape_measure[0]))))
             self.register_parameter('bias_qmin',  nn.Parameter(torch.tensor(1.0)))
             self.register_parameter('bias_qmax',  nn.Parameter(torch.tensor(1.0)))
             self.register_parameter('bias_two_power_of_radix',  nn.Parameter(torch.ones(shape_measure[0])))
         else:
-            self.register_parameter('scale', nn.Parameter(torch.ones(*shape_measure[1:])))
+            self.register_parameter('running_scale', nn.Parameter(torch.ones(*shape_measure[1:])))
             self.register_parameter('qmin',  nn.Parameter(torch.tensor(1.0)))
             self.register_parameter('qmax',  nn.Parameter(torch.tensor(1.0)))
             self.register_parameter('two_power_of_radix',  nn.Parameter(torch.ones(*shape_measure[1:])))
@@ -606,12 +606,12 @@ class QConv2d_lapq(nn.Conv2d):
         self.biprecision = biprecision
 
     def forward(self, input):
-        qparams_input = QParams(scale = self.quantize_input.scale, qmin = self.quantize_input.qmin, qmax = self.quantize_input.qmax, two_power_of_radix = self.quantize_input.two_power_of_radix)
+        qparams_input = QParams(scale = self.quantize_input.running_scale, qmin = self.quantize_input.qmin, qmax = self.quantize_input.qmax, two_power_of_radix = self.quantize_input.two_power_of_radix)
         qparams_weight = QParams(scale = self.quantize_weight.scale, qmin = self.quantize_weight.qmin, qmax = self.quantize_weight.qmax, two_power_of_radix = self.quantize_weight.two_power_of_radix)
         qinput = self.quantize_input(input, qparams=qparams_input)
         qweight = self.quantize_weight(self.weight, qparams=qparams_weight)
         if self.bias is not None:
-            qparams_bias = QParams(scale = self.quantize_weight.bias_scale, qmin = self.quantize_weight.bias_qmin, qmax = self.quantize_weight.bias_qmax, two_power_of_radix = self.quantize_weight.bias_two_power_of_radix)
+            qparams_bias = QParams(scale = self.quantize_weight.running_scale, qmin = self.quantize_weight.bias_qmin, qmax = self.quantize_weight.bias_qmax, two_power_of_radix = self.quantize_weight.bias_two_power_of_radix)
             qbias = self.bias if self.measure else quantize(self.bias, flatten_dims=(0, -1), qparams=qparams_bias)
         else:
             qbias = None
@@ -655,7 +655,7 @@ class QConv2d(nn.Conv2d):
 
     def forward(self, input):
         if self.quantize:
-            qparams_input = QParams(scale = self.quantize_input.scale, qmin = self.quantize_input.qmin, qmax = self.quantize_input.qmax, two_power_of_radix = self.quantize_input.two_power_of_radix)
+            qparams_input = QParams(scale = self.quantize_input.running_scale, qmin = self.quantize_input.qmin, qmax = self.quantize_input.qmax, two_power_of_radix = self.quantize_input.two_power_of_radix)
             qparams_weight = QParams(scale = self.quantize_weight.scale, qmin = self.quantize_weight.qmin, qmax = self.quantize_weight.qmax, two_power_of_radix = self.quantize_weight.two_power_of_radix)
             qinput = self.quantize_input(input, qparams=qparams_input)
             qweight = self.quantize_weight(self.weight * self.equ_scale, qparams=qparams_weight) if not self.cal_params else self.weight
@@ -674,7 +674,7 @@ class QConv2d(nn.Conv2d):
             if (self.measure or not self.quantize):
                 qbias = self.bias 
             else:
-                qparams_bias = QParams(scale = self.quantize_weight.bias_scale, qmin = self.quantize_weight.bias_qmin, qmax = self.quantize_weight.bias_qmax, two_power_of_radix = self.quantize_weight.bias_two_power_of_radix)
+                qparams_bias = QParams(scale = self.quantize_weight.running_scale, qmin = self.quantize_weight.bias_qmin, qmax = self.quantize_weight.bias_qmax, two_power_of_radix = self.quantize_weight.bias_two_power_of_radix)
                 qbias = quantize(self.bias, flatten_dims=(0, -1), qparams=qparams_bias)
         else:
             qbias = None
@@ -725,7 +725,7 @@ class QConv2dVQ(nn.Conv2d):
         self.V.data.uniform_(-stdv,stdv)
 
     def forward(self, input):
-        qparams_input = QParams(scale = self.quantize_input.scale, qmin = self.quantize_input.qmin, qmax = self.quantize_input.qmax, two_power_of_radix = self.quantize_input.two_power_of_radix)
+        qparams_input = QParams(scale = self.quantize_input.running_scale, qmin = self.quantize_input.qmin, qmax = self.quantize_input.qmax, two_power_of_radix = self.quantize_input.two_power_of_radix)
         qparams_weight = QParams(scale = self.quantize_weight.scale, qmin = self.quantize_weight.qmin, qmax = self.quantize_weight.qmax, two_power_of_radix = self.quantize_weight.two_power_of_radix)
         qweight = self.quantize_weight(self.weight * self.equ_scale, qparams=qparams_weight) if self.quantize and not self.cal_params else self.weight
         B,C,H,W=input.shape
@@ -745,7 +745,7 @@ class QConv2dVQ(nn.Conv2d):
             assert  qinput.unique().numel()<=2**self.num_bits
             assert  qweight[0].unique().numel()<=2**self.num_bits_weight
         if self.bias is not None:
-            qparams_bias = QParams(scale = self.quantize_weight.bias_scale, qmin = self.quantize_weight.bias_qmin, qmax = self.quantize_weight.bias_qmax, two_power_of_radix = self.quantize_weight.quantize_weight.bias_two_power_of_radix)
+            qparams_bias = QParams(scale = self.quantize_weight.running_scale, qmin = self.quantize_weight.bias_qmin, qmax = self.quantize_weight.bias_qmax, two_power_of_radix = self.quantize_weight.quantize_weight.bias_two_power_of_radix)
             qbias = self.bias if (self.measure or not self.quantize) else quantize(self.bias, flatten_dims=(0, -1), qparams=qparams_bias)
         else:
             qbias = None
@@ -802,14 +802,14 @@ class QLinear_o(nn.Linear):
         self.measure = measure
 
     def forward(self, input):
-        qparams_input = QParams(scale = self.quantize_input.scale, qmin = self.quantize_input.qmin, qmax = self.quantize_input.qmax, two_power_of_radix = self.quantize_input.two_power_of_radix)
+        qparams_input = QParams(scale = self.quantize_input.running_scale, qmin = self.quantize_input.qmin, qmax = self.quantize_input.qmax, two_power_of_radix = self.quantize_input.two_power_of_radix)
         qparams_weight = QParams(scale = self.quantize_weight.scale, qmin = self.quantize_weight.qmin, qmax = self.quantize_weight.qmax, two_power_of_radix = self.quantize_weight.two_power_of_radix)
         qinput = self.quantize_input(input, qparams=qparams_input)
         # weight_qparams = calculate_qparams(
         #     self.weight, num_bits=self.num_bits_weight, flatten_dims=(1, -1), reduce_dim=None)
         qweight = quantize(self.weight, qparams=qparams_weight) if not self.measure else self.weight
         if self.bias is not None:
-            qparams_bias = QParams(scale = self.quantize_weight.bias_scale, qmin = self.quantize_weight.bias_qmin, qmax = self.quantize_weight.bias_qmax, two_power_of_radix = self.quantize_weight.bias_two_power_of_radix)
+            qparams_bias = QParams(scale = self.quantize_weight.running_scale, qmin = self.quantize_weight.bias_qmin, qmax = self.quantize_weight.bias_qmax, two_power_of_radix = self.quantize_weight.bias_two_power_of_radix)
             qbias = self.bias if self.measure else quantize(
                 self.bias, 
                 flatten_dims=(0, -1), qparams=qparams_bias)
@@ -839,13 +839,13 @@ class QLinear_lapq(nn.Linear):
         self.measure = measure
 
     def forward(self, input):
-        qparams_input = QParams(scale = self.quantize_input.scale, qmin = self.quantize_input.qmin, qmax = self.quantize_input.qmax, two_power_of_radix = self.quantize_input.two_power_of_radix)
+        qparams_input = QParams(scale = self.quantize_input.running_scale, qmin = self.quantize_input.qmin, qmax = self.quantize_input.qmax, two_power_of_radix = self.quantize_input.two_power_of_radix)
         qparams_weight = QParams(scale = self.quantize_weight.scale, qmin = self.quantize_weight.qmin, qmax = self.quantize_weight.qmax, two_power_of_radix = self.quantize_weight.two_power_of_radix)
         qinput = self.quantize_input(input, qparams=qparams_input)
         qweight = self.quantize_weight(self.weight, qparams=qparams_weight)
 
         if self.bias is not None:
-            qparams_bias = QParams(scale = self.quantize_weight.bias_scale, qmin = self.quantize_weight.bias_qmin, qmax = self.quantize_weight.bias_qmax, two_power_of_radix = self.quantize_weight.bias_two_power_of_radix)
+            qparams_bias = QParams(scale = self.quantize_weight.running_scale, qmin = self.quantize_weight.bias_qmin, qmax = self.quantize_weight.bias_qmax, two_power_of_radix = self.quantize_weight.bias_two_power_of_radix)
             qbias = self.bias if self.measure else quantize(
                 self.bias, 
                 flatten_dims=(0, -1), qparams=qparams_bias)
@@ -882,7 +882,7 @@ class QLinear(nn.Linear):
         self.quantize = QUANTIZE
 
     def forward(self, input):
-        qparams_input = QParams(scale = self.quantize_input.scale, qmin = self.quantize_input.qmin, qmax = self.quantize_input.qmax, two_power_of_radix = self.quantize_input.two_power_of_radix)
+        qparams_input = QParams(scale = self.quantize_input.running_scale, qmin = self.quantize_input.qmin, qmax = self.quantize_input.qmax, two_power_of_radix = self.quantize_input.two_power_of_radix)
         qparams_weight = QParams(scale = self.quantize_weight.scale, qmin = self.quantize_weight.qmin, qmax = self.quantize_weight.qmax, two_power_of_radix = self.quantize_weight.two_power_of_radix)
         qinput = self.quantize_input(input, qparams=qparams_input) if self.quantize else input
         qweight = self.quantize_weight(self.weight * self.equ_scale, qparams=qparams_weight) if self.quantize and not self.cal_params else self.weight
@@ -890,7 +890,7 @@ class QLinear(nn.Linear):
             assert  qinput.unique().numel()<=2**self.num_bits
             assert  qweight[0].unique().numel()<=2**self.num_bits_weight
         if self.bias is not None:
-            qparams_bias = QParams(scale = self.quantize_weight.bias_scale, qmin = self.quantize_weight.bias_qmin, qmax = self.quantize_weight.bias_qmax, two_power_of_radix = self.quantize_weight.bias_two_power_of_radix)
+            qparams_bias = QParams(scale = self.quantize_weight.running_scale, qmin = self.quantize_weight.bias_qmin, qmax = self.quantize_weight.bias_qmax, two_power_of_radix = self.quantize_weight.bias_two_power_of_radix)
             qbias = self.bias if (self.measure or not self.quantize) else quantize(
                 self.bias,
                 flatten_dims=(0, -1), qparams=qparams_bias)
@@ -935,7 +935,7 @@ class QLinearVQ(nn.Linear):
         self.V.data.uniform_(-stdv,stdv)
 
     def forward(self, input):
-        qparams_input = QParams(scale = self.quantize_input.scale, qmin = self.quantize_input.qmin, qmax = self.quantize_input.qmax, two_power_of_radix = self.quantize_input.two_power_of_radix)
+        qparams_input = QParams(scale = self.quantize_input.running_scale, qmin = self.quantize_input.qmin, qmax = self.quantize_input.qmax, two_power_of_radix = self.quantize_input.two_power_of_radix)
         qparams_weight = QParams(scale = self.quantize_weight.scale, qmin = self.quantize_weight.qmin, qmax = self.quantize_weight.qmax, two_power_of_radix = self.quantize_weight.two_power_of_radix)
         vx=self.V.mm(input.transpose(0,1).contiguous())
         qvx = self.quantize_input(vx, qparams=qparams_input) if self.quantize else input
@@ -950,7 +950,7 @@ class QLinearVQ(nn.Linear):
             assert  qinput.unique().numel()<=2**self.num_bits
             assert  qweight[0].unique().numel()<=2**self.num_bits_weight
         if self.bias is not None:
-            qparams_bias = QParams(scale = self.quantize_weight.bias_scale, qmin = self.quantize_weight.bias_qmin, qmax = self.quantize_weight.bias_qmax, two_power_of_radix = self.quantize_weight.bias_two_power_of_radix)
+            qparams_bias = QParams(scale = self.quantize_weight.running_scale, qmin = self.quantize_weight.bias_qmin, qmax = self.quantize_weight.bias_qmax, two_power_of_radix = self.quantize_weight.bias_two_power_of_radix)
             qbias = self.bias if (self.measure or not self.quantize) else quantize(
                 self.bias,
                 flatten_dims=(0, -1), qparams=qparams_bias)
