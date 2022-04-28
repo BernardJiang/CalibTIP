@@ -67,14 +67,14 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     # lr_factor = 1e-2
     # Those hyperparameters tuned for 8 bit and checked on mobilenet_v2 and resnet50
     # Have to verify on other bit-width and other models
-    lr_qpin = 1e-3#lr_factor * (test_inp.max() - test_inp.min()).item()  # 1e-1
-    lr_qpw = 1e-3#lr_factor * (layer.weight.max() - layer.weight.min()).item()  # 1e-3
+    lr_qpin = 1e-3 #lr_factor * (test_inp.max() - test_inp.min()).item()  # 1e-1
+    lr_qpw = 1e-3 #lr_factor * (layer.weight.max() - layer.weight.min()).item()  # 1e-3
     lr_w = 1e-5 # mse_before.cpu().detach().numpy() # 1e-5 # 0.0025 # 1e-6 #lr_factor * layer.weight.std().item()  # 1e-5
     lr_b = lr_w # mse_before.cpu().numpy() # 1e-5 # 0.0025 # 1e-6#lr_factor * layer.bias.std().item()  # 1e-3
     weight_decay = 0.01
     if layer.quantize_weight.qmax == 127:
-        lr_qpin = 1e-4#lr_factor * (test_inp.max() - test_inp.min()).item()  # 1e-1
-        lr_qpw = 1e-4#lr_factor * (layer.weight.max() - layer.weight.min()).item()  # 1e-3
+        lr_qpin = 1e-4
+        lr_qpw = 1e-4 
         print("8-bit layer should use smaller LR =", lr_qpw )
 
     opt_w = Lamb([layer.weight], lr=lr_w, weight_decay=weight_decay, betas=(.9, .999), adam=True)
