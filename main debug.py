@@ -784,7 +784,6 @@ def main_worker(args):
         with open(filename_json, "w") as fp:
             json.dump(new_qparams, fp, indent=4)
         
-        
         input_image = torch.zeros(1,3,224, 224).cuda()
         save2onnx(model, input_image, filename+'.onnx', True)  #True must be the last command because it modifies the model.
         

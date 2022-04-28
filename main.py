@@ -728,6 +728,12 @@ def main_worker(args):
         adaquant_type = 'adaquant_seq' if args.seq_adaquant else 'adaquant_parallel'
         saveacc(args, val_results, adaquant_type)
         
+        qparams = {}
+        new_qparams = get_quantized_params(model, qparams)
+        filename_json = filename + ".trained.json"
+        with open(filename_json, "w") as fp:
+            json.dump(new_qparams, fp, indent=4)
+            
         input_image = torch.zeros(1,3,224, 224).cuda()
         save2onnx(model, input_image, filename+'.onnx', True)  #True must be the last command because it modifies the model.
 
