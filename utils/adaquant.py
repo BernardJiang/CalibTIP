@@ -94,8 +94,8 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     # opt_qparams_w = torch.optim.Adam([layer.quantize_weight.running_range,
     #                                   layer.quantize_weight.running_zero_point], lr=lr_qpw)
     
-    opt_in_scale = Lamb([layer.quantize_input.running_scale,], lr=lr_qpin)
-    opt_out_scale = Lamb([layer.quantize_weight.running_scale,], lr=lr_qpw)                      
+    # opt_in_scale = Lamb([layer.quantize_input.running_scale,], lr=lr_qpin)
+    # opt_out_scale = Lamb([layer.quantize_weight.running_scale,], lr=lr_qpw)                      
 
     if writer is not None:
         writer.add_scalar("layer/{}".format(layer.name), mse_before.item(), 0)
@@ -124,16 +124,16 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
         losses.append(loss.item())
         opt_w.zero_grad()
         if hasattr(layer, 'bias') and layer.bias is not None: opt_bias.zero_grad()
-        opt_in_scale.zero_grad()
-        opt_out_scale.zero_grad()
+        # opt_in_scale.zero_grad()
+        # opt_out_scale.zero_grad()
         loss.backward()
         opt_w.step()
         # scheduler_w.step(loss.item())
         if hasattr(layer, 'bias') and layer.bias is not None: 
             opt_bias.step()
             # scheduler_bias.step(loss.item())
-        opt_in_scale.step()
-        opt_out_scale.step()
+        # opt_in_scale.step()
+        # opt_out_scale.step()
         
         # if layer.name == 'conv1':
         #     print("iter {}, in range/zp {} {}, w range/zp {} {} ".format(j, layer.quantize_input.running_range.item(), layer.quantize_input.running_zero_point.item(), layer.quantize_weight.running_range[0].item(), layer.quantize_weight.running_zero_point[0].item()))
@@ -195,7 +195,7 @@ def optimize_layer(layer, in_out, optimize_weights=False, batch_size=100, model_
 
         mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=100, batch_size=batch_size, lr1=1e-5, lr2=1e-4, relu=relu_flag, writer=writer) 
         mse_before_opt = mse_before
-        print("\nMSE before adaquant: {:e}  RELU {}".format(mse_before, relu_flag))
+        print("\nMSE before adaquant: {:e}".format(mse_before))
         print("MSE after  adaquant: {:e}".format(mse_after))
         torch.cuda.empty_cache()
     else:
