@@ -79,17 +79,18 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
 
     opt_w = Lamb([layer.weight], lr=lr_w, weight_decay=weight_decay, betas=(.9, .999), adam=True)
 
-    # scheduler_w = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_w,
-    #                                                      min_lr=1e-8,
-    #                                                      verbose=False,
-    #                                                      patience=10)
+    scheduler_w = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_w,
+                                                         min_lr=1e-8,
+                                                         verbose=False,
+                                                         patience=10)
     
     if hasattr(layer, 'bias') and layer.bias is not None: 
         opt_bias = Lamb([layer.bias], lr=lr_b, weight_decay=weight_decay, betas=(.9, .999), adam=True)
-        # scheduler_bias = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_bias,
-        #                                                  min_lr=1e-8,
-        #                                                  verbose=False,
-        #                                                  patience=10)
+        scheduler_bias = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_bias,
+                                                         min_lr=1e-8,
+                                                         verbose=False,
+                                                         patience=10)
+        
     # opt_w = torch.optim.AdamW([layer.weight], lr=lr_w)
     # if hasattr(layer, 'bias') and layer.bias is not None: opt_bias = torch.optim.AdamW([layer.bias], lr=lr_b)
     
@@ -100,6 +101,15 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     
     opt_in_scale = Lamb([layer.quantize_input.running_scale,], lr=lr_qpin)
     opt_out_scale = Lamb([layer.quantize_weight.running_scale,], lr=lr_qpw)                      
+    scheduler_in_scale = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_in_scale,
+                                                         min_lr=1e-8,
+                                                         verbose=False,
+                                                         patience=10)
+    scheduler_out_scale = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_out_scale,
+                                                         min_lr=1e-8,
+                                                         verbose=False,
+                                                         patience=10)
+
 
     if writer is not None:
         writer.add_scalar("layer/{}".format(layer.name), mse_before.item(), 0)
@@ -124,6 +134,7 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
         if writer is not None:
             if j % 10 == 0 :
                 writer.add_scalar("layer/{}".format(layer.name), loss.item(), j)
+                writer.add_scalar("layer/{}output_scale[0]".format(layer.name), layer.quantize_weight.running_scale[0], j)
 
         losses.append(loss.item())
         opt_w.zero_grad()
@@ -138,6 +149,8 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
             # scheduler_bias.step(loss.item())
         opt_in_scale.step()
         opt_out_scale.step()
+        # scheduler_in_scale.step(loss.item())
+        # scheduler_out_scale.step(loss.item())
         
         # if layer.name == 'conv1':
         #     print("iter {}, in range/zp {} {}, w range/zp {} {} ".format(j, layer.quantize_input.running_range.item(), layer.quantize_input.running_zero_point.item(), layer.quantize_weight.running_range[0].item(), layer.quantize_weight.running_zero_point[0].item()))
@@ -162,6 +175,7 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     
     if writer is not None:
          writer.add_scalar("layer/{}".format(layer.name), mse_after.item(), iters-1)
+         writer.add_scalar("layer/{}output_scale[0]".format(layer.name), layer.quantize_weight.running_scale[0], iters-1)
 
     
     return mse_before.item(), mse_after.item()
