@@ -16,55 +16,51 @@ def search_replace_layer(model,all_names,num_bits_activation,num_bits_weight,nam
             m.quantize_weight.num_bits=num_bits_weight
             
             #new implemention:
-            if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
-                dev = next(m.parameters()).device
-                inshape = (-1, 1, 1)
-                weightoutshape = (-1, 1, 1, 1)
-                weightinshape = (1, -1, 1, 1)
-                if isinstance(m, nn.Conv2d):
-                    in_channels = m.in_channels 
-                    out_channels = m.out_channels 
-                    if m.groups != 1: 
-                        weightinshape = (-1, 1, 1, 1)
-                else: # isinstance(m, nn.Linear):
-                    in_channels = m.in_features
-                    out_channels = m.out_features
-                    inshape = (-1)
-                    weightoutshape = (-1, 1)
-                    weightinshape = (1, -1)
+            # if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
+            #     dev = next(m.parameters()).device
+            #     inshape = (-1, 1, 1)
+            #     weightoutshape = (-1, 1, 1, 1)
+            #     weightinshape = (1, -1, 1, 1)
+            #     if isinstance(m, nn.Conv2d):
+            #         in_channels = m.in_channels 
+            #         out_channels = m.out_channels 
+            #         if m.groups != 1: 
+            #             weightinshape = (-1, 1, 1, 1)
+            #     else: # isinstance(m, nn.Linear):
+            #         in_channels = m.in_features
+            #         out_channels = m.out_features
+            #         inshape = (-1)
+            #         weightoutshape = (-1, 1)
+            #         weightinshape = (1, -1)
                 
  
-                data_scale = torch.ones(in_channels).reshape(inshape).to(dev)
-                data_qmin = torch.tensor(-(2.**(m.num_bits-1) - 1.)).to(dev)
-                data_qmax = torch.tensor(2.**(m.num_bits-1) - 1.).to(dev)
-                data_two_power_of_radix = torch.ones(in_channels).reshape(inshape).to(dev)
+            #     data_scale = torch.ones(in_channels).reshape(inshape).to(dev)
+            #     data_qmin = torch.tensor(-(2.**(m.num_bits-1) - 1.)).to(dev)
+            #     data_qmax = torch.tensor(2.**(m.num_bits-1) - 1.).to(dev)
+            #     data_two_power_of_radix = torch.ones(in_channels).reshape(inshape).to(dev)
                 
-                scale_out = torch.ones(out_channels).reshape(weightoutshape).to(dev)
-                scale_in  = torch.ones(in_channels).reshape(weightinshape).to(dev)                               
-                weight_scale = scale_out/scale_in
-                weight_qmin = torch.tensor(-(2.**(num_bits_weight-1) - 1.)).to(dev)
-                weight_qmax = torch.tensor(2.**(num_bits_weight-1) - 1.).to(dev)
-                weight_two_power_of_radix = torch.ones(out_channels).reshape(weightoutshape).to(dev)
+            #     weight_qmin = torch.tensor(-(2.**(num_bits_weight-1) - 1.)).to(dev)
+            #     weight_qmax = torch.tensor(2.**(num_bits_weight-1) - 1.).to(dev)
+            #     weight_two_power_of_radix = torch.ones(out_channels).reshape(weightoutshape).to(dev)
     
-                bias_scale = torch.ones(out_channels).to(dev)
-                bias_qmin = torch.tensor(-(2.**(m.num_bits-1) - 1.)).to(dev)
-                bias_qmax = torch.tensor(2.**(m.num_bits-1) - 1.).to(dev)
-                bias_two_power_of_radix = torch.ones(out_channels).to(dev)
+            #     bias_scale = torch.ones(out_channels).to(dev)
+            #     bias_qmin = torch.tensor(-(2.**(m.num_bits-1) - 1.)).to(dev)
+            #     bias_qmax = torch.tensor(2.**(m.num_bits-1) - 1.).to(dev)
+            #     bias_two_power_of_radix = torch.ones(out_channels).to(dev)
   
-                m.quantize_input.register_parameter('scale', nn.Parameter(data_scale))
-                m.quantize_input.register_parameter('qmin',  nn.Parameter(data_qmin))
-                m.quantize_input.register_parameter('qmax',  nn.Parameter(data_qmax))
-                m.quantize_input.register_parameter('two_power_of_radix',  nn.Parameter(data_two_power_of_radix))
+            #     m.quantize_input.register_parameter('running_scale', nn.Parameter(data_scale))
+            #     m.quantize_input.register_parameter('qmin',  nn.Parameter(data_qmin))
+            #     m.quantize_input.register_parameter('qmax',  nn.Parameter(data_qmax))
+            #     m.quantize_input.register_parameter('two_power_of_radix',  nn.Parameter(data_two_power_of_radix))
      
-                m.quantize_weight.register_parameter('scale', nn.Parameter(weight_scale))
-                m.quantize_weight.register_parameter('qmin',  nn.Parameter(weight_qmin))
-                m.quantize_weight.register_parameter('qmax',  nn.Parameter(weight_qmax))
-                m.quantize_weight.register_parameter('two_power_of_radix',  nn.Parameter(weight_two_power_of_radix))
+            #     m.quantize_weight.register_parameter('qmin',  nn.Parameter(weight_qmin))
+            #     m.quantize_weight.register_parameter('qmax',  nn.Parameter(weight_qmax))
+            #     m.quantize_weight.register_parameter('two_power_of_radix',  nn.Parameter(weight_two_power_of_radix))
      
-                m.quantize_weight.register_parameter('running_scale', nn.Parameter(bias_scale))
-                m.quantize_weight.register_parameter('bias_qmin',  nn.Parameter(bias_qmin))
-                m.quantize_weight.register_parameter('bias_qmax',  nn.Parameter(bias_qmax))
-                m.quantize_weight.register_parameter('bias_two_power_of_radix',  nn.Parameter(bias_two_power_of_radix))
+            #     m.quantize_weight.register_parameter('running_scale', nn.Parameter(bias_scale))
+            #     m.quantize_weight.register_parameter('bias_qmin',  nn.Parameter(bias_qmin))
+            #     m.quantize_weight.register_parameter('bias_qmax',  nn.Parameter(bias_qmax))
+            #     m.quantize_weight.register_parameter('bias_two_power_of_radix',  nn.Parameter(bias_two_power_of_radix))
      
             print("Layer {}, precision switch from w{}a{} to w{}a{}.".format(
                 layer_name, m.num_bits_weight, m.num_bits, num_bits_weight, num_bits_activation))
@@ -125,9 +121,9 @@ def search_replace_layer_from_json(model, onnx_model, layers_precision_json, nam
             data_qmax = torch.tensor(2.**(dbits-1) - 1.).to(dev)
             data_two_power_of_radix = torch.tensor(2.** np.array(new_prec["input_datapath_radix"][0])).reshape(inshape).to(dev)
             
-            scale_out = np.array(new_prec["output_scale"]).reshape(weightoutshape)
-            scale_in  = np.array(new_prec["input_scale"][0]).reshape(weightinshape)
-            weight_scale = torch.tensor(scale_out/scale_in ).to(dev)
+            # scale_out = np.array(new_prec["output_scale"]).reshape(weightoutshape)
+            # scale_in  = np.array(new_prec["input_scale"][0]).reshape(weightinshape)
+            # weight_scale = torch.tensor(scale_out/scale_in ).to(dev)
             weight_qmin = torch.tensor(-(2.**(wbits-1) - 1.)).to(dev)
             weight_qmax = torch.tensor(2.**(wbits-1) - 1.).to(dev)
             weight_two_power_of_radix = torch.tensor(2.** np.array(new_prec["weight_radix"])).reshape(weightoutshape).to(dev)
@@ -142,7 +138,7 @@ def search_replace_layer_from_json(model, onnx_model, layers_precision_json, nam
             m.quantize_input.register_parameter('qmax',  nn.Parameter(data_qmax))
             m.quantize_input.register_parameter('two_power_of_radix',  nn.Parameter(data_two_power_of_radix))
 
-            m.quantize_weight.register_parameter('scale', nn.Parameter(weight_scale))
+            # m.quantize_weight.register_parameter('scale', nn.Parameter(weight_scale))
             m.quantize_weight.register_parameter('qmin',  nn.Parameter(weight_qmin))
             m.quantize_weight.register_parameter('qmax',  nn.Parameter(weight_qmax))
             m.quantize_weight.register_parameter('two_power_of_radix',  nn.Parameter(weight_two_power_of_radix))

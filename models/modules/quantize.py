@@ -400,7 +400,7 @@ class QuantMeasure(nn.Module):
         self.cal_qparams = cal_qparams
         
         if weight_flag:
-            self.register_parameter('scale', nn.Parameter(torch.ones(*shape_measure)))
+            # self.register_parameter('running_scale', nn.Parameter(torch.ones(*shape_measure)))
             self.register_parameter('qmin',  nn.Parameter(torch.tensor(1.0)))
             self.register_parameter('qmax',  nn.Parameter(torch.tensor(1.0)))
             y = list(shape_measure)
@@ -607,7 +607,7 @@ class QConv2d_lapq(nn.Conv2d):
 
     def forward(self, input):
         qparams_input = QParams(scale = self.quantize_input.running_scale, qmin = self.quantize_input.qmin, qmax = self.quantize_input.qmax, two_power_of_radix = self.quantize_input.two_power_of_radix)
-        qparams_weight = QParams(scale = self.quantize_weight.scale, qmin = self.quantize_weight.qmin, qmax = self.quantize_weight.qmax, two_power_of_radix = self.quantize_weight.two_power_of_radix)
+        #TODO: qparams_weight = QParams(scale = self.quantize_weight.scale, qmin = self.quantize_weight.qmin, qmax = self.quantize_weight.qmax, two_power_of_radix = self.quantize_weight.two_power_of_radix)
         qinput = self.quantize_input(input, qparams=qparams_input)
         qweight = self.quantize_weight(self.weight, qparams=qparams_weight)
         if self.bias is not None:
@@ -656,7 +656,12 @@ class QConv2d(nn.Conv2d):
     def forward(self, input):
         if self.quantize:
             qparams_input = QParams(scale = self.quantize_input.running_scale, qmin = self.quantize_input.qmin, qmax = self.quantize_input.qmax, two_power_of_radix = self.quantize_input.two_power_of_radix)
-            qparams_weight = QParams(scale = self.quantize_weight.scale, qmin = self.quantize_weight.qmin, qmax = self.quantize_weight.qmax, two_power_of_radix = self.quantize_weight.two_power_of_radix)
+            weightoutshape = (-1, 1, 1, 1)
+            weightinshape = (1, -1, 1, 1)
+            if self.groups != 1: 
+                weightinshape = (-1, 1, 1, 1)
+            weight_scale = self.quantize_weight.running_scale.reshape(weightoutshape) / self.quantize_input.running_scale.reshape(weightinshape)
+            qparams_weight = QParams(scale = weight_scale, qmin = self.quantize_weight.qmin, qmax = self.quantize_weight.qmax, two_power_of_radix = self.quantize_weight.two_power_of_radix)
             qinput = self.quantize_input(input, qparams=qparams_input)
             qweight = self.quantize_weight(self.weight * self.equ_scale, qparams=qparams_weight) if not self.cal_params else self.weight
         else:
@@ -726,7 +731,7 @@ class QConv2dVQ(nn.Conv2d):
 
     def forward(self, input):
         qparams_input = QParams(scale = self.quantize_input.running_scale, qmin = self.quantize_input.qmin, qmax = self.quantize_input.qmax, two_power_of_radix = self.quantize_input.two_power_of_radix)
-        qparams_weight = QParams(scale = self.quantize_weight.scale, qmin = self.quantize_weight.qmin, qmax = self.quantize_weight.qmax, two_power_of_radix = self.quantize_weight.two_power_of_radix)
+        #TODO: qparams_weight = QParams(scale = self.quantize_weight.scale, qmin = self.quantize_weight.qmin, qmax = self.quantize_weight.qmax, two_power_of_radix = self.quantize_weight.two_power_of_radix)
         qweight = self.quantize_weight(self.weight * self.equ_scale, qparams=qparams_weight) if self.quantize and not self.cal_params else self.weight
         B,C,H,W=input.shape
         vx=self.V.mm(input.transpose(0,1).contiguous().view(C,-1))
@@ -803,7 +808,7 @@ class QLinear_o(nn.Linear):
 
     def forward(self, input):
         qparams_input = QParams(scale = self.quantize_input.running_scale, qmin = self.quantize_input.qmin, qmax = self.quantize_input.qmax, two_power_of_radix = self.quantize_input.two_power_of_radix)
-        qparams_weight = QParams(scale = self.quantize_weight.scale, qmin = self.quantize_weight.qmin, qmax = self.quantize_weight.qmax, two_power_of_radix = self.quantize_weight.two_power_of_radix)
+        #TODO: qparams_weight = QParams(scale = self.quantize_weight.scale, qmin = self.quantize_weight.qmin, qmax = self.quantize_weight.qmax, two_power_of_radix = self.quantize_weight.two_power_of_radix)
         qinput = self.quantize_input(input, qparams=qparams_input)
         # weight_qparams = calculate_qparams(
         #     self.weight, num_bits=self.num_bits_weight, flatten_dims=(1, -1), reduce_dim=None)
@@ -840,7 +845,7 @@ class QLinear_lapq(nn.Linear):
 
     def forward(self, input):
         qparams_input = QParams(scale = self.quantize_input.running_scale, qmin = self.quantize_input.qmin, qmax = self.quantize_input.qmax, two_power_of_radix = self.quantize_input.two_power_of_radix)
-        qparams_weight = QParams(scale = self.quantize_weight.scale, qmin = self.quantize_weight.qmin, qmax = self.quantize_weight.qmax, two_power_of_radix = self.quantize_weight.two_power_of_radix)
+        #TODO: qparams_weight = QParams(scale = self.quantize_weight.scale, qmin = self.quantize_weight.qmin, qmax = self.quantize_weight.qmax, two_power_of_radix = self.quantize_weight.two_power_of_radix)
         qinput = self.quantize_input(input, qparams=qparams_input)
         qweight = self.quantize_weight(self.weight, qparams=qparams_weight)
 
@@ -883,7 +888,10 @@ class QLinear(nn.Linear):
 
     def forward(self, input):
         qparams_input = QParams(scale = self.quantize_input.running_scale, qmin = self.quantize_input.qmin, qmax = self.quantize_input.qmax, two_power_of_radix = self.quantize_input.two_power_of_radix)
-        qparams_weight = QParams(scale = self.quantize_weight.scale, qmin = self.quantize_weight.qmin, qmax = self.quantize_weight.qmax, two_power_of_radix = self.quantize_weight.two_power_of_radix)
+        weightoutshape = (-1, 1)
+        weightinshape = (1, -1)
+        weight_scale = self.quantize_weight.running_scale.reshape(weightoutshape) / self.quantize_input.running_scale.reshape(weightinshape)        
+        qparams_weight = QParams(scale = weight_scale, qmin = self.quantize_weight.qmin, qmax = self.quantize_weight.qmax, two_power_of_radix = self.quantize_weight.two_power_of_radix)
         qinput = self.quantize_input(input, qparams=qparams_input) if self.quantize else input
         qweight = self.quantize_weight(self.weight * self.equ_scale, qparams=qparams_weight) if self.quantize and not self.cal_params else self.weight
         if not self.measure and os.environ.get('DEBUG')=='True':
@@ -936,7 +944,7 @@ class QLinearVQ(nn.Linear):
 
     def forward(self, input):
         qparams_input = QParams(scale = self.quantize_input.running_scale, qmin = self.quantize_input.qmin, qmax = self.quantize_input.qmax, two_power_of_radix = self.quantize_input.two_power_of_radix)
-        qparams_weight = QParams(scale = self.quantize_weight.scale, qmin = self.quantize_weight.qmin, qmax = self.quantize_weight.qmax, two_power_of_radix = self.quantize_weight.two_power_of_radix)
+        #TODO: qparams_weight = QParams(scale = self.quantize_weight.scale, qmin = self.quantize_weight.qmin, qmax = self.quantize_weight.qmax, two_power_of_radix = self.quantize_weight.two_power_of_radix)
         vx=self.V.mm(input.transpose(0,1).contiguous())
         qvx = self.quantize_input(vx, qparams=qparams_input) if self.quantize else input
         qinput=self.U.mm(qvx).transpose(1,0).contiguous() if self.quantize else input

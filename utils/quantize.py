@@ -85,11 +85,26 @@ def get_quantized_model_and_params(model, qparams = {}):
         if is_q_module(m):
             with torch.no_grad():
                 # dqw = tensor_fl2fx2fl(m.weight, num_bits=m.quantize_weight.num_bits)
-                qw = quantize_tensor(m.weight, m.quantize_weight.scale, m.quantize_weight.qmin, m.quantize_weight.qmax, m.quantize_weight.two_power_of_radix)
-                dqw = dequantize_tensor(m.weight, m.quantize_weight.scale, m.quantize_weight.qmin, m.quantize_weight.qmax, m.quantize_weight.two_power_of_radix)
+                inshape = (-1, 1, 1)
+                weightoutshape = (-1, 1, 1, 1)
+                weightinshape = (1, -1, 1, 1)
+                if isinstance(m, nn.Conv2d):
+                    in_channels = m.in_channels 
+                    out_channels = m.out_channels 
+                    if m.groups != 1: 
+                        weightinshape = (-1, 1, 1, 1)
+                else: # isinstance(m, nn.Linear):
+                    in_channels = m.in_features
+                    out_channels = m.out_features
+                    inshape = (-1)
+                    weightoutshape = (-1, 1)
+                    weightinshape = (1, -1)
+                weight_scale = m.quantize_weight.running_scale.reshape(weightoutshape) / m.quantize_input.running_scale.reshape(weightinshape)
+                qw = quantize_tensor(m.weight, weight_scale, m.quantize_weight.qmin, m.quantize_weight.qmax, m.quantize_weight.two_power_of_radix)
+                dqw = dequantize_tensor(m.weight, weight_scale, m.quantize_weight.qmin, m.quantize_weight.qmax, m.quantize_weight.two_power_of_radix)
                 m.weight.copy_(dqw)
                 
-                scales = m.quantize_weight.scale.flatten().tolist()
+                scales = weight_scale.flatten().tolist()
                 num_bits = (torch.log2(m.quantize_weight.qmax + 1) + 1).flatten().tolist()
                 radixes = torch.log2(m.quantize_weight.two_power_of_radix).flatten().tolist()
                 qparams[m.name+'.weight'] = {                        
