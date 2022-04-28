@@ -81,14 +81,16 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
 
     scheduler_w = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_w,
                                                          min_lr=1e-8,
-                                                         verbose=False,
+                                                         factor=0.9,
+                                                         verbose=True,
                                                          patience=10)
     
     if hasattr(layer, 'bias') and layer.bias is not None: 
         opt_bias = Lamb([layer.bias], lr=lr_b, weight_decay=weight_decay, betas=(.9, .999), adam=True)
         scheduler_bias = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_bias,
                                                          min_lr=1e-8,
-                                                         verbose=False,
+                                                         factor=0.9,
+                                                         verbose=True,
                                                          patience=10)
         
     # opt_w = torch.optim.AdamW([layer.weight], lr=lr_w)
@@ -103,11 +105,13 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     opt_out_scale = Lamb([layer.quantize_weight.running_scale,], lr=lr_qpw)                      
     scheduler_in_scale = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_in_scale,
                                                          min_lr=1e-8,
-                                                         verbose=False,
+                                                         factor=0.9,
+                                                         verbose=True,
                                                          patience=10)
     scheduler_out_scale = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_out_scale,
                                                          min_lr=1e-8,
-                                                         verbose=False,
+                                                         factor=0.9,
+                                                         verbose=True,
                                                          patience=10)
 
 
@@ -143,14 +147,14 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
         opt_out_scale.zero_grad()
         loss.backward()
         opt_w.step()
-        # scheduler_w.step(loss.item())
+        scheduler_w.step(loss)
         if hasattr(layer, 'bias') and layer.bias is not None: 
             opt_bias.step()
-            # scheduler_bias.step(loss.item())
+            scheduler_bias.step(loss)
         opt_in_scale.step()
         opt_out_scale.step()
-        # scheduler_in_scale.step(loss.item())
-        # scheduler_out_scale.step(loss.item())
+        scheduler_in_scale.step(loss)
+        scheduler_out_scale.step(loss)
         
         # if layer.name == 'conv1':
         #     print("iter {}, in range/zp {} {}, w range/zp {} {} ".format(j, layer.quantize_input.running_range.item(), layer.quantize_input.running_zero_point.item(), layer.quantize_weight.running_range[0].item(), layer.quantize_weight.running_zero_point[0].item()))
