@@ -67,8 +67,8 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     # lr_factor = 1e-2
     # Those hyperparameters tuned for 8 bit and checked on mobilenet_v2 and resnet50
     # Have to verify on other bit-width and other models
-    lr_qpin = 1e-1#lr_factor * (test_inp.max() - test_inp.min()).item()  # 1e-1
-    lr_qpw = 1e-3#lr_factor * (layer.weight.max() - layer.weight.min()).item()  # 1e-3
+    lr_qpin = 1e-6#lr_factor * (test_inp.max() - test_inp.min()).item()  # 1e-1
+    lr_qpw = 1e-6#lr_factor * (layer.weight.max() - layer.weight.min()).item()  # 1e-3
     lr_w = 1e-6 # mse_before.cpu().detach().numpy() # 1e-5 # 0.0025 # 1e-6 #lr_factor * layer.weight.std().item()  # 1e-5
     lr_b = lr_w # mse_before.cpu().numpy() # 1e-5 # 0.0025 # 1e-6#lr_factor * layer.bias.std().item()  # 1e-3
     weight_decay = 0.01
@@ -94,8 +94,8 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     # opt_qparams_w = torch.optim.Adam([layer.quantize_weight.running_range,
     #                                   layer.quantize_weight.running_zero_point], lr=lr_qpw)
     
-    # opt_in_scale = Lamb([layer.quantize_input.running_scale,], lr=lr_qpin)
-    # opt_out_scale = Lamb([layer.quantize_weight.running_scale,], lr=lr_qpw)                      
+    opt_in_scale = Lamb([layer.quantize_input.running_scale,], lr=lr_qpin)
+    opt_out_scale = Lamb([layer.quantize_weight.running_scale,], lr=lr_qpw)                      
 
     if writer is not None:
         writer.add_scalar("layer/{}".format(layer.name), mse_before.item(), 0)
@@ -124,16 +124,16 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
         losses.append(loss.item())
         opt_w.zero_grad()
         if hasattr(layer, 'bias') and layer.bias is not None: opt_bias.zero_grad()
-        # opt_in_scale.zero_grad()
-        # opt_out_scale.zero_grad()
+        opt_in_scale.zero_grad()
+        opt_out_scale.zero_grad()
         loss.backward()
         opt_w.step()
         # scheduler_w.step(loss.item())
         if hasattr(layer, 'bias') and layer.bias is not None: 
             opt_bias.step()
             # scheduler_bias.step(loss.item())
-        # opt_in_scale.step()
-        # opt_out_scale.step()
+        opt_in_scale.step()
+        opt_out_scale.step()
         
         # if layer.name == 'conv1':
         #     print("iter {}, in range/zp {} {}, w range/zp {} {} ".format(j, layer.quantize_input.running_range.item(), layer.quantize_input.running_zero_point.item(), layer.quantize_weight.running_range[0].item(), layer.quantize_weight.running_zero_point[0].item()))
