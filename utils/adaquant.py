@@ -82,7 +82,7 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     scheduler_w = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_w,
                                                          min_lr=1e-8,
                                                          factor=0.9,
-                                                         verbose=True,
+                                                         verbose=False,
                                                          patience=10)
     
     if hasattr(layer, 'bias') and layer.bias is not None: 
@@ -90,7 +90,7 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
         scheduler_bias = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_bias,
                                                          min_lr=1e-8,
                                                          factor=0.9,
-                                                         verbose=True,
+                                                         verbose=False,
                                                          patience=10)
         
     # opt_w = torch.optim.AdamW([layer.weight], lr=lr_w)
@@ -106,12 +106,12 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     scheduler_in_scale = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_in_scale,
                                                          min_lr=1e-8,
                                                          factor=0.9,
-                                                         verbose=True,
+                                                         verbose=False,
                                                          patience=10)
     scheduler_out_scale = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_out_scale,
                                                          min_lr=1e-8,
                                                          factor=0.9,
-                                                         verbose=True,
+                                                         verbose=False,
                                                          patience=10)
 
 
