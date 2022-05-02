@@ -174,9 +174,9 @@ class UniformQuantize(InplaceFunction):
             output.add_(noise)
             
         # quantize
-        # output = Round().apply(output.clamp_(qmin, qmax),inplace)
-        output = Round().apply(Clamp().apply(output, inplace, qparams.qmin, qparams.qmax),inplace)
-
+        output = Round().apply(output.clamp_(qparams.qmin, qparams.qmax),inplace)
+        # output = Round().apply(Clamp().apply(output, inplace, qparams.qmin, qparams.qmax),inplace)
+        
         if dequantize:
             output.div_(qparams.two_power_of_radix)  # dequantize
             output.div_(qparams.scale)  # dequantize
@@ -188,6 +188,8 @@ class UniformQuantize(InplaceFunction):
     @staticmethod
     def backward(ctx, grad_output):
         # straight-through estimator
+        # import pdb
+        # pdb.set_trace()        
         grad_input = grad_output
         return grad_input, None, None, None, None, None, None, None, None, None
 
@@ -326,7 +328,8 @@ def quantize_with_grad(input, num_bits=None, qparams=None, flatten_dims=_DEFAULT
         output.add_(noise)
     if clamp:    
         # quantize
-        output = Round().apply(Clamp().apply(output, inplace, qparams.qmin, qparams.qmax),inplace)
+        output = Round().apply(output.clamp_(qparams.qmin, qparams.qmax),inplace)
+        # output = Round().apply(Clamp().apply(output, inplace, qparams.qmin, qparams.qmax),inplace)
         if dequantize:
             output.div_(qparams.two_power_of_radix)  # dequantize
             output.div_(qparams.scale)  # dequantize
