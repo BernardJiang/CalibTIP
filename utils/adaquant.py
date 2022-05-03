@@ -86,7 +86,8 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
                                                         #  patience=10)
     
     if hasattr(layer, 'bias') and layer.bias is not None: 
-        opt_w = Lamb([layer.weight, layer.bias], lr=lr_w, weight_decay=weight_decay, betas=(.9, .999), adam=True)
+        opt_w = Lamb([{'params': layer.weight}, 
+                      {'params': layer.bias, 'lr': lr_b}], lr=lr_w, weight_decay=weight_decay, betas=(.9, .999), adam=True)
         # scheduler_bias = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_bias,
                                                         #  min_lr=1e-8,
                                                         #  factor=0.9,
