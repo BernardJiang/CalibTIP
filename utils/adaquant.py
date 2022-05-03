@@ -96,7 +96,7 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     else:
         opt_w = torch.optim.Adam([layer.weight], lr=lr_w) #, weight_decay=weight_decay, betas=(.9, .999), adam=True)            
     
-    scheduler_w = torch.optim.lr_scheduler.StepLR(opt_w, step_size=300, gamma=0.66, verbose=True) 
+    scheduler_w = torch.optim.lr_scheduler.StepLR(opt_w, step_size=300, gamma=0.1, verbose=False) 
 
     opt_scale = torch.optim.Adam([{'params': layer.quantize_input.running_scale},
                          {'params': layer.quantize_weight.running_scale, 'lr': lr_qpw}], lr=lr_qpin)
@@ -111,7 +111,7 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
                                                         #  factor=0.9,
                                                         #  verbose=False,
                                                         #  patience=10)
-    scheduler_scale = torch.optim.lr_scheduler.StepLR(opt_scale, step_size=300, gamma=0.66, verbose=True) 
+    scheduler_scale = torch.optim.lr_scheduler.StepLR(opt_scale, step_size=300, gamma=0.1, verbose=False) 
  
 
     if writer is not None:
