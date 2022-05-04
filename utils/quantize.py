@@ -175,13 +175,13 @@ def get_quantized_params(model, qparams = {}):
                 # weight_scale = m.quantize_weight.running_scale.reshape(weightoutshape) / m.quantize_input.running_scale.reshape(weightinshape)
                 
                 # scales = weight_scale.flatten().tolist()
-                # num_bits = (torch.log2(m.quantize_weight.qmax + 1) + 1).flatten().tolist()
-                # radixes = torch.log2(m.quantize_weight.two_power_of_radix).flatten().tolist()
-                # qparams[m.name+'.weight'] = {                        
+                num_bits = (torch.log2(m.quantize_weight.qmax + 1) + 1).flatten().tolist()
+                radixes = torch.log2(m.quantize_weight.two_power_of_radix).flatten().tolist()
+                qparams[m.name+'.weight'] = {                        
                         # 'scale':  scales,
-                        # 'radix':  radixes,
-                        # 'bitwidth': num_bits,
-                    # }
+                        'radix':  radixes,
+                        'bitwidth': num_bits,
+                    }
                
                 if m.bias is not None:
                     # qb = quantize_tensor(m.bias, m.quantize_weight.running_scale, m.quantize_weight.bias_qmin, m.quantize_weight.bias_qmax, m.quantize_weight.bias_two_power_of_radix)
