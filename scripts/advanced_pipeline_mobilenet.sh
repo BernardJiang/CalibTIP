@@ -1,9 +1,9 @@
 
-cp modeljson/mobilenetv2/mobilenetv2_adaquant.piano.kdp530.scaled.onnx.json.4bit.0.999 results/mobilenet_v2_w4a8.adaquant/mobilenetv2_adaquant.piano.kdp530.scaled.onnx.json
-cp modeljson/mobilenetv2/mobilenetv2_adaquant.piano.kdp530.scaled.onnx.json.8bit.0.999 results/mobilenet_v2_w8a8.adaquant/mobilenetv2_adaquant.piano.kdp530.scaled.onnx.json
+# cp modeljson/mobilenetv2/mobilenetv2_adaquant.piano.kdp530.scaled.onnx.json.4bit.0.999 results/mobilenet_v2_w4a8.adaquant/mobilenetv2_adaquant.piano.kdp530.scaled.onnx.json
+# cp modeljson/mobilenetv2/mobilenetv2_adaquant.piano.kdp530.scaled.onnx.json.8bit.0.999 results/mobilenet_v2_w8a8.adaquant/mobilenetv2_adaquant.piano.kdp530.scaled.onnx.json
 
-# cp modeljson/mobilenetv2/mobilenetv2_adaquant.piano.kdp530.scaled.onnx.json.4bit.1 results/mobilenet_v2_w4a8.adaquant/mobilenetv2_adaquant.piano.kdp530.scaled.onnx.json
-# cp modeljson/mobilenetv2/mobilenetv2_adaquant.piano.kdp530.scaled.onnx.json.8bit.1 results/mobilenet_v2_w8a8.adaquant/mobilenetv2_adaquant.piano.kdp530.scaled.onnx.json
+cp modeljson/mobilenetv2/mobilenetv2_adaquant.piano.kdp530.scaled.onnx.json.4bit.1 results/mobilenet_v2_w4a8.adaquant/mobilenetv2_adaquant.piano.kdp530.scaled.onnx.json
+cp modeljson/mobilenetv2/mobilenetv2_adaquant.piano.kdp530.scaled.onnx.json.8bit.1 results/mobilenet_v2_w8a8.adaquant/mobilenetv2_adaquant.piano.kdp530.scaled.onnx.json
 
 
 # rm results
