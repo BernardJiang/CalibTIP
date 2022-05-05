@@ -43,7 +43,7 @@ import copy
 from models.modules.quantize import QConv2d, QLinear
 import json
 from itertools import zip_longest
-from utils.layer_sensativity import search_replace_layer_from_json
+from utils.layer_sensativity import search_replace_layer_from_json, get_seq_exec_list
 from pynvml import *
 import re
 from torch.utils.tensorboard import SummaryWriter
@@ -252,6 +252,18 @@ def preprocess_config(precision_config):
                 precision_config_result[newkey]=value                       
                         
     return precision_config_result
+
+def create_scale_mapping(precision_config):
+    scale_map = {}
+    for key,value in precision_config.items():
+        scale_map[key]=[]
+        for k,v in precision_config.items():
+            if key == k: 
+                continue
+            if value["output_scale"] == v["input_scale"][0]:
+                scale_map[key].append(k)
+                                        
+    return scale_map
 
 def get_name_mapping(precision_config):
     knerex2pytorch_map = {}
@@ -470,6 +482,7 @@ def main_worker(args):
             filename_bn = save_path+'/'+args.model+'.with_bn'
             torch.save(model.state_dict(),filename_bn)
         if (args.onnxinput or args.load_from_vision or args.absorb_bn) and not args.evaluate_init_configuration: 
+            get_seq_exec_list(model)            
             return
 
     if 'inception' in args.model:
@@ -631,6 +644,11 @@ def main_worker(args):
             jsonfile = args.evaluate + '.adaquant.json'
             with open(jsonfile, 'w') as outfile:
                 json.dump(precision_config, outfile, indent=4)
+            scale_map = create_scale_mapping(precision_config)
+            jsonfile = args.evaluate + '.measure_perC.scalemap.json'
+            with open(jsonfile, 'w') as outfile:
+                json.dump(scale_map, outfile, indent=4)
+            
         onnx_filestr = args.layers_precision_json.replace(".json", "")
         onnx_model = onnx.load(onnx_filestr)
         # onnx.checker.check_model(onnx_model) 
