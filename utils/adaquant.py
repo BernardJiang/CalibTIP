@@ -85,18 +85,18 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
                                                         #  verbose=False,
                                                         #  patience=10)
     
-    if hasattr(layer, 'bias') and layer.bias is not None: 
-        opt_w = torch.optim.Adam([{'params': layer.weight}, 
-                      {'params': layer.bias, 'lr': lr_b}], lr=lr_w) #, weight_decay=weight_decay, betas=(.9, .999), adam=True)
-        # scheduler_bias = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_bias,
-                                                        #  min_lr=1e-8,
-                                                        #  factor=0.9,
-                                                        #  verbose=False,
-                                                        #  patience=10)
-    else:
-        opt_w = torch.optim.Adam([layer.weight], lr=lr_w) #, weight_decay=weight_decay, betas=(.9, .999), adam=True)            
+    # if hasattr(layer, 'bias') and layer.bias is not None: 
+    #     opt_w = torch.optim.Adam([{'params': layer.weight}, 
+    #                   {'params': layer.bias, 'lr': lr_b}], lr=lr_w) #, weight_decay=weight_decay, betas=(.9, .999), adam=True)
+    #     # scheduler_bias = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_bias,
+    #                                                     #  min_lr=1e-8,
+    #                                                     #  factor=0.9,
+    #                                                     #  verbose=False,
+    #                                                     #  patience=10)
+    # else:
+    #     opt_w = torch.optim.Adam([layer.weight], lr=lr_w) #, weight_decay=weight_decay, betas=(.9, .999), adam=True)            
     
-    scheduler_w = torch.optim.lr_scheduler.StepLR(opt_w, step_size=300, gamma=0.33, verbose=False) 
+    # scheduler_w = torch.optim.lr_scheduler.StepLR(opt_w, step_size=300, gamma=0.33, verbose=False) 
 
     opt_scale = torch.optim.Adam([layer.quantize_weight.running_scale], lr=lr_qpw)
     # {'params': layer.quantize_input.running_scale},
@@ -108,11 +108,13 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     scheduler_scale = torch.optim.lr_scheduler.StepLR(opt_scale, step_size=300, gamma=0.33, verbose=False) 
  
 
-    if writer is not None:
-        writer.add_scalar("layer/{}".format(layer.name), mse_before.item(), 0)
+    # if writer is not None:
+    #     writer.add_scalar("layer/{}".format(layer.name), mse_before.item(), 0)
 
     losses = []
-    for j in (tqdm(range(iters)) if progress else range(iters)):
+    noclamppercentage = []
+    pbar = (tqdm(range(iters)) if progress else range(iters))
+    for j in pbar:
         idx = torch.randperm(cached_inps.size(0))[:batch_size]
 
         # print("idx: ", j)
@@ -135,10 +137,10 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
                 writer.add_scalar("layer/{}input_scale[0]".format(layer.name), layer.quantize_input.running_scale[0], j)
 
         losses.append(loss.item())
-        opt_w.zero_grad()
+        # opt_w.zero_grad()
         opt_scale.zero_grad()
         loss.backward()
-        opt_w.step()
+        # opt_w.step()
         opt_scale.step()
         # scheduler_w.step()
         # scheduler_scale.step()
