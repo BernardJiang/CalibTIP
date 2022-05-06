@@ -627,11 +627,13 @@ def main_worker(args):
         else:
             model = search_replace_layer(model, args.names_sp_layers, num_bits_activation=args.nbits_act,
                                          num_bits_weight=args.nbits_weight)
-        # jsonfile = args.evaluate + '.json'
-        # if os.path.exists(jsonfile):
-        #     with open(jsonfile, "r") as fp:    
-        #         precision_config = json.load(fp)
-        #         model = search_replace_layer_from_json(model, None, precision_config)
+        scale_map = {}    
+        if args.evaluate.endswith("measure_perC"):
+            jsonfile = args.evaluate + '.scalemap.json'
+            if os.path.exists(jsonfile):
+                with open(jsonfile, "r") as fp:    
+                   scale_map = json.load(fp)
+
 
     if args.layers_precision_json is not None:
         import onnx
@@ -772,6 +774,16 @@ def main_worker(args):
             mse_df.loc[i, 'kurt_w'] = kurt_w
             mse_df.loc[i, 'in_shape'] = str(cached_input_output[layer][0][0].shape)
             mse_df.loc[i, 'out_shape'] = str(cached_input_output[layer][0][1].shape)
+            if len(scale_map[layer.name]):
+                #update the next layer's input scale
+                for layername in scale_map[layer.name]:
+                    for name, m in model.named_modules():
+                        if name==layername:
+                            with torch.no_grad():
+                                #update its input scale
+                                m.quantize_input.running_scale.copy_(layer.quantize_weight.running_scale.reshape(m.quantize_input.running_scale.shape))
+                                print(f"layer {name}'s input scale is updated")
+                
 
             # print(__file__, get_linenumber())
             # get_gpu_memory_map()
