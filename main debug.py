@@ -291,17 +291,17 @@ def get_name_mapping(precision_config):
                         
     return knerex2pytorch_map, pytorch2knerex_map, extracted_data
 
-def savejson(model_orig, onnx_export_file, precision_config):
-    new_qparams = get_quantized_model_and_params(model_orig)
-    # knerex2pytorch_map, pytorch2knerex_map, extracted_data = get_name_mapping(precision_config)
-    # qparams2 = dict((pytorch2knerex_map[key], value) for (key, value) in qparams.items())
-    # new_qparams =  dict((key, {**value, **extracted_data[key]}) for (key, value) in qparams2.items())
-    filename_json = onnx_export_file + ".json"
-    with open(filename_json, "w") as fp:
-        json.dump(new_qparams, fp, indent=4)
+# def savejson(model_orig, onnx_export_file, precision_config):
+#     new_qparams = get_quantized_model_and_params(model_orig)
+#     # knerex2pytorch_map, pytorch2knerex_map, extracted_data = get_name_mapping(precision_config)
+#     # qparams2 = dict((pytorch2knerex_map[key], value) for (key, value) in qparams.items())
+#     # new_qparams =  dict((key, {**value, **extracted_data[key]}) for (key, value) in qparams2.items())
+#     filename_json = onnx_export_file + ".json"
+#     with open(filename_json, "w") as fp:
+#         json.dump(new_qparams, fp, indent=4)
 
 def save2onnx(model_orig, img, onnx_export_file, disable_quantization=False):
-    return
+    # return
     try:
         import onnx
         
