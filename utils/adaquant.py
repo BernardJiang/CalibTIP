@@ -98,14 +98,8 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     
     scheduler_w = torch.optim.lr_scheduler.StepLR(opt_w, step_size=300, gamma=0.33, verbose=False) 
 
-    opt_scale = torch.optim.Adam([{'params': layer.quantize_input.running_scale},
-                         {'params': layer.quantize_weight.running_scale, 'lr': lr_qpw}], lr=lr_qpin)
-
-    # scheduler_in_scale = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_in_scale,
-                                                        #  min_lr=1e-8,
-                                                        #  factor=0.9,
-                                                        #  verbose=False,
-                                                        #  patience=10)
+    opt_scale = torch.optim.Adam([layer.quantize_weight.running_scale], lr=lr_qpw)
+    # {'params': layer.quantize_input.running_scale},
     # scheduler_out_scale = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_out_scale,
                                                         #  min_lr=1e-8,
                                                         #  factor=0.9,
@@ -146,8 +140,8 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
         loss.backward()
         opt_w.step()
         opt_scale.step()
-        scheduler_w.step()
-        scheduler_scale.step()
+        # scheduler_w.step()
+        # scheduler_scale.step()
         # scheduler_in_scale.step(loss)
         # scheduler_out_scale.step(loss)
         
@@ -209,7 +203,7 @@ def optimize_layer(layer, in_out, optimize_weights=False, batch_size=100, model_
         # get_gpu_memory_map()
         # check_memory_usage()
         relu_flag = relu_condition(layer.name)      
-        mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=600, batch_size=batch_size, lr1=1e-5, lr2=1e-4, relu=relu_flag, writer=writer) 
+        mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=100, batch_size=batch_size, lr1=1e-5, lr2=1e-4, relu=relu_flag, writer=writer) 
         mse_before_opt = mse_before
         print("\nMSE before adaquant: {:e}".format(mse_before))
         print("MSE after  adaquant: {:e}".format(mse_after))
