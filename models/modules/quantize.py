@@ -327,12 +327,12 @@ def quantize_with_grad(input, num_bits=None, qparams=None, flatten_dims=_DEFAULT
         noise = output.new(output.shape).uniform_(-0.5, 0.5)
         output.add_(noise)
     if clamp:
-        output_before_clamp = output.clone()    
+        # output_before_clamp = output.clone()    
         # quantize
         output.clamp_(qparams.qmin, qparams.qmax)
-        with torch.no_grad():
-            per = (output == output_before_clamp).sum() * 100 / torch.numel(output)
-            print("no clamp percentage = ", per)
+        # with torch.no_grad():
+        #     per = (output == output_before_clamp).sum() * 100 / torch.numel(output)
+        #     print("no clamp percentage = ", per)
         
         output = Round().apply(output,inplace)
         # output = Round().apply(Clamp().apply(output, inplace, qparams.qmin, qparams.qmax),inplace)
