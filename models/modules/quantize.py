@@ -326,9 +326,15 @@ def quantize_with_grad(input, num_bits=None, qparams=None, flatten_dims=_DEFAULT
     if stochastic:
         noise = output.new(output.shape).uniform_(-0.5, 0.5)
         output.add_(noise)
-    if clamp:    
+    if clamp:
+        output_before_clamp = output.clone()    
         # quantize
-        output = Round().apply(output.clamp_(qparams.qmin, qparams.qmax),inplace)
+        output.clamp_(qparams.qmin, qparams.qmax)
+        with torch.no_grad():
+            per = (output == output_before_clamp).sum() * 100 / torch.numel(output)
+            print("no clamp percentage = ", per)
+        
+        output = Round().apply(output,inplace)
         # output = Round().apply(Clamp().apply(output, inplace, qparams.qmin, qparams.qmax),inplace)
         if dequantize:
             output.div_(qparams.two_power_of_radix)  # dequantize
@@ -472,8 +478,8 @@ class QuantThUpdate(nn.Module):
         self.per_ch_input = per_ch_input
         self.reduce_dim = reduce_dim
 
-        if weight_flag:
-            self.register_parameter('scale', nn.Parameter(torch.ones(*shape_measure)))
+        if weight_flag: # weight & bias
+            # self.register_parameter('scale', nn.Parameter(torch.ones(*shape_measure)))
             self.register_parameter('qmin',  nn.Parameter(torch.tensor(1.0)))
             self.register_parameter('qmax',  nn.Parameter(torch.tensor(1.0)))
             y = list(shape_measure)
@@ -484,7 +490,7 @@ class QuantThUpdate(nn.Module):
             self.register_parameter('bias_qmin',  nn.Parameter(torch.tensor(1.0)))
             self.register_parameter('bias_qmax',  nn.Parameter(torch.tensor(1.0)))
             self.register_parameter('bias_two_power_of_radix',  nn.Parameter(torch.ones(shape_measure[0])))
-        else:
+        else: #input 
             self.register_parameter('running_scale', nn.Parameter(torch.ones(*shape_measure[1:])))
             self.register_parameter('qmin',  nn.Parameter(torch.tensor(1.0)))
             self.register_parameter('qmax',  nn.Parameter(torch.tensor(1.0)))
