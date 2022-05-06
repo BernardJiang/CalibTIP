@@ -3,6 +3,21 @@ from torch.utils import data
 import torch.nn as nn
 from models.modules.quantize import calculate_qparams, quantize, QConv2d,QLinear
 import numpy as np
+import torch.fx as fx
+from torch.fx.node import Argument, Target
+from torch.nn.utils.fusion import fuse_conv_bn_eval
+from typing import Type, Dict, Any, Tuple, Iterable, Optional, List, cast
+import torch.nn.functional as F
+from torch.fx.passes.shape_prop import ShapeProp
+import copy
+from collections import defaultdict
+import torch.utils.mkldnn as th_mkldnn
+import operator
+import time
+import logging
+from enum import Enum
+
+
 
 def search_replace_layer(model,all_names,num_bits_activation,num_bits_weight,name_model=''):
     for i,m in enumerate(model.children()):
@@ -201,3 +216,83 @@ def extract_save_quant_state_dict(model,all_names,filename='int_state_dict.pth.t
         state_dict[key] = val_q
     torch.save(state_dict,filename)        
     return state_dict  
+
+
+def _parent_name(target : str) -> Tuple[str, str]:
+    """
+    Splits a qualname into parent path and last atom.
+    For example, `foo.bar.baz` -> (`foo.bar`, `baz`)
+    """
+    *parent, name = target.rsplit('.', 1)
+    return parent[0] if parent else '', name
+
+# Works for length 2 patterns with 2 modules
+def matches_module_pattern(pattern: Iterable[Type], node: fx.Node, modules: Dict[str, Any]):
+    if len(node.args) == 0:
+        return False
+    nodes: Tuple[Any, fx.Node] = (node.args[0], node)
+    for expected_type, current_node in zip(pattern, nodes):
+        if not isinstance(current_node, fx.Node):
+            return False
+        if current_node.op != 'call_module':
+            return False
+        if not isinstance(current_node.target, str):
+            return False
+        if current_node.target not in modules:
+            return False
+        if type(modules[current_node.target]) is not expected_type:
+            return False
+    return True
+
+
+def replace_node_module(node: fx.Node, modules: Dict[str, Any], new_module: torch.nn.Module):
+    assert(isinstance(node.target, str))
+    parent_name, name = _parent_name(node.target)
+    modules[node.target] = new_module
+    setattr(modules[parent_name], name, new_module)
+
+def fuse(model: torch.nn.Module, inplace=False) -> torch.nn.Module:
+    """
+    Fuses convolution/BN layers for inference purposes. Will deepcopy your
+    model by default, but can modify the model inplace as well.
+    """
+    patterns = [(nn.Conv2d, nn.Conv2d),
+                (nn.Conv2d, nn.BatchNorm3d)]
+    if not inplace:
+        model = copy.deepcopy(model)
+    fx_model = fx.symbolic_trace(model)
+    modules = dict(fx_model.named_modules())
+    new_graph = copy.deepcopy(fx_model.graph)
+
+    for pattern in patterns:
+        for node in new_graph.nodes:
+            if matches_module_pattern(pattern, node, modules):
+                if len(node.args[0].users) > 1:  # Output of conv is used by other nodes
+                    continue
+                conv = modules[node.args[0].target]
+                bn = modules[node.target]
+                # fused_conv = fuse_conv_bn_eval(conv, bn)
+                # replace_node_module(node.args[0], modules, fused_conv)
+                # node.replace_all_uses_with(node.args[0])
+                # new_graph.erase_node(node)
+    return fx.GraphModule(fx_model, new_graph)
+
+def get_seq_exec_list(model):
+    DUMMY_INPUT = torch.randn(1,3,224,224)
+    model.eval()
+    traced = torch.jit.trace(model, (DUMMY_INPUT,), check_trace=False)
+    seq_exec_list = traced.code
+    seq_exec_list = seq_exec_list.split('\n')
+    for idx, item in enumerate(seq_exec_list):
+        print("[{}]: {}".format(idx, item))
+        
+    gm = torch.fx.symbolic_trace(model)
+    for n in gm.graph.nodes:
+        flag = False
+        if n.op == 'call_module':
+            flag = isinstance(n.target, nn.Conv2d) # or isinstance(n, nn.Linear)
+        
+        print(f'{n.name} = {n.op} target={n.target} args={n.args} isConvorLinear = {flag}')
+
+    # fuse(model)
+    return
