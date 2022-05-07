@@ -304,13 +304,13 @@ def save2onnx(model_orig, img, onnx_export_file, disable_quantization=False):
     # return
     try:
         import onnx
-        
+
         if disable_quantization:
             #disable quantization before saving to onnx.
             for m in model_orig.modules():
                 if isinstance(m, QConv2d) or isinstance(m, QLinear):
                     m.quantize = False
-            qparams = get_quantized_model_and_params(model_orig)
+            qparams = get_quantized_model_and_params(model_orig, False)
             filename_json = onnx_export_file + ".json"
             with open(filename_json, "w") as fp:
                 json.dump(qparams, fp, indent=4)

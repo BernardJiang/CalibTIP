@@ -121,7 +121,7 @@ def get_quantized_model_and_params(model, dequantflag=True, qparams = {}):
                     if dequantflag:
                         dqb = dequantize_tensor(m.bias, m.quantize_weight.running_scale, m.quantize_weight.bias_qmin, m.quantize_weight.bias_qmax, m.quantize_weight.bias_two_power_of_radix)
                     else:
-                        dpb = qb
+                        dqb = qb
                     m.bias.copy_(dqb)
                     
                     bias_scales = m.quantize_weight.running_scale.flatten().tolist()
