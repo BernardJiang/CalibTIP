@@ -78,34 +78,34 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
         print("8-bit layer should use smaller LR =", lr_qpw )
         
 
+    opt_w = Lamb([layer.weight], lr=lr_w, weight_decay=weight_decay, betas=(.9, .999), adam=True)
 
-    # scheduler_w = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_w,
-                                                        #  min_lr=1e-8,
-                                                        #  factor=0.9,
-                                                        #  verbose=False,
-                                                        #  patience=10)
+    scheduler_w = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_w,
+                                                         min_lr=1e-8,
+                                                         factor=0.9,
+                                                         verbose=True,
+                                                         patience=10)
     
-    # if hasattr(layer, 'bias') and layer.bias is not None: 
-    #     opt_w = torch.optim.Adam([{'params': layer.weight}, 
-    #                   {'params': layer.bias, 'lr': lr_b}], lr=lr_w) #, weight_decay=weight_decay, betas=(.9, .999), adam=True)
-    #     # scheduler_bias = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_bias,
-    #                                                     #  min_lr=1e-8,
-    #                                                     #  factor=0.9,
-    #                                                     #  verbose=False,
-    #                                                     #  patience=10)
-    # else:
+    if hasattr(layer, 'bias') and layer.bias is not None: 
+        opt_bias = Lamb([layer.bias], lr=lr_b, weight_decay=weight_decay, betas=(.9, .999), adam=True)
+        scheduler_bias = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_bias,
+                                                         min_lr=1e-8,
+                                                         factor=0.9,
+                                                         verbose=True,
+                                                         patience=10)
+
     #     opt_w = torch.optim.Adam([layer.weight], lr=lr_w) #, weight_decay=weight_decay, betas=(.9, .999), adam=True)            
     
     # scheduler_w = torch.optim.lr_scheduler.StepLR(opt_w, step_size=300, gamma=0.33, verbose=False) 
 
-    opt_scale = torch.optim.Adam([layer.quantize_weight.running_scale], lr=lr_qpw)
+    # opt_scale = torch.optim.Adam([layer.quantize_weight.running_scale], lr=lr_qpw)
     # {'params': layer.quantize_input.running_scale},
     # scheduler_out_scale = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_out_scale,
                                                         #  min_lr=1e-8,
                                                         #  factor=0.9,
                                                         #  verbose=False,
                                                         #  patience=10)
-    scheduler_scale = torch.optim.lr_scheduler.StepLR(opt_scale, step_size=300, gamma=0.33, verbose=False) 
+    # scheduler_scale = torch.optim.lr_scheduler.StepLR(opt_scale, step_size=300, gamma=0.33, verbose=False) 
  
 
     # if writer is not None:
@@ -137,11 +137,16 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
                 writer.add_scalar("layer/{}input_scale[0]".format(layer.name), layer.quantize_input.running_scale[0], j)
 
         losses.append(loss.item())
-        # opt_w.zero_grad()
-        opt_scale.zero_grad()
+        opt_w.zero_grad()
+		if hasattr(layer, 'bias') and layer.bias is not None: opt_bias.zero_grad()
+        # opt_scale.zero_grad()
         loss.backward()
-        # opt_w.step()
-        opt_scale.step()
+        opt_w.step()
+        scheduler_w.step(loss)
+        if hasattr(layer, 'bias') and layer.bias is not None: 
+            opt_bias.step()
+            scheduler_bias.step(loss)
+        # opt_scale.step()
         # scheduler_w.step()
         # scheduler_scale.step()
         # scheduler_in_scale.step(loss)
