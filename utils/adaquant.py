@@ -83,7 +83,7 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     scheduler_w = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_w,
                                                          min_lr=1e-8,
                                                          factor=0.9,
-                                                         verbose=True,
+                                                         verbose=False,
                                                          patience=10)
     
     if hasattr(layer, 'bias') and layer.bias is not None: 
@@ -91,7 +91,7 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
         scheduler_bias = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_bias,
                                                          min_lr=1e-8,
                                                          factor=0.9,
-                                                         verbose=True,
+                                                         verbose=False,
                                                          patience=10)
 
     #     opt_w = torch.optim.Adam([layer.weight], lr=lr_w) #, weight_decay=weight_decay, betas=(.9, .999), adam=True)            
@@ -138,7 +138,7 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
 
         losses.append(loss.item())
         opt_w.zero_grad()
-		if hasattr(layer, 'bias') and layer.bias is not None: opt_bias.zero_grad()
+        if hasattr(layer, 'bias') and layer.bias is not None: opt_bias.zero_grad()
         # opt_scale.zero_grad()
         loss.backward()
         opt_w.step()
@@ -210,7 +210,7 @@ def optimize_layer(layer, in_out, optimize_weights=False, batch_size=100, model_
         # get_gpu_memory_map()
         # check_memory_usage()
         relu_flag = relu_condition(layer.name)      
-        mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=100, batch_size=batch_size, lr1=1e-5, lr2=1e-4, relu=relu_flag, writer=writer) 
+        mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=500, batch_size=batch_size, lr1=1e-5, lr2=1e-4, relu=relu_flag, writer=writer) 
         mse_before_opt = mse_before
         print("\nMSE before adaquant: {:e}".format(mse_before))
         print("MSE after  adaquant: {:e}".format(mse_after))
