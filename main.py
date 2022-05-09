@@ -247,6 +247,18 @@ def preprocess_config(precision_config):
                         
     return precision_config_result
 
+def create_scale_mapping(precision_config):
+    scale_map = {}
+    for key,value in precision_config.items():
+        scale_map[key]=[]
+        for k,v in precision_config.items():
+            if key == k: 
+                continue
+            if value["output_scale"] == v["input_scale"][0]:
+                scale_map[key].append(k)
+                                        
+    return scale_map
+
 def get_name_mapping(precision_config):
     knerex2pytorch_map = {}
     pytorch2knerex_map = {}
@@ -273,14 +285,14 @@ def get_name_mapping(precision_config):
                         
     return knerex2pytorch_map, pytorch2knerex_map, extracted_data
 
-def savejson(model_orig, onnx_export_file, precision_config):
-    new_qparams = get_quantized_model_and_params(model_orig)
-    # knerex2pytorch_map, pytorch2knerex_map, extracted_data = get_name_mapping(precision_config)
-    # qparams2 = dict((pytorch2knerex_map[key], value) for (key, value) in qparams.items())
-    # new_qparams =  dict((key, {**value, **extracted_data[key]}) for (key, value) in qparams2.items())
-    filename_json = onnx_export_file + ".json"
-    with open(filename_json, "w") as fp:
-        json.dump(new_qparams, fp, indent=4)
+# def savejson(model_orig, onnx_export_file, precision_config):
+#     new_qparams = get_quantized_model_and_params(model_orig)
+#     # knerex2pytorch_map, pytorch2knerex_map, extracted_data = get_name_mapping(precision_config)
+#     # qparams2 = dict((pytorch2knerex_map[key], value) for (key, value) in qparams.items())
+#     # new_qparams =  dict((key, {**value, **extracted_data[key]}) for (key, value) in qparams2.items())
+#     filename_json = onnx_export_file + ".json"
+#     with open(filename_json, "w") as fp:
+#         json.dump(new_qparams, fp, indent=4)
 
 def save2onnx(model_orig, img, onnx_export_file, disable_quantization=False):
 
@@ -584,11 +596,13 @@ def main_worker(args):
         else:
             model = search_replace_layer(model, args.names_sp_layers, num_bits_activation=args.nbits_act,
                                          num_bits_weight=args.nbits_weight)
-        # jsonfile = args.evaluate + '.json'
-        # if os.path.exists(jsonfile):
-        #     with open(jsonfile, "r") as fp:    
-        #         precision_config = json.load(fp)
-        #         model = search_replace_layer_from_json(model, None, precision_config)
+        scale_map = {}    
+        if args.evaluate.endswith("measure_perC"):
+            jsonfile = args.evaluate + '.scalemap.json'
+            if os.path.exists(jsonfile):
+                with open(jsonfile, "r") as fp:    
+                   scale_map = json.load(fp)
+
 
     if args.layers_precision_json is not None:
         import onnx
@@ -601,6 +615,11 @@ def main_worker(args):
             jsonfile = args.evaluate + '.adaquant.json'
             with open(jsonfile, 'w') as outfile:
                 json.dump(precision_config, outfile, indent=4)
+            scale_map = create_scale_mapping(precision_config)
+            jsonfile = args.evaluate + '.measure_perC.scalemap.json'
+            with open(jsonfile, 'w') as outfile:
+                json.dump(scale_map, outfile, indent=4)
+            
         onnx_filestr = args.layers_precision_json.replace(".json", "")
         onnx_model = onnx.load(onnx_filestr)
         # onnx.checker.check_model(onnx_model) 
@@ -707,6 +726,16 @@ def main_worker(args):
             mse_df.loc[i, 'kurt_w'] = kurt_w
             mse_df.loc[i, 'in_shape'] = str(cached_input_output[layer][0][0].shape)
             mse_df.loc[i, 'out_shape'] = str(cached_input_output[layer][0][1].shape)
+            if len(scale_map[layer.name]):
+                #update the next layer's input scale
+                for layername in scale_map[layer.name]:
+                    for name, m in model.named_modules():
+                        if name==layername:
+                            with torch.no_grad():
+                                #update its input scale
+                                m.quantize_input.running_scale.copy_(layer.quantize_weight.running_scale.reshape(m.quantize_input.running_scale.shape))
+                                print(f"layer {name}'s input scale is updated")
+
 
             total_layer_count += 1
             if mse_after < mse_before:
