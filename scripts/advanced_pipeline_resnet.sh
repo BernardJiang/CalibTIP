@@ -1,10 +1,3 @@
-# cp modeljson/resnet50/resnet_adaquant.piano.kdp530.scaled.onnx.json.4bit.0.999 results/resnet50_w4a8.adaquant/resnet_adaquant.piano.kdp530.scaled.onnx.json 
-# cp modeljson/resnet50/resnet_adaquant.piano.kdp530.scaled.onnx.json.8bit.0.999 results/resnet50_w8a8.adaquant/resnet_adaquant.piano.kdp530.scaled.onnx.json 
-
-cp modeljson/resnet50/resnet_adaquant.piano.kdp530.scaled.onnx.json.4bit.1 results/resnet50_w4a8.adaquant/resnet_adaquant.piano.kdp530.scaled.onnx.json 
-cp modeljson/resnet50/resnet_adaquant.piano.kdp530.scaled.onnx.json.8bit.1 results/resnet50_w8a8.adaquant/resnet_adaquant.piano.kdp530.scaled.onnx.json 
-
-
 # rm results
 # ln -sf ../results.backup/results.20211221.parallel results
 sh scripts/adaquant.sh resnet resnet50 4 8 True resnet_adaquant.piano.kdp530.scaled.onnx.json
