@@ -129,14 +129,14 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
             loss = F.mse_loss(qout, train_out)
 
         if writer is not None:
+          with torch.no_grad():
             if j % 10 == 0 :
                 writer.add_scalar("layer/{}".format(layer.name), loss.item(), j)
                 writer.add_scalar("layer/{}/output_scale[0]".format(layer.name), layer.quantize_weight.running_scale[0], j)
                 writer.add_scalar("layer/{}/input_scale[0]".format(layer.name), layer.quantize_input.running_scale[0], j)
                 a = torch.var_mean(layer.quantize_weight.running_scale, unbiased=False)
-                writer.add_scalar("layer/{}/output_scale/mean".format(layer.name), a[0], j)
-                writer.add_scalar("layer/{}/output_scale/variance".format(layer.name), a[1], j)
-
+                writer.add_scalar("layer/{}/output_scale/variance".format(layer.name), a[0], j)
+                writer.add_scalar("layer/{}/output_scale/mean".format(layer.name), a[1], j)
         losses.append(loss.item())
         # opt_w.zero_grad()
         # if hasattr(layer, 'bias') and layer.bias is not None: 
@@ -176,12 +176,14 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     #             layer.bias.copy_(oldbias)
     
     if writer is not None:
+       with torch.no_grad():
          writer.add_scalar("layer/{}".format(layer.name), mse_after.item(), iters-1)
          writer.add_scalar("layer/{}/output_scale[0]".format(layer.name), layer.quantize_weight.running_scale[0], iters-1)
          writer.add_scalar("layer/{}/input_scale[0]".format(layer.name), layer.quantize_input.running_scale[0], iters-1)
          a = torch.var_mean(layer.quantize_weight.running_scale, unbiased=False)
-         writer.add_scalar("layer/{}/output_scale/mean".format(layer.name), a[0], iters-1)
-         writer.add_scalar("layer/{}/output_scale/variance".format(layer.name), a[1], iters-1)
+         writer.add_scalar("layer/{}/output_scale/variance".format(layer.name), a[0], iters-1)
+         writer.add_scalar("layer/{}/output_scale/mean".format(layer.name), a[1], iters-1)
+
     
     return mse_before.item(), mse_after.item()
 
@@ -214,7 +216,7 @@ def optimize_layer(layer, in_out, optimize_weights=False, batch_size=100, model_
         # get_gpu_memory_map()
         # check_memory_usage()
         relu_flag = relu_condition(layer.name)      
-        mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=1000, batch_size=batch_size, lr1=1e-5, lr2=1e-4, relu=relu_flag, writer=writer) 
+        mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=100, batch_size=batch_size, lr1=1e-5, lr2=1e-4, relu=relu_flag, writer=writer) 
         mse_before_opt = mse_before
         print("\nMSE before adaquant: {:e}".format(mse_before))
         print("MSE after  adaquant: {:e}".format(mse_after))
