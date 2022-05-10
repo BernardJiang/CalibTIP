@@ -79,23 +79,21 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
         
 
     opt_w = Lamb([layer.weight], lr=lr_w, weight_decay=weight_decay, betas=(.9, .999), adam=True)
-
-    scheduler_w = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_w,
-                                                         min_lr=1e-8,
-                                                         factor=0.9,
-                                                         verbose=False,
-                                                         patience=10)
+    # scheduler_w = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_w,
+                                                        #  min_lr=1e-8,
+                                                        #  factor=0.9,
+                                                        #  verbose=False,
+                                                        #  patience=10)
     
     if hasattr(layer, 'bias') and layer.bias is not None: 
         opt_bias = Lamb([layer.bias], lr=lr_b, weight_decay=weight_decay, betas=(.9, .999), adam=True)
-        scheduler_bias = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_bias,
-                                                         min_lr=1e-8,
-                                                         factor=0.9,
-                                                         verbose=False,
-                                                         patience=10)
+        # scheduler_bias = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_bias,
+                                                        #  min_lr=1e-8,
+                                                        #  factor=0.9,
+                                                        #  verbose=False,
+                                                        #  patience=10)
 
     #     opt_w = torch.optim.Adam([layer.weight], lr=lr_w) #, weight_decay=weight_decay, betas=(.9, .999), adam=True)            
-    
     # scheduler_w = torch.optim.lr_scheduler.StepLR(opt_w, step_size=300, gamma=0.33, verbose=False) 
 
     # opt_scale = torch.optim.Adam([layer.quantize_weight.running_scale], lr=lr_qpw)
@@ -135,17 +133,21 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
                 writer.add_scalar("layer/{}".format(layer.name), loss.item(), j)
                 writer.add_scalar("layer/{}output_scale[0]".format(layer.name), layer.quantize_weight.running_scale[0], j)
                 writer.add_scalar("layer/{}input_scale[0]".format(layer.name), layer.quantize_input.running_scale[0], j)
+                a = torch.var_mean(layer.quantize_input.running_scale, unbiased=False)
+                writer.add_scalar("layer/{}output_scale/mean".format(layer.name), a[0], j)
+                writer.add_scalar("layer/{}output_scale/variance".format(layer.name), a[1], j)
 
         losses.append(loss.item())
         opt_w.zero_grad()
-        if hasattr(layer, 'bias') and layer.bias is not None: opt_bias.zero_grad()
+        if hasattr(layer, 'bias') and layer.bias is not None: 
+            opt_bias.zero_grad()
         # opt_scale.zero_grad()
         loss.backward()
         opt_w.step()
-        scheduler_w.step(loss)
+        # scheduler_w.step(loss)
         if hasattr(layer, 'bias') and layer.bias is not None: 
             opt_bias.step()
-            scheduler_bias.step(loss)
+            # scheduler_bias.step(loss)
         # opt_scale.step()
         # scheduler_w.step()
         # scheduler_scale.step()
@@ -177,7 +179,9 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
          writer.add_scalar("layer/{}".format(layer.name), mse_after.item(), iters-1)
          writer.add_scalar("layer/{}output_scale[0]".format(layer.name), layer.quantize_weight.running_scale[0], iters-1)
          writer.add_scalar("layer/{}input_scale[0]".format(layer.name), layer.quantize_input.running_scale[0], iters-1)
-
+         a = torch.var_mean(layer.quantize_input.running_scale, unbiased=False)
+         writer.add_scalar("layer/{}output_scale/mean".format(layer.name), a[0], iters-1)
+         writer.add_scalar("layer/{}output_scale/variance".format(layer.name), a[1], iters-1)
     
     return mse_before.item(), mse_after.item()
 
@@ -210,7 +214,7 @@ def optimize_layer(layer, in_out, optimize_weights=False, batch_size=100, model_
         # get_gpu_memory_map()
         # check_memory_usage()
         relu_flag = relu_condition(layer.name)      
-        mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=500, batch_size=batch_size, lr1=1e-5, lr2=1e-4, relu=relu_flag, writer=writer) 
+        mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=100, batch_size=batch_size, lr1=1e-5, lr2=1e-4, relu=relu_flag, writer=writer) 
         mse_before_opt = mse_before
         print("\nMSE before adaquant: {:e}".format(mse_before))
         print("MSE after  adaquant: {:e}".format(mse_after))
