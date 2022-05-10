@@ -301,7 +301,7 @@ def get_name_mapping(precision_config):
 #         json.dump(new_qparams, fp, indent=4)
 
 def save2onnx(model_orig, img, onnx_export_file, disable_quantization=False):
-    # return
+    return
     try:
         import onnx
 

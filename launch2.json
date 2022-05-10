@@ -1,0 +1,57 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "python": "/opt/conda/bin/python",
+          
+            //resnet50 
+            // 4 bit
+            // step 1: python main.py 
+            // "args": ["--model", "resnet", "--save", "resnet50_w4a8.adaquant", "-b", "128", "-lfv", "resnet50", "--model-config", "{'batch_norm': False}"],
+            // step 2: python main.py 
+            // "args": ["--model", "resnet", "--nbits_weight", "4", "--nbits_act 8", "--num-sp-layers", "-1", "--evaluate", "/workspace/develop/CalibTIP/results/resnet50_w4a8.adaquant/resnet.absorb_bn", "--model-config", "{'batch_norm': False,'measure': True, 'perC': True}", "-b", "128", "--rec", "--dataset", "imagenet_calib", "--datasets-dir", "/workspace/develop/dataset", "-lpj", "/workspace/develop/CalibTIP/results/resnet50_w4a8.adaquant/resnet_adaquant.piano.kdp530.scaled.onnx.json"],
+            // step 3: python main.py 
+            "args": ["--optimize-weights", "--nbits_weight", "4", "--nbits_act", "8", "--num-sp-layers", "-1", "--model", "resnet", "-b", "32", "--evaluate", "/workspace/develop/CalibTIP/results/resnet50_w4a8.adaquant/resnet.absorb_bn.measure_perC", "--model-config", "{'batch_norm': False,'measure': False, 'perC': True}", "--dataset", "imagenet_calib", "--datasets-dir", "/workspace/develop/dataset", "--adaquant", "--res_log", "/workspace/develop/CalibTIP/results/resnet50_w4a8.adaquant/resnet.absorb_bn.measure_perC.adaquant.csv"],
+            // 8 bit
+            // step 1: python main.py 
+            // "args": ["--model", "resnet", "--save", "resnet50_w8a8.adaquant", "-b", "128", "-lfv", "resnet50", "--model-config", "{'batch_norm': False}"],
+            // step 2: python main.py 
+            // "args": ["--model", "resnet", "--nbits_weight", "8", "--nbits_act", "8", "--num-sp-layers", "-1", "--evaluate", "/workspace/develop/CalibTIP/results/resnet50_w8a8.adaquant/resnet.absorb_bn", "--model-config", "{'batch_norm': False,'measure': True, 'perC': True}", "-b", "128", "--rec", "--dataset", "imagenet_calib", "--datasets-dir", "/workspace/develop/dataset -lpj /workspace/develop/CalibTIP/results/resnet50_w8a8.adaquant/resnet_adaquant.piano.kdp530.scaled.onnx.json"],
+            // step 3: python main.py 
+            // "args": ["--optimize-weights", "--nbits_weight", "8", "--nbits_act", "8", "--num-sp-layers", "-1", "--model", "resnet", "-b", "32", "--evaluate", "/workspace/develop/CalibTIP/results/resnet50_w8a8.adaquant/resnet.absorb_bn.measure_perC", "--model-config", "{'batch_norm': False,'measure': False, 'perC': True}", "--dataset imagenet_calib", "--datasets-dir", "/workspace/develop/dataset", "--adaquant", "--res_log", "/workspace/develop/CalibTIP/results/resnet50_w8a8.adaquant/resnet.absorb_bn.measure_perC.adaquant.csv"],
+            // step 4 python main.py 
+            // "args": ["--model", "resnet", "--evaluate", "results/resnet50_w8a8.adaquant/resnet.absorb_bn.measure_perC.adaquant", "--model-config", "{'batch_norm': False,'measure': False, 'perC': True, 'depth': 50}", "-b", "100", "--dataset", "imagenet_calib", "--datasets-dir", "/workspace/develop/dataset", "--int8_opt_model_path", "results/resnet50_w8a8.adaquant/resnet.absorb_bn.measure_perC.adaquant", "--int4_opt_model_path", "results/resnet50_w4a8.adaquant/resnet.absorb_bn.measure_perC.adaquant", "--names-sp-layers", "--per-layer", "--nbits_act", "8"],
+            // step 5 python mpip_compression_pytorch_multi.py 
+            // "args": ["--model resnet", "--model_vis", "resnet50", "--ip_method", "loss", "--precisions", "8;8;4;8", "--layer_by_layer_files", "results/resnet50_w8a8.adaquant/resnet.absorb_bn.measure_perC.adaquant.per_layer_accuracy.A8.W4.csv", "--min_compression", "0.13", "--max_compression", "0.25", "--datasets-dir", "/workspace/develop/dataset"],
+            
+            //   mobilenet_v2
+            // 4 bit
+            // step 1: python main.py 
+            // "args": ["--model", "mobilenet_v2", "--save", "mobilenet_v2_w4a8.adaquant", "-b", "128", "-lfv", "mobilenet_v2", "--model-config", "{'batch_norm': False}"],
+            // step 2: python main.py 
+            // "args": ["--model", "mobilenet_v2", "--nbits_weight", "4", "--nbits_act", "8", "--num-sp-layers", "-1", "--evaluate", "/workspace/develop/CalibTIP/results/mobilenet_v2_w4a8.adaquant/mobilenet_v2.absorb_bn", "--model-config", "{'batch_norm': False,'measure': True, 'perC': True}", "-b", "128", "--rec", "--dataset", "imagenet_calib", "--datasets-dir", "/workspace/develop/dataset", "-lpj", "/workspace/develop/CalibTIP/results/mobilenet_v2_w4a8.adaquant/mobilenetv2_adaquant.piano.kdp530.scaled.onnx.json"],
+            // step 3: python main.py 
+            // "args": ["--optimize-weights", "--nbits_weight", "4", "--nbits_act", "8", "--num-sp-layers", "-1", "--model", "mobilenet_v2", "-b", "32", "--evaluate", "/workspace/develop/CalibTIP/results/mobilenet_v2_w4a8.adaquant/mobilenet_v2.absorb_bn.measure_perC", "--model-config", "{'batch_norm': False,'measure': False, 'perC': True}", "--dataset", "imagenet_calib", "--datasets-dir", "/workspace/develop/dataset", "--adaquant", "--res_log", "/workspace/develop/CalibTIP/results/mobilenet_v2_w4a8.adaquant/mobilenet_v2.absorb_bn.measure_perC.adaquant.csv"],
+            // 8 bit            
+            // step 1: python main.py 
+            // "args": ["--model", "mobilenet_v2", "--save", "mobilenet_v2_w8a8.adaquant", "-b", "128", "-lfv", "mobilenet_v2", "--model-config", "{'batch_norm': False}"],
+            // step 2: python main.py 
+            // "args": ["--model", "mobilenet_v2", "--nbits_weight", "8", "--nbits_act", "8", "--num-sp-layers", "-1", "--evaluate", "/workspace/develop/CalibTIP/results/mobilenet_v2_w8a8.adaquant/mobilenet_v2.absorb_bn", "--model-config", "{'batch_norm': False,'measure': True, 'perC': True}", "-b", "128", "--rec", "--dataset", "imagenet_calib", "--datasets-dir", "/workspace/develop/dataset", "-lpj", "/workspace/develop/CalibTIP/results/mobilenet_v2_w8a8.adaquant/mobilenetv2_adaquant.piano.kdp530.scaled.onnx.json"],
+            // step 3: python main.py 
+            // "args": ["--optimize-weights", "--nbits_weight", "8", "--nbits_act", "8", "--num-sp-layers", "-1", "--model", "mobilenet_v2", "-b", "32", "--evaluate", "/workspace/develop/CalibTIP/results/mobilenet_v2_w8a8.adaquant/mobilenet_v2.absorb_bn.measure_perC", "--model-config", "{'batch_norm': False,'measure': False, 'perC': True}", "--dataset", "imagenet_calib", "--datasets-dir", "/workspace/develop/dataset", "--adaquant", "--res_log", "/workspace/develop/CalibTIP/results/mobilenet_v2_w8a8.adaquant/mobilenet_v2.absorb_bn.measure_perC.adaquant.csv"],
+            // step 4 python main.py 
+            // "args": ["--model", "mobilenet_v2", "--evaluate", "results/mobilenet_v2_w8a8.adaquant/mobilenet_v2.absorb_bn.measure_perC.adaquant", "--model-config", "{'batch_norm': False,'measure': False, 'perC': True, 'depth': 50}", "-b", "100", "--dataset", "imagenet_calib", "--datasets-dir", "/workspace/develop/dataset", "--int8_opt_model_path", "results/mobilenet_v2_w8a8.adaquant/mobilenet_v2.absorb_bn.measure_perC.adaquant", "--int4_opt_model_path", "results/mobilenet_v2_w4a8.adaquant/mobilenet_v2.absorb_bn.measure_perC.adaquant", "--names-sp-layers", "--per-layer", "--nbits_act", "8"],
+            // step 5 python mpip_compression_pytorch_multi.py 
+            // "args": ["--model", "mobilenet_v2", "--model_vis", "mobilenet_v2", "--ip_method", "loss", "--precisions", "8;8;4;8", "--layer_by_layer_files", "results/mobilenet_v2_w8a8.adaquant/mobilenet_v2.absorb_bn.measure_perC.adaquant.per_layer_accuracy.A8.W4.csv", "--min_compression", "0.13", "--max_compression", "0.25", "--datasets-dir", "/workspace/develop/dataset"],
+
+        }
+    ]
+}
