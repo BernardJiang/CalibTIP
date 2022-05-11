@@ -774,15 +774,16 @@ def main_worker(args):
             mse_df.loc[i, 'kurt_w'] = kurt_w
             mse_df.loc[i, 'in_shape'] = str(cached_input_output[layer][0][0].shape)
             mse_df.loc[i, 'out_shape'] = str(cached_input_output[layer][0][1].shape)
-            if len(scale_map[layer.name]):
-                #update the next layer's input scale
-                for layername in scale_map[layer.name]:
-                    for name, m in model.named_modules():
-                        if name==layername:
-                            with torch.no_grad():
-                                #update its input scale
-                                m.quantize_input.running_scale.copy_(layer.quantize_weight.running_scale.reshape(m.quantize_input.running_scale.shape))
-                                print(f"layer {name}'s input scale is updated")
+            
+            # if len(scale_map[layer.name]):
+            #     #update the next layer's input scale
+            #     for layername in scale_map[layer.name]:
+            #         for name, m in model.named_modules():
+            #             if name==layername:
+            #                 with torch.no_grad():
+            #                     #update its input scale
+            #                     m.quantize_input.running_scale.copy_(layer.quantize_weight.running_scale.reshape(m.quantize_input.running_scale.shape))
+            #                     print(f"layer {name}'s input scale is updated")
                 
 
             # print(__file__, get_linenumber())
