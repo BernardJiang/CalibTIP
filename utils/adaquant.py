@@ -79,6 +79,7 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
         print("8-bit layer should use smaller LR =", lr_qpw )
         
 
+    # opt_w = torch.optim.AdamW([layer.weight], lr=lr_w)
     opt_w = Lamb([layer.weight], lr=lr_w, weight_decay=weight_decay, betas=(.9, .999), adam=False)
     # scheduler_w = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_w,
                                                         #  min_lr=1e-8,
@@ -88,6 +89,7 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     # scheduler_w = torch.optim.lr_scheduler.StepLR(opt_w, step_size=300, gamma=0.33, verbose=False) 
         
     if hasattr(layer, 'bias') and layer.bias is not None: 
+        # opt_bias = torch.optim.AdamW([layer.bias], lr=lr_b)
         opt_bias = Lamb([layer.bias], lr=lr_b, weight_decay=weight_decay, betas=(.9, .999), adam=False)
         # scheduler_bias = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_bias,
                                                         #  min_lr=1e-8,
