@@ -629,13 +629,12 @@ def main_worker(args):
     check_memory_usage()
 
     if args.evaluate or args.resume:
-        from utils.layer_sensativity import search_replace_layer , extract_save_quant_state_dict, search_replace_layer_from_dict
+        from utils.layer_sensativity import search_replace_layer , extract_save_quant_state_dict, search_replace_layer_from_dict, search_replace_layer_name
         if args.layers_precision_dict is not None:
             args.layers_precision_dict = args.layers_precision_dict.replace('\\', '')
             model = search_replace_layer_from_dict(model, ast.literal_eval(args.layers_precision_dict))
         else:
-            model = search_replace_layer(model, args.names_sp_layers, num_bits_activation=args.nbits_act,
-                                         num_bits_weight=args.nbits_weight)
+            model = search_replace_layer_name(model, args.names_sp_layers)
         scale_map = {}    
         if args.evaluate.endswith("measure_perC"):
             jsonfile = args.evaluate + '.scalemap.json'
