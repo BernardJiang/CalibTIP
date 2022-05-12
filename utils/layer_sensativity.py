@@ -63,7 +63,7 @@ def search_replace_layer_from_json(model, onnx_model, layers_precision_json, nam
             new_prec = layers_precision_json[layer_name]
 
             wbits = new_prec["weight_bitwidth"]
-            dbits = new_prec["input_datapath_bitwidth"][0]
+            dbits = new_prec["input_datapath_bitwidth"]
             bbits = new_prec["bias_bitwidth"]
 
             print("Json : Layer {}, precision switch from w{}a{} to w{}a{}b{}.".format(
@@ -88,10 +88,10 @@ def search_replace_layer_from_json(model, onnx_model, layers_precision_json, nam
                 weightoutshape = (-1, 1)
                 weightinshape = (1, -1)
                 
-            data_scale = torch.tensor(new_prec["input_scale"][0]).reshape(inshape).to(dev)
+            data_scale = torch.tensor(new_prec["input_scale"]).reshape(inshape).to(dev)
             data_qmin = torch.tensor(-(2.**(dbits-1) - 1.)).to(dev)
             data_qmax = torch.tensor(2.**(dbits-1) - 1.).to(dev)
-            data_two_power_of_radix = torch.tensor(2.** np.array(new_prec["input_datapath_radix"][0])).reshape(inshape).to(dev)
+            data_two_power_of_radix = torch.tensor(2.** np.array(new_prec["input_datapath_radix"])).reshape(inshape).to(dev)
             
             # scale_out = np.array(new_prec["output_scale"]).reshape(weightoutshape)
             # scale_in  = np.array(new_prec["input_scale"][0]).reshape(weightinshape)

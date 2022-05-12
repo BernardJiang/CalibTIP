@@ -252,12 +252,12 @@ def preprocess_config(precision_config):
                 precision_config_result[newkey]={'bias_bitwidth': value['bias_bitwidth'],
                                                  'bias_name': value['bias_bitwidth'],
                                                  'bias_radix': value['bias_radix'],
-                                                 'input_scale': value['input_scale'],
+                                                 'input_scale': value['input_scale'][0],
                                                  'output_scale': value['output_scale'],
                                                  'weight_bitwidth': value['weight_bitwidth'],
                                                  'weight_radix': value['weight_radix'],
-                                                 'input_datapath_bitwidth': value["input_datapath_bitwidth"],
-                                                 'input_datapath_radix': value['input_datapath_radix'],
+                                                 'input_datapath_bitwidth': value["input_datapath_bitwidth"][0],
+                                                 'input_datapath_radix': value['input_datapath_radix'][0],
                                                  }
                         
     return precision_config_result
@@ -269,7 +269,7 @@ def create_scale_mapping(precision_config):
         for k,v in precision_config.items():
             if key == k: 
                 continue
-            if value["output_scale"] == v["input_scale"][0]:
+            if value["output_scale"] == v["input_scale"]:
                 scale_map[key].append(k)
                                         
     return scale_map
