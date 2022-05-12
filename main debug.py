@@ -249,7 +249,16 @@ def preprocess_config(precision_config):
                     # print("key: " + key + ". k = " + k + " . v=" + value[k][0])
             if flag:
                 newkey = value["weight_name"][0].replace(".weight","")
-                precision_config_result[newkey]=value                       
+                precision_config_result[newkey]={'bias_bitwidth': value['bias_bitwidth'],
+                                                 'bias_name': value['bias_bitwidth'],
+                                                 'bias_radix': value['bias_radix'],
+                                                 'input_scale': value['input_scale'],
+                                                 'output_scale': value['output_scale'],
+                                                 'weight_bitwidth': value['weight_bitwidth'],
+                                                 'weight_radix': value['weight_radix'],
+                                                 'input_datapath_bitwidth': value["input_datapath_bitwidth"],
+                                                 'input_datapath_radix': value['input_datapath_radix'],
+                                                 }
                         
     return precision_config_result
 
@@ -591,7 +600,7 @@ def main_worker(args):
                                       'cutout': {'holes': 1, 'length': 16} if args.cutout else None,
                                       'inception_prep': 'inception' in args.model})
     if args.names_sp_layers is None and args.layers_precision_dict is None:
-        args.names_sp_layers =  [key[:-7] for key in model.state_dict().keys() if 'weight' in key and 'running' not in key and ('conv' in key or 'downsample.0' in key or 'fc' in key)]
+        args.names_sp_layers =  [key[:-7] for key in model.state_dict().keys() if 'weight' in key and 'quantize_' not in key and ('conv' in key or 'downsample.0' in key or 'fc' in key)]
         if args.keep_first_last: args.names_sp_layers=[name for name in args.names_sp_layers if name!='conv1' and name!='fc' and name != 'Conv2d_1a_3x3.conv']
         args.names_sp_layers = [k for k in args.names_sp_layers if 'downsample' not in k] if args.ignore_downsample else args.names_sp_layers
         if args.num_sp_layers == 0 and not args.keep_first_last:

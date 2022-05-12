@@ -25,61 +25,14 @@ def search_replace_layer(model,all_names,num_bits_activation,num_bits_weight,nam
         layer_name=name_model+'.'+modules_names[i] if name_model !='' else name_model+modules_names[i]
         m.name=layer_name
         if layer_name in all_names:
+            print("Layer {}, precision switch from w{}a{} to w{}a{}.".format(
+                layer_name, m.num_bits_weight, m.num_bits, num_bits_weight, num_bits_activation))
+
             m.num_bits=num_bits_activation
             m.num_bits_weight = num_bits_weight
             m.quantize_input.num_bits=num_bits_activation
             m.quantize_weight.num_bits=num_bits_weight
-            
-            #new implemention:
-            # if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
-            #     dev = next(m.parameters()).device
-            #     inshape = (-1, 1, 1)
-            #     weightoutshape = (-1, 1, 1, 1)
-            #     weightinshape = (1, -1, 1, 1)
-            #     if isinstance(m, nn.Conv2d):
-            #         in_channels = m.in_channels 
-            #         out_channels = m.out_channels 
-            #         if m.groups != 1: 
-            #             weightinshape = (-1, 1, 1, 1)
-            #     else: # isinstance(m, nn.Linear):
-            #         in_channels = m.in_features
-            #         out_channels = m.out_features
-            #         inshape = (-1)
-            #         weightoutshape = (-1, 1)
-            #         weightinshape = (1, -1)
-                
  
-            #     data_scale = torch.ones(in_channels).reshape(inshape).to(dev)
-            #     data_qmin = torch.tensor(-(2.**(m.num_bits-1) - 1.)).to(dev)
-            #     data_qmax = torch.tensor(2.**(m.num_bits-1) - 1.).to(dev)
-            #     data_two_power_of_radix = torch.ones(in_channels).reshape(inshape).to(dev)
-                
-            #     weight_qmin = torch.tensor(-(2.**(num_bits_weight-1) - 1.)).to(dev)
-            #     weight_qmax = torch.tensor(2.**(num_bits_weight-1) - 1.).to(dev)
-            #     weight_two_power_of_radix = torch.ones(out_channels).reshape(weightoutshape).to(dev)
-    
-            #     bias_scale = torch.ones(out_channels).to(dev)
-            #     bias_qmin = torch.tensor(-(2.**(m.num_bits-1) - 1.)).to(dev)
-            #     bias_qmax = torch.tensor(2.**(m.num_bits-1) - 1.).to(dev)
-            #     bias_two_power_of_radix = torch.ones(out_channels).to(dev)
-  
-            #     m.quantize_input.register_parameter('running_scale', nn.Parameter(data_scale))
-            #     m.quantize_input.register_parameter('qmin',  nn.Parameter(data_qmin))
-            #     m.quantize_input.register_parameter('qmax',  nn.Parameter(data_qmax))
-            #     m.quantize_input.register_parameter('two_power_of_radix',  nn.Parameter(data_two_power_of_radix))
-     
-            #     m.quantize_weight.register_parameter('qmin',  nn.Parameter(weight_qmin))
-            #     m.quantize_weight.register_parameter('qmax',  nn.Parameter(weight_qmax))
-            #     m.quantize_weight.register_parameter('two_power_of_radix',  nn.Parameter(weight_two_power_of_radix))
-     
-            #     m.quantize_weight.register_parameter('running_scale', nn.Parameter(bias_scale))
-            #     m.quantize_weight.register_parameter('bias_qmin',  nn.Parameter(bias_qmin))
-            #     m.quantize_weight.register_parameter('bias_qmax',  nn.Parameter(bias_qmax))
-            #     m.quantize_weight.register_parameter('bias_two_power_of_radix',  nn.Parameter(bias_two_power_of_radix))
-     
-            print("Layer {}, precision switch from w{}a{} to w{}a{}.".format(
-                layer_name, m.num_bits_weight, m.num_bits, num_bits_weight, num_bits_activation))
-  
         search_replace_layer(m,all_names,num_bits_activation,num_bits_weight,layer_name)
     return model
 
@@ -112,6 +65,10 @@ def search_replace_layer_from_json(model, onnx_model, layers_precision_json, nam
             wbits = new_prec["weight_bitwidth"]
             dbits = new_prec["input_datapath_bitwidth"][0]
             bbits = new_prec["bias_bitwidth"]
+
+            print("Json : Layer {}, precision switch from w{}a{} to w{}a{}b{}.".format(
+                layer_name, m.num_bits_weight, m.num_bits, wbits, dbits, bbits))
+                        
             m.num_bits=dbits
             m.num_bits_weight = wbits
             m.quantize_input.num_bits = dbits
@@ -162,10 +119,7 @@ def search_replace_layer_from_json(model, onnx_model, layers_precision_json, nam
             m.quantize_weight.register_parameter('bias_qmin',  nn.Parameter(bias_qmin))
             m.quantize_weight.register_parameter('bias_qmax',  nn.Parameter(bias_qmax))
             m.quantize_weight.register_parameter('bias_two_power_of_radix',  nn.Parameter(bias_two_power_of_radix))
-            
-            print("Json : Layer {}, precision switch from w{}a{} to w{}a{}.".format(
-                layer_name, m.num_bits_weight, m.num_bits, wbits, dbits))
-            
+           
         search_replace_layer_from_json(m,onnx_model, layers_precision_json, layer_name)
     return model
 
