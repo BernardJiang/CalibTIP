@@ -97,8 +97,9 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
                                                         #  verbose=False,
                                                         #  patience=10)
 
-    # opt_scale = Lamb([layer.quantize_weight.running_scale], lr=lr_qpw, weight_decay=weight_decay, betas=(.9, .999), adam=False)
-                    # {'params': layer.quantize_input.running_scale},
+    opt_scale = Lamb([layer.quantize_weight.running_scale], lr=lr_qpw, weight_decay=weight_decay, betas=(.9, .999), adam=False)
+    opt_scale_input = Lamb([layer.quantize_input.running_scale], lr=lr_qpw, weight_decay=weight_decay, betas=(.9, .999), adam=False)
+    
     # scheduler_out_scale = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_out_scale,
                                                         #  min_lr=1e-8,
                                                         #  factor=0.9,
@@ -139,14 +140,16 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
         opt_w.zero_grad()
         if hasattr(layer, 'bias') and layer.bias is not None: 
             opt_bias.zero_grad()
-        # opt_scale.zero_grad()
+        opt_scale.zero_grad()
+        opt_scale_input.zero_grad()
         loss.backward()
         opt_w.step()
         # scheduler_w.step(loss)
         if hasattr(layer, 'bias') and layer.bias is not None: 
             opt_bias.step()
             # scheduler_bias.step(loss)
-        # opt_scale.step()
+        opt_scale.step()
+        opt_scale_input.step()
         # scheduler_w.step()
         # scheduler_scale.step()
         # scheduler_in_scale.step(loss)
