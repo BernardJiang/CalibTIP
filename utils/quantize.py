@@ -107,7 +107,8 @@ def get_quantized_model_and_params(model, dequantflag=True, qparams = {}):
                     dqw = qw
                 m.weight.copy_(dqw)
                 
-                scales = weight_scale.flatten().tolist()
+                # scales = weight_scale.flatten().tolist()
+                scales = m.quantize_input.running_scale.flatten().tolist()
                 num_bits = (torch.log2(m.quantize_weight.qmax + 1) + 1).flatten().tolist()
                 radixes = torch.log2(m.quantize_weight.two_power_of_radix).flatten().tolist()
                 qparams[m.name+'.weight'] = {                        
