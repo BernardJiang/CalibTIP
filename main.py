@@ -243,8 +243,17 @@ def preprocess_config(precision_config):
                     # print("key: " + key + ". k = " + k + " . v=" + value[k][0])
             if flag:
                 newkey = value["weight_name"][0].replace(".weight","")
-                precision_config_result[newkey]=value                       
-                        
+                precision_config_result[newkey]={'bias_bitwidth': value['bias_bitwidth'],
+                                                 'bias_name': value['bias_bitwidth'],
+                                                 'bias_radix': value['bias_radix'],
+                                                 'input_scale': value['input_scale'][0],
+                                                 'output_scale': value['output_scale'],
+                                                 'weight_bitwidth': value['weight_bitwidth'],
+                                                 'weight_radix': value['weight_radix'],
+                                                 'input_datapath_bitwidth': value["input_datapath_bitwidth"][0],
+                                                 'input_datapath_radix': value['input_datapath_radix'][0],
+                                                 }                        
+    
     return precision_config_result
 
 def create_scale_mapping(precision_config):
@@ -254,7 +263,7 @@ def create_scale_mapping(precision_config):
         for k,v in precision_config.items():
             if key == k: 
                 continue
-            if value["output_scale"] == v["input_scale"][0]:
+            if value["output_scale"] == v["input_scale"]:
                 scale_map[key].append(k)
                                         
     return scale_map
@@ -295,7 +304,7 @@ def get_name_mapping(precision_config):
 #         json.dump(new_qparams, fp, indent=4)
 
 def save2onnx(model_orig, img, onnx_export_file, disable_quantization=False):
-
+    # return
     try:
         import onnx
         
@@ -564,7 +573,7 @@ def main_worker(args):
                                       'cutout': {'holes': 1, 'length': 16} if args.cutout else None,
                                       'inception_prep': 'inception' in args.model})
     if args.names_sp_layers is None and args.layers_precision_dict is None:
-        args.names_sp_layers =  [key[:-7] for key in model.state_dict().keys() if 'weight' in key and 'running' not in key and ('conv' in key or 'downsample.0' in key or 'fc' in key)]
+        args.names_sp_layers =  [key[:-7] for key in model.state_dict().keys() if 'weight' in key and 'quantize_' not in key and ('conv' in key or 'downsample.0' in key or 'fc' in key)]
         if args.keep_first_last: args.names_sp_layers=[name for name in args.names_sp_layers if name!='conv1' and name!='fc' and name != 'Conv2d_1a_3x3.conv']
         args.names_sp_layers = [k for k in args.names_sp_layers if 'downsample' not in k] if args.ignore_downsample else args.names_sp_layers
         if args.num_sp_layers == 0 and not args.keep_first_last:
@@ -589,13 +598,12 @@ def main_worker(args):
                                     'num_workers': args.workers, 'pin_memory': True, 'drop_last': False})
 
     if args.evaluate or args.resume:
-        from utils.layer_sensativity import search_replace_layer , extract_save_quant_state_dict, search_replace_layer_from_dict
+        from utils.layer_sensativity import search_replace_layer , extract_save_quant_state_dict, search_replace_layer_from_dict, search_replace_layer_name
         if args.layers_precision_dict is not None:
             args.layers_precision_dict = args.layers_precision_dict.replace('\\', '')
             model = search_replace_layer_from_dict(model, ast.literal_eval(args.layers_precision_dict))
         else:
-            model = search_replace_layer(model, args.names_sp_layers, num_bits_activation=args.nbits_act,
-                                         num_bits_weight=args.nbits_weight)
+            model = search_replace_layer_name(model, args.names_sp_layers)
         scale_map = {}    
         if args.evaluate.endswith("measure_perC"):
             jsonfile = args.evaluate + '.scalemap.json'
@@ -616,7 +624,7 @@ def main_worker(args):
             with open(jsonfile, 'w') as outfile:
                 json.dump(precision_config, outfile, indent=4)
             scale_map = create_scale_mapping(precision_config)
-            jsonfile = args.evaluate + '.measure_perC.scalemap.json'
+            jsonfile = args.evaluate + '.w{}a{}.measure_perC.scalemap.json'.format(args.nbits_weight, args.nbits_act)
             with open(jsonfile, 'w') as outfile:
                 json.dump(scale_map, outfile, indent=4)
             
@@ -982,7 +990,7 @@ def main_worker(args):
             logging.info("Train:")
             logging.info(results)
 
-            filename = args.evaluate+'.measure'
+            filename = args.evaluate+'.w{}a{}.measure'.format(args.nbits_weight, args.nbits_act)
             if 'perC' in args.model_config: filename += '_perC'
             torch.save(model.state_dict(),filename)
             input_image = torch.zeros(1,3,224, 224).cuda()
