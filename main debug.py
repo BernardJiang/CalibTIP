@@ -869,6 +869,8 @@ def main_worker(args):
             logging.info("Train:")
             logging.info(calib_results)
             new_precision = "w{}a{}".format(args.nbits_weight, args.nbits_act)
+            if layer_idx == 0 or layer_idx == len(args.names_sp_layers) -1 : 
+                new_precision = "w8a8" #head and tail are always w8a8
             # MACs = (K^2) * C_in * H_out * W_out * C_out
             shapestr = mse_df.loc[mse_df['name'] == layer, 'shape'].values[0]
             shapelist = [int(s) for s in shapestr.replace('[', ' ').replace(']', ' ').replace(',', ' ').split(' ') if s.isdigit()]
