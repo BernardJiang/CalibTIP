@@ -869,8 +869,8 @@ def main_worker(args):
             logging.info("Train:")
             logging.info(calib_results)
             new_precision = "w{}a{}".format(args.nbits_weight, args.nbits_act)
-            if layer_idx == 0 or layer_idx == len(args.names_sp_layers) -1 : 
-                new_precision = "w8a8" #head and tail are always w8a8
+
+
             # MACs = (K^2) * C_in * H_out * W_out * C_out
             shapestr = mse_df.loc[mse_df['name'] == layer, 'shape'].values[0]
             shapelist = [int(s) for s in shapestr.replace('[', ' ').replace(']', ' ').replace(',', ' ').split(' ') if s.isdigit()]
@@ -888,18 +888,18 @@ def main_worker(args):
             else:
                 MACs = 0
                 logging.error("Can't process MACs for not 4,2 cases")
-            per_layer_results[layer] = {'base precision': 'w8a8', 'replaced precision': new_precision, 'replaced layer': layer, 'accuracy': calib_results['prec1'] , 'loss': calib_results['loss'], 'Parameters Size [Elements]':  model.state_dict()[layer+'.weight'].numel() , 'MACs': MACs}
+            
+            saved_numel = model.state_dict()[layer+'.weight'].numel()
+            saved_MACs = MACs            
+            #HACK!
+            if layer_idx == 0 or layer_idx == len(args.names_sp_layers) -1 : #head and tail are always w8a8
+                new_precision = "w8a8" 
+                saved_numel = 0
+                saved_MACs = 0                
+                                
+            per_layer_results[layer] = {'base precision': 'w8a8', 'replaced precision': new_precision, 'replaced layer': layer, 'accuracy': calib_results['prec1'] , 'loss': calib_results['loss'], 'Parameters Size [Elements]':  saved_numel , 'MACs': saved_MACs}
         
         torch.save(per_layer_results,args.evaluate+'.per_layer_accuracy.A'+str(args.nbits_act)+'.W'+str(args.nbits_weight))
-        
-        #HACK!
-        if 'conv1' in per_layer_results: # for resnet50
-            per_layer_results['conv1']['Parameters Size [Elements]'] = 1
-            per_layer_results['conv1']['MACs'] = 1
-        elif "features.0.0" in per_layer_results: #for mobilenet v2
-            per_layer_results["features.0.0"]['Parameters Size [Elements]'] = 1
-            per_layer_results["features.0.0"]['MACs'] = 1    
-        #HACK!     
         
         all_8_dict = {'base precision': 'w8a8', 'replaced precision': 'w8a8', 'replaced layer': '-', 'accuracy': calib_all_8_results['prec1'] , 'loss': calib_all_8_results['loss'], 'Parameters Size [Elements]':  '-', 'MACs': '-'}
         columns = [key for key in all_8_dict]
