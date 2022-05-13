@@ -41,6 +41,13 @@ def search_replace_layer_name(model,all_names,name_model=''):
         modules_names=[key for key in model._modules.keys()]
         layer_name=name_model+'.'+modules_names[i] if name_model !='' else name_model+modules_names[i]
         m.name=layer_name
+        # for display correct bitwidth.
+        if layer_name in all_names:
+            m.quantize_input.num_bits = int(torch.log2(m.quantize_input.qmax+1).item()+1)
+            m.quantize_weight.num_bits = int(torch.log2(m.quantize_weight.qmax+1).item()+1)            
+            m.num_bits = m.quantize_input.num_bits
+            m.num_bits_weight = m.quantize_weight.num_bits
+
         # print("Assigned layer name {}.".format(layer_name))
         search_replace_layer_name(m, all_names, layer_name)
     return model
