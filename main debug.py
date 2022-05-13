@@ -680,7 +680,7 @@ def main_worker(args):
         # '.quantize_input1.running_zero_point', '.quantize_input1.running_range',
         #  '.quantize_input2.running_zero_point', '.quantize_input2.running_range']        
     if args.adaquant:
-        writer = SummaryWriter()
+        writer = SummaryWriter(log_dir="develop/runs")
         def Qhook(name,module, input, output):
             if module not in cached_qinput:
                 cached_qinput[module] = []
