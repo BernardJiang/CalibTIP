@@ -309,8 +309,9 @@ model_vis = args.model_vis
 if args.do_not_use_adaquant:
     workdirs = [os.path.join(args.results_dir, model_vis + '_w{}a{}'.format(w1, a1)) for w1,a1 in grouper(2, precisions)]
 else:
-    workdirs = [os.path.join(args.results_dir, model_vis + '_w{}a{}.adaquant'.format(w1, a1)) for w1,a1 in grouper(2, precisions)]
-eval_dir = os.path.join(workdirs[0], model + '.absorb_bn')
+    # workdirs = [os.path.join(args.results_dir, model_vis + '_w{}a{}.adaquant'.format(w1, a1)) for w1,a1 in grouper(2, precisions)]
+    workdirs = os.path.join(args.results_dir, model_vis + '.adaquant')
+eval_dir = os.path.join(workdirs, model + '.absorb_bn')
 
 perC=True
 num_sp_layers=0
@@ -318,7 +319,7 @@ model_config = {'batch_norm': False,'measure': False, 'perC': perC}
 if model_vis=='resnet18':
     model_config['depth'] = 18
 
-output_fname = os.path.join(workdirs[0], 'IP_{}_{}{}.txt'.format(model_vis, ip_method, args.suffix))
+output_fname = os.path.join(workdirs, 'IP_{}_{}{}.txt'.format(model_vis, ip_method, args.suffix))
 
 eval_dict = {'model': model,
              'evaluate': eval_dir,
@@ -335,7 +336,7 @@ eval_dict = {'model': model,
 if args.do_not_use_adaquant:
     eval_dict['opt_model_paths'] = [os.path.join(dd, model + '.absorb_bn.measure_perC') for dd in workdirs]
 else:
-    eval_dict['opt_model_paths'] = [os.path.join(dd, model + '.absorb_bn.measure_perC.adaquant') for dd in workdirs]
+    eval_dict['opt_model_paths'] = [os.path.join(workdirs, model + '.absorb_bn.w{}a{}.measure_perC.adaquant'.format(w1,a1)) for w1,a1 in grouper(2, precisions)]
 
 if args.eval_on_train:
     eval_dict['eval_on_train'] = True
