@@ -310,7 +310,7 @@ def get_name_mapping(precision_config):
 #         json.dump(new_qparams, fp, indent=4)
 
 def save2onnx(model_orig, img, onnx_export_file, disable_quantization=False):
-    return
+    # return
     try:
         import onnx
 
@@ -655,7 +655,7 @@ def main_worker(args):
             with open(jsonfile, 'w') as outfile:
                 json.dump(precision_config, outfile, indent=4)
             scale_map = create_scale_mapping(precision_config)
-            jsonfile = args.evaluate + '.measure_perC.scalemap.json'
+            jsonfile = args.evaluate + '.w{}a{}.measure_perC.scalemap.json'.format(args.nbits_weight, args.nbits_act)
             with open(jsonfile, 'w') as outfile:
                 json.dump(scale_map, outfile, indent=4)
             
@@ -1059,7 +1059,7 @@ def main_worker(args):
             logging.info("Train:")
             logging.info(results)
 
-            filename = args.evaluate+'.measure'
+            filename = args.evaluate+'.w{}a{}.measure'.format(args.nbits_weight, args.nbits_act)
             if 'perC' in args.model_config: filename += '_perC'
             torch.save(model.state_dict(),filename)
             input_image = torch.zeros(1,3,224, 224).cuda()
