@@ -663,6 +663,7 @@ def main_worker(args):
         # onnx_model = onnx.load(onnx_filestr)
         # onnx.checker.check_model(onnx_model) 
         # print(onnx.helper.printable_graph(onnx_model.graph))
+        onnx_model = None
         model = search_replace_layer_from_json(model, onnx_model, precision_config)
     
     print("Before adaquant")    
