@@ -8,7 +8,7 @@ if [ "$5" = True ]; then
     export adaquant_suffix='.adaquant'
 fi
 export resdir=/workspace/develop/CalibTIP/results
-export workdir=${model_vis}_w$nbits_weight'a'$nbits_act$adaquant_suffix
+export workdir=${model_vis}$adaquant_suffix
 export perC=True 
 export num_sp_layers=-1
 export perC_suffix=''
@@ -32,5 +32,5 @@ echo "step 3: "
   if [ -n "$7" ]; then 
     seq_adaquant_flag='--seq_adaquant'
   fi
-  python main.py --optimize-weights  --nbits_weight $nbits_weight --nbits_act $nbits_act  --num-sp-layers $num_sp_layers  --model $model -b 32 --evaluate $resdir/$workdir/$model.absorb_bn.measure$perC_suffix --model-config "{'batch_norm': False,'measure': False, 'perC': $perC}" --dataset imagenet_calib --datasets-dir $datasets_dir --adaquant --res_log $resdir/$workdir/$model.absorb_bn.measure$perC_suffix.adaquant.csv $seq_adaquant_flag
+  python main.py --optimize-weights  --nbits_weight $nbits_weight --nbits_act $nbits_act  --num-sp-layers $num_sp_layers  --model $model -b 32 --evaluate $resdir/$workdir/$model.absorb_bn.w$nbits_weight'a'$nbits_act.measure$perC_suffix --model-config "{'batch_norm': False,'measure': False, 'perC': $perC}" --dataset imagenet_calib --datasets-dir $datasets_dir --adaquant --res_log $resdir/$workdir/$model.absorb_bn.w$nbits_weight'a'$nbits_act.measure$perC_suffix.adaquant.csv $seq_adaquant_flag
 fi

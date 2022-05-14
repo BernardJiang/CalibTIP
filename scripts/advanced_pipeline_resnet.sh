@@ -1,7 +1,7 @@
 # rm results
 # ln -sf ../results.backup/results.20211221.parallel results
-sh scripts/adaquant.sh resnet resnet50 4 8 True resnet_adaquant.piano.kdp530.scaled.onnx.json
-sh scripts/adaquant.sh resnet resnet50 8 8 True resnet_adaquant.piano.kdp530.scaled.onnx.json
+sh scripts/adaquant.sh resnet resnet50 4 8 True resnet_adaquant.piano.kdp530.scaled.w4.onnx.json
+sh scripts/adaquant.sh resnet resnet50 8 8 True resnet_adaquant.piano.kdp530.scaled.w8.onnx.json
 sh scripts/integer-programing.sh resnet resnet50 4 8 8 8 50 loss True
 
 # # Uncomment to run first configuration only

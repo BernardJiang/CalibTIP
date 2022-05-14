@@ -21,18 +21,20 @@ export perC_suffix=''
 if [ "$perC" = True ]; then
     export perC_suffix='_perC'
 fi
-export workdir_m1=${model_vis}_w$nbits_weight_m1'a'$nbits_act_m1$adaquant_suffix
-export workdir_m2=${model_vis}_w$nbits_weight_m2'a'$nbits_act_m2$adaquant_suffix
+
+export workdir=${model_vis}$adaquant_suffix
+# export workdir_m1=${model_vis}_w$nbits_weight_m1'a'$nbits_act_m1$adaquant_suffix
+# export workdir_m2=${model_vis}_w$nbits_weight_m2'a'$nbits_act_m2$adaquant_suffix
 
 export num_sp_layers=-1
 export depth=${7:-50}
 export loss=${8:-'loss'}
-export layer_by_layer=results/$workdir_m2/$model.absorb_bn.measure$perC_suffix$adaquant_suffix.per_layer_accuracy.A$nbits_act_m1.W$nbits_weight_m1.csv
+export layer_by_layer=results/$workdir/$model.absorb_bn.w$nbits_weight_m2'a'$nbits_act_m2.measure$perC_suffix$adaquant_suffix.per_layer_accuracy.A$nbits_act_m1.W$nbits_weight_m1.csv
 
 #Extract per layer loss delta
 echo "step 4"
 # echo python main.py --model $model --evaluate results/$workdir_m2/$model.absorb_bn'.measure'$perC_suffix$adaquant_suffix --model-config "{'batch_norm': False,'measure': False, 'perC': $perC, 'depth': $depth}" -b 100 --dataset imagenet_calib --datasets-dir $datasets_dir --int8_opt_model_path results/$workdir_m2/$model.absorb_bn'.measure'$perC_suffix$adaquant_suffix --int4_opt_model_path results/$workdir_m1/$model.absorb_bn'.measure'$perC_suffix$adaquant_suffix --names-sp-layers '' --per-layer --nbits_act $nbits_act_m1
-python main.py --model $model --evaluate results/$workdir_m2/$model.absorb_bn'.measure'$perC_suffix$adaquant_suffix --model-config "{'batch_norm': False,'measure': False, 'perC': $perC, 'depth': $depth}" -b 100 --dataset imagenet_calib --datasets-dir $datasets_dir --int8_opt_model_path results/$workdir_m2/$model.absorb_bn'.measure'$perC_suffix$adaquant_suffix --int4_opt_model_path results/$workdir_m1/$model.absorb_bn'.measure'$perC_suffix$adaquant_suffix --names-sp-layers '' --per-layer --nbits_act $nbits_act_m1
+python main.py --model $model --evaluate results/$workdir/$model.absorb_bn.w$nbits_weight_m2'a'$nbits_act_m2'.measure'$perC_suffix$adaquant_suffix --model-config "{'batch_norm': False,'measure': False, 'perC': $perC, 'depth': $depth}" -b 100 --dataset imagenet_calib --datasets-dir $datasets_dir --int8_opt_model_path results/$workdir/$model.absorb_bn.w$nbits_weight_m2'a'$nbits_act_m2'.measure'$perC_suffix$adaquant_suffix --int4_opt_model_path results/$workdir/$model.absorb_bn.w$nbits_weight_m1'a'$nbits_act_m1'.measure'$perC_suffix$adaquant_suffix --names-sp-layers '' --per-layer --nbits_act $nbits_act_m1
 
 #Run IP algorithm to obtain best topology
 echo "step 5"
