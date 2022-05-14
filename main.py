@@ -628,8 +628,8 @@ def main_worker(args):
             with open(jsonfile, 'w') as outfile:
                 json.dump(scale_map, outfile, indent=4)
             
-        onnx_filestr = args.layers_precision_json.replace(".json", "")
-        onnx_model = onnx.load(onnx_filestr)
+        # onnx_filestr = args.layers_precision_json.replace(".json", "")
+        # onnx_model = onnx.load(onnx_filestr)
         # onnx.checker.check_model(onnx_model) 
         # print(onnx.helper.printable_graph(onnx_model.graph))
         model = search_replace_layer_from_json(model, onnx_model, precision_config)
