@@ -408,7 +408,7 @@ class QuantMeasure(nn.Module):
         self.reduce_dim = reduce_dim
         self.cal_qparams = cal_qparams
         
-        qmax = 2**(num_bits-1) - 1
+        qmax = 2**(num_bits-1) - 1.
 
         if weight_flag: # weight & bias
             # self.register_parameter('running_scale', nn.Parameter(torch.ones(*shape_measure)))
