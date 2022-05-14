@@ -792,7 +792,7 @@ def main_worker(args):
                             with torch.no_grad():
                                 #update its input scale
                                 m.quantize_input.running_scale.copy_(layer.quantize_weight.running_scale.reshape(m.quantize_input.running_scale.shape))
-                                print(f"layer {name}'s input scale is updated")
+                                # print(f"layer {name}'s input scale is updated")
                 
 
             # print(__file__, get_linenumber())
