@@ -408,24 +408,26 @@ class QuantMeasure(nn.Module):
         self.reduce_dim = reduce_dim
         self.cal_qparams = cal_qparams
         
-        if weight_flag:
+        qmax = 2**(num_bits-1) - 1
+
+        if weight_flag: # weight & bias
             # self.register_parameter('running_scale', nn.Parameter(torch.ones(*shape_measure)))
-            self.register_parameter('qmin',  nn.Parameter(torch.tensor(1.0)))
-            self.register_parameter('qmax',  nn.Parameter(torch.tensor(1.0)))
+            self.register_parameter('qmin',  nn.Parameter(torch.tensor(-qmax)))
+            self.register_parameter('qmax',  nn.Parameter(torch.tensor(qmax)))
             y = list(shape_measure)
             y[1] = 1
             x = tuple(y) 
             self.register_parameter('two_power_of_radix',  nn.Parameter(torch.ones(x)))
             self.register_parameter('running_scale', nn.Parameter(torch.ones((shape_measure[0]))))
-            self.register_parameter('bias_qmin',  nn.Parameter(torch.tensor(1.0)))
-            self.register_parameter('bias_qmax',  nn.Parameter(torch.tensor(1.0)))
+            self.register_parameter('bias_qmin',  nn.Parameter(torch.tensor(-qmax)))
+            self.register_parameter('bias_qmax',  nn.Parameter(torch.tensor(qmax)))
             self.register_parameter('bias_two_power_of_radix',  nn.Parameter(torch.ones(shape_measure[0])))
-        else:
+        else: #input 
             self.register_parameter('running_scale', nn.Parameter(torch.ones(*shape_measure[1:])))
-            self.register_parameter('qmin',  nn.Parameter(torch.tensor(1.0)))
-            self.register_parameter('qmax',  nn.Parameter(torch.tensor(1.0)))
-            self.register_parameter('two_power_of_radix',  nn.Parameter(torch.ones(*shape_measure[1:])))
-
+            self.register_parameter('qmin',  nn.Parameter(torch.tensor(-qmax)))
+            self.register_parameter('qmax',  nn.Parameter(torch.tensor(qmax)))
+            self.register_parameter('two_power_of_radix',  nn.Parameter(torch.ones(*shape_measure[1:])))       
+       
     def forward(self, input, qparams=None):
 
         if self.training or self.measure:
@@ -477,23 +479,25 @@ class QuantThUpdate(nn.Module):
         self.num_bits = num_bits
         self.per_ch_input = per_ch_input
         self.reduce_dim = reduce_dim
+        
+        qmax = 2**(num_bits-1) - 1.
 
         if weight_flag: # weight & bias
-            # self.register_parameter('scale', nn.Parameter(torch.ones(*shape_measure)))
-            self.register_parameter('qmin',  nn.Parameter(torch.tensor(1.0)))
-            self.register_parameter('qmax',  nn.Parameter(torch.tensor(1.0)))
+            # self.register_parameter('running_scale', nn.Parameter(torch.ones(*shape_measure)))
+            self.register_parameter('qmin',  nn.Parameter(torch.tensor(-qmax)))
+            self.register_parameter('qmax',  nn.Parameter(torch.tensor(qmax)))
             y = list(shape_measure)
             y[1] = 1
             x = tuple(y) 
             self.register_parameter('two_power_of_radix',  nn.Parameter(torch.ones(x)))
             self.register_parameter('running_scale', nn.Parameter(torch.ones((shape_measure[0]))))
-            self.register_parameter('bias_qmin',  nn.Parameter(torch.tensor(1.0)))
-            self.register_parameter('bias_qmax',  nn.Parameter(torch.tensor(1.0)))
+            self.register_parameter('bias_qmin',  nn.Parameter(torch.tensor(-qmax)))
+            self.register_parameter('bias_qmax',  nn.Parameter(torch.tensor(qmax)))
             self.register_parameter('bias_two_power_of_radix',  nn.Parameter(torch.ones(shape_measure[0])))
         else: #input 
             self.register_parameter('running_scale', nn.Parameter(torch.ones(*shape_measure[1:])))
-            self.register_parameter('qmin',  nn.Parameter(torch.tensor(1.0)))
-            self.register_parameter('qmax',  nn.Parameter(torch.tensor(1.0)))
+            self.register_parameter('qmin',  nn.Parameter(torch.tensor(-qmax)))
+            self.register_parameter('qmax',  nn.Parameter(torch.tensor(qmax)))
             self.register_parameter('two_power_of_radix',  nn.Parameter(torch.ones(*shape_measure[1:])))
             
 
