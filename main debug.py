@@ -97,7 +97,7 @@ parser.add_argument('--dist-backend', default='nccl', type=str,
                     help='distributed backend')
 parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
                     help='number of data loading workers (default: 8)')
-parser.add_argument('--epochs', default=90, type=int, metavar='N',
+parser.add_argument('--epochs', default=50, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=-1, type=int, metavar='N',
                     help='manual epoch number (useful on restarts). -1 for unset (will start at 0)')
@@ -386,10 +386,6 @@ def main_worker(args):
 
     args.distributed = args.local_rank >= 0 or args.world_size > 1
     
-    print(__file__, get_linenumber())
-    get_gpu_memory_map()
-    check_memory_usage()
-    
     if args.distributed:
         dist.init_process_group(backend=args.dist_backend, init_method=args.dist_init,
                                 world_size=args.world_size, rank=args.local_rank)
@@ -427,10 +423,6 @@ def main_worker(args):
     model = models.__dict__[args.model]
     dataset_type = 'imagenet' if args.dataset =='imagenet_calib' else args.dataset
     model_config = {'dataset': dataset_type}
-    
-    print(__file__, get_linenumber())
-    get_gpu_memory_map()
-    check_memory_usage()
     
     if args.model_config != '':
         if isinstance(args.model_config, dict):
@@ -503,10 +495,6 @@ def main_worker(args):
     num_parameters = sum([l.nelement() for l in model.parameters()])
     logging.info("number of parameters: %d", num_parameters)
 
-    print(__file__, get_linenumber())
-    get_gpu_memory_map()
-    check_memory_usage()
-
     # optionally resume from a checkpoint
     if args.evaluate:
         if not os.path.isfile(args.evaluate):
@@ -525,10 +513,7 @@ def main_worker(args):
             model.load_state_dict(checkpoint,strict=False)
             logging.info("loaded checkpoint '%s'",args.evaluate)
           
-    print(__file__, get_linenumber())
-    get_gpu_memory_map()
-    check_memory_usage()
-    
+
     if args.resume:
         checkpoint_file = args.resume
         if os.path.isdir(checkpoint_file):
@@ -557,11 +542,6 @@ def main_worker(args):
        criterion = nn.KLDivLoss(reduction='mean') 
     criterion.to(args.device, dtype)
     model.to(args.device, dtype)
-
-    print("Load the model")
-    print(get_linenumber())
-    get_gpu_memory_map()
-    check_memory_usage()
 
     # Batch-norm should always be done in float
     if 'half' in args.dtype:
@@ -623,10 +603,6 @@ def main_worker(args):
                           defaults={'datasets_path': args.datasets_dir, 'name': dataset_type, 'split': 'val', 'augment': False,
                                     'input_size': args.input_size, 'batch_size': args.eval_batch_size, 'shuffle': True,
                                     'num_workers': args.workers, 'pin_memory': True, 'drop_last': False})
-    print("Load the data")
-    print(__file__, get_linenumber())
-    get_gpu_memory_map()
-    check_memory_usage()
 
     if args.evaluate or args.resume:
         from utils.layer_sensativity import search_replace_layer , extract_save_quant_state_dict, search_replace_layer_from_dict, search_replace_layer_name
@@ -666,10 +642,6 @@ def main_worker(args):
         onnx_model = None
         model = search_replace_layer_from_json(model, onnx_model, precision_config)
     
-    print("Before adaquant")    
-    print(get_linenumber())
-    get_gpu_memory_map()
-    check_memory_usage()
 
     cached_input_output = {}
     quant_keys = ['.weight', '.bias', '.equ_scale',
@@ -737,12 +709,6 @@ def main_worker(args):
         logging.info("Val:")
         logging.info(val_results)
         
-        print("Before adaquant training")
-        print(__file__, get_linenumber())
-        get_gpu_memory_map()
-        check_memory_usage()
-        
-
         mse_df = pd.DataFrame(index=np.arange(len(cached_input_output)), columns=['name', 'bit', 'shape', 'mse_before', 'mse_after', 'in_shape', 'out_shape'])
         print_freq = 100
         better_layer_count = 0
@@ -761,15 +727,9 @@ def main_worker(args):
                 print("cashed quant Input%s"%layer.name)
                 cached_input_output[layer][0] = (cached_qinput[layer][0],cached_input_output[layer][0][1])
                 handler.remove()    
-            
-            # print(" ########################## Before training layer ", layer.name)
-            # print(__file__, get_linenumber())
-            # get_gpu_memory_map()
-            # check_memory_usage()
-       
             print("\nOptimize {}:{} for w{}a{} bit of shape {}".format(i, layer.name, layer.num_bits_weight, layer.num_bits, layer.weight.shape))
             mse_before, mse_after, snr_before, snr_after, kurt_in, kurt_w = \
-                optimize_layer(layer, cached_input_output[layer], args.optimize_weights, batch_size=args.batch_size, model_name=args.model, writer=writer)
+                optimize_layer(layer, cached_input_output[layer], args.optimize_weights, iters=args.epochs, batch_size=args.batch_size, model_name=args.model, writer=writer)
             # print("\nMSE before optimization: {:e}".format(mse_before))
             # print("MSE after  optimization: {:e}".format(mse_after))
             mse_df.loc[i, 'name'] = layer.name
@@ -783,6 +743,7 @@ def main_worker(args):
             mse_df.loc[i, 'kurt_w'] = kurt_w
             mse_df.loc[i, 'in_shape'] = str(cached_input_output[layer][0][0].shape)
             mse_df.loc[i, 'out_shape'] = str(cached_input_output[layer][0][1].shape)
+            mse_df.loc[i, 'epoches'] = args.epochs
             
             if len(scale_map[layer.name]):
                 #update the next layer's input scale
@@ -795,9 +756,6 @@ def main_worker(args):
                                 # print(f"layer {name}'s input scale is updated")
                 
 
-            # print(__file__, get_linenumber())
-            # get_gpu_memory_map()
-            # check_memory_usage()
             total_layer_count += 1
             if mse_after < mse_before:
                 better_layer_count +=1

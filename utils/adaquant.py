@@ -186,7 +186,7 @@ def adaquant(layer, cached_inps, cached_outs, test_inp, test_out, lr1=1e-4, lr2=
     return mse_before.item(), mse_after.item()
 
 
-def optimize_layer(layer, in_out, optimize_weights=False, batch_size=100, model_name=None, writer=None):
+def optimize_layer(layer, in_out, optimize_weights=False, iters=100, batch_size=100, model_name=None, writer=None):
 
     cached_inps = torch.cat([x[0] for x in in_out]).to(layer.weight.device)
     cached_outs = torch.cat([x[1] for x in in_out]).to(layer.weight.device)
@@ -214,7 +214,7 @@ def optimize_layer(layer, in_out, optimize_weights=False, batch_size=100, model_
         # get_gpu_memory_map()
         # check_memory_usage()
         relu_flag = relu_condition(layer.name)      
-        mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=500, batch_size=batch_size, lr1=1e-5, lr2=1e-4, relu=relu_flag, writer=writer) 
+        mse_before, mse_after = adaquant(layer, cached_inps, cached_outs, test_inp, test_out, iters=iters, batch_size=batch_size, lr1=1e-5, lr2=1e-4, relu=relu_flag, writer=writer) 
         mse_before_opt = mse_before
         print("\nMSE before adaquant: {:.2e}".format(mse_before))
         print("MSE after  adaquant: {:.2e}".format(mse_after))

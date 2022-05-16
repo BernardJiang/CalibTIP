@@ -721,7 +721,7 @@ def main_worker(args):
                 handler.remove()    
             print("\nOptimize {}:{} for w{}a{} bit of shape {}".format(i, layer.name, layer.num_bits_weight, layer.num_bits, layer.weight.shape))
             mse_before, mse_after, snr_before, snr_after, kurt_in, kurt_w = \
-                optimize_layer(layer, cached_input_output[layer], args.optimize_weights, batch_size=args.batch_size, model_name=args.model)
+                optimize_layer(layer, cached_input_output[layer], args.optimize_weights, iters=args.epochs, batch_size=args.batch_size, model_name=args.model)
             # print("\nMSE before optimization: {:e}".format(mse_before))
             # print("MSE after  optimization: {:e}".format(mse_after))
             mse_df.loc[i, 'name'] = layer.name
@@ -735,6 +735,7 @@ def main_worker(args):
             mse_df.loc[i, 'kurt_w'] = kurt_w
             mse_df.loc[i, 'in_shape'] = str(cached_input_output[layer][0][0].shape)
             mse_df.loc[i, 'out_shape'] = str(cached_input_output[layer][0][1].shape)
+            mse_df.loc[i, 'epoches'] = args.epochs
 
             if len(scale_map[layer.name]):
                 #update the next layer's input scale
